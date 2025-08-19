@@ -27,3 +27,6 @@ hosting.*.cache
 
 # env
 .env
+
+# vscode
+.vscode
