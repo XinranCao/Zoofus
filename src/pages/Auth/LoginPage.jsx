@@ -1,11 +1,16 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import AuthForm from "../../components/auth/AuthForm";
+import PasswordResetDialog from "../../components/auth/PasswordResetDialog";
+import { Button, Divider, Box } from "@mui/material";
+import { FcGoogle } from "react-icons/fc";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [resetOpen, setResetOpen] = useState(false);
   const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
@@ -31,32 +36,38 @@ const LoginPage = () => {
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleEmailLogin}>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          required
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          required
-        />
-        <button type="submit">Log In</button>
-      </form>
-      <hr />
-      <button onClick={handleGoogleLogin}>Sign In with Google</button>
-      <div>
-        Need an account? <Link to="/signup">Sign Up</Link>
-      </div>
-    </div>
+    <Box>
+      <AuthForm
+        title="Login"
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        onSubmit={handleEmailLogin}
+        error={error}
+        submitLabel="Log In"
+      >
+        <Button onClick={() => setResetOpen(true)} sx={{ mt: 1 }}>
+          Forgot password?
+        </Button>
+        <Divider sx={{ my: 2 }} />
+        <Button
+          variant="outlined"
+          onClick={handleGoogleLogin}
+          fullWidth
+          endIcon={<FcGoogle />}
+        >
+          Sign In with Google
+        </Button>
+        <Box sx={{ mt: 2 }}>
+          Need an account? <Link to="/signup">Sign Up</Link>
+        </Box>
+      </AuthForm>
+      <PasswordResetDialog
+        open={resetOpen}
+        onClose={() => setResetOpen(false)}
+      />
+    </Box>
   );
 };
 

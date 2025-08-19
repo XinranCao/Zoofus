@@ -7,6 +7,8 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   signOut,
+  sendPasswordResetEmail,
+  updateProfile as firebaseUpdateProfile,
 } from "firebase/auth";
 
 const AuthContext = React.createContext();
@@ -36,6 +38,20 @@ export function AuthProvider({ children }) {
     return signOut(auth);
   }
 
+  function resetPassword(email) {
+    return sendPasswordResetEmail(auth, email);
+  }
+
+  function updateProfile({ displayName, photo }) {
+    const user = auth.currentUser;
+    let photoURL = undefined;
+    if (photo) {
+      // TODO: Handle photo upload logic
+      photoURL = URL.createObjectURL(photo);
+    }
+    return firebaseUpdateProfile(user, { displayName, photoURL });
+  }
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
@@ -51,6 +67,8 @@ export function AuthProvider({ children }) {
     login,
     loginWithGoogle,
     logout,
+    resetPassword,
+    updateProfile,
   };
 
   return (
