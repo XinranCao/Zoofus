@@ -3,7 +3,8 @@ import { useAuth } from "../../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import AuthForm from "../../components/auth/AuthForm";
 import ProfileSetupForm from "../../components/auth/ProfileSetupForm";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 const SignUpPage = () => {
   const [step, setStep] = useState(1);
@@ -13,6 +14,8 @@ const SignUpPage = () => {
   const [loading, setLoading] = useState(false);
   const { signup, updateProfile } = useAuth();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   // Step 1: Email & Password
   const handleStep1 = async (e) => {
@@ -43,7 +46,16 @@ const SignUpPage = () => {
   };
 
   return (
-    <Box>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        px: isMobile ? 1 : 0,
+        bgcolor: "background.default",
+      }}
+    >
       {step === 1 ? (
         <AuthForm
           title="Sign Up"

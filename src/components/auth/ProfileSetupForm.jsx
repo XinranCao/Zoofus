@@ -1,9 +1,19 @@
-import { Box, TextField, Button, Avatar, Typography } from "@mui/material";
+import {
+  Box,
+  TextField,
+  Button,
+  Avatar,
+  Typography,
+  useMediaQuery,
+} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useState } from "react";
 
 const ProfileSetupForm = ({ onSubmit, loading }) => {
   const [name, setName] = useState("");
   const [photo, setPhoto] = useState(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handlePhotoChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -24,12 +34,13 @@ const ProfileSetupForm = ({ onSubmit, loading }) => {
         display: "flex",
         flexDirection: "column",
         gap: 2,
-        maxWidth: 400,
-        mx: "auto",
-        mt: 4,
-        p: 3,
+        maxWidth: isMobile ? "100%" : 400,
+        width: "100%",
+        mx: isMobile ? 0 : "auto",
+        mt: isMobile ? 2 : 4,
+        p: isMobile ? 2 : 3,
         borderRadius: 2,
-        boxShadow: 2,
+        boxShadow: isMobile ? 0 : 2,
         bgcolor: "background.paper",
       }}
     >

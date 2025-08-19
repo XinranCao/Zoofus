@@ -3,7 +3,8 @@ import { useAuth } from "../../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import AuthForm from "../../components/auth/AuthForm";
 import PasswordResetDialog from "../../components/auth/PasswordResetDialog";
-import { Button, Divider, Box } from "@mui/material";
+import { Button, Divider, Box, useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { FcGoogle } from "react-icons/fc";
 
 const LoginPage = () => {
@@ -13,6 +14,8 @@ const LoginPage = () => {
   const [resetOpen, setResetOpen] = useState(false);
   const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
@@ -36,7 +39,16 @@ const LoginPage = () => {
   };
 
   return (
-    <Box>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        px: isMobile ? 1 : 0,
+        bgcolor: "background.default",
+      }}
+    >
       <AuthForm
         title="Login"
         email={email}
