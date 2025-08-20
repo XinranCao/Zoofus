@@ -31,8 +31,9 @@ const AuthForm = ({
         gap: 2,
         maxWidth: isMobile ? "100%" : 400,
         width: "100%",
+        alignSelf: "start",
         mx: isMobile ? 0 : "auto",
-        mt: isMobile ? 2 : 4,
+        mt: isMobile ? 2 : 12,
         p: isMobile ? 2 : 3,
         borderRadius: 2,
         boxShadow: isMobile ? 0 : 2,
@@ -59,7 +60,7 @@ const AuthForm = ({
         required
         fullWidth
       />
-      <Button type="submit" variant="contained" fullWidth>
+      <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
         {submitLabel}
       </Button>
       {children}

@@ -5,6 +5,7 @@ import AuthForm from "../../components/auth/AuthForm";
 import ProfileSetupForm from "../../components/auth/ProfileSetupForm";
 import { Box, Typography, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import PageContainer from "../../components/PageContainer";
 
 const SignUpPage = () => {
   const [step, setStep] = useState(1);
@@ -46,40 +47,42 @@ const SignUpPage = () => {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        px: isMobile ? 1 : 0,
-        bgcolor: "background.default",
-      }}
-    >
-      {step === 1 ? (
-        <AuthForm
-          title="Sign Up"
-          email={email}
-          setEmail={setEmail}
-          password={password}
-          setPassword={setPassword}
-          onSubmit={handleStep1}
-          error={error}
-          submitLabel="Next"
-        >
-          <Box sx={{ mt: 2 }}>
-            Already have an account? <Link to="/login">Log In</Link>
-          </Box>
-        </AuthForm>
-      ) : (
-        <ProfileSetupForm onSubmit={handleStep2} loading={loading} />
-      )}
-      {error && (
-        <Typography color="error" align="center" sx={{ mt: 2 }}>
-          {error}
-        </Typography>
-      )}
-    </Box>
+    <PageContainer>
+      <Box
+        sx={{
+          minHeight: "calc(100vh - 64px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          px: isMobile ? 1 : 0,
+          bgcolor: "background.default",
+        }}
+      >
+        {step === 1 ? (
+          <AuthForm
+            title="Sign Up"
+            email={email}
+            setEmail={setEmail}
+            password={password}
+            setPassword={setPassword}
+            onSubmit={handleStep1}
+            error={error}
+            submitLabel="Next"
+          >
+            <Box sx={{ mt: 2 }}>
+              Already have an account? <Link to="/login">Log In</Link>
+            </Box>
+          </AuthForm>
+        ) : (
+          <ProfileSetupForm onSubmit={handleStep2} loading={loading} />
+        )}
+        {error && (
+          <Typography color="error" align="center" sx={{ mt: 2 }}>
+            {error}
+          </Typography>
+        )}
+      </Box>
+    </PageContainer>
   );
 };
 

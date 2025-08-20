@@ -6,6 +6,7 @@ import PasswordResetDialog from "../../components/auth/PasswordResetDialog";
 import { Button, Divider, Box, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { FcGoogle } from "react-icons/fc";
+import PageContainer from "../../components/PageContainer";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -39,47 +40,47 @@ const LoginPage = () => {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        px: isMobile ? 1 : 0,
-        bgcolor: "background.default",
-      }}
-    >
-      <AuthForm
-        title="Login"
-        email={email}
-        setEmail={setEmail}
-        password={password}
-        setPassword={setPassword}
-        onSubmit={handleEmailLogin}
-        error={error}
-        submitLabel="Log In"
+    <PageContainer>
+      <Box
+        sx={{
+          minHeight: "calc(100vh - 64px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          px: isMobile ? 1 : 0,
+          bgcolor: "background.default",
+        }}
       >
-        <Button onClick={() => setResetOpen(true)} sx={{ mt: 1 }}>
-          Forgot password?
-        </Button>
-        <Divider sx={{ my: 2 }} />
-        <Button
-          variant="outlined"
-          onClick={handleGoogleLogin}
-          fullWidth
-          endIcon={<FcGoogle />}
+        <AuthForm
+          title="Login"
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          onSubmit={handleEmailLogin}
+          error={error}
+          submitLabel="Log In"
         >
-          Sign In with Google
-        </Button>
-        <Box sx={{ mt: 2 }}>
-          Need an account? <Link to="/signup">Sign Up</Link>
-        </Box>
-      </AuthForm>
-      <PasswordResetDialog
-        open={resetOpen}
-        onClose={() => setResetOpen(false)}
-      />
-    </Box>
+          <Button onClick={() => setResetOpen(true)}>Forgot password?</Button>
+          <Divider sx={{ mb: 2 }} />
+          <Button
+            variant="outlined"
+            onClick={handleGoogleLogin}
+            fullWidth
+            endIcon={<FcGoogle />}
+          >
+            Sign In with Google
+          </Button>
+          <Box sx={{ mt: 2 }}>
+            Need an account? <Link to="/signup">Sign Up</Link>
+          </Box>
+        </AuthForm>
+        <PasswordResetDialog
+          open={resetOpen}
+          onClose={() => setResetOpen(false)}
+        />
+      </Box>
+    </PageContainer>
   );
 };
 
