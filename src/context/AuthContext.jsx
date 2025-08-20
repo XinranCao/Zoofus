@@ -1,5 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
-import { auth } from "../services/firebase";
+import { storage, db, auth } from "../services/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { doc, setDoc } from "firebase/firestore";
 import {
   onAuthStateChanged,
   createUserWithEmailAndPassword,
@@ -42,14 +44,32 @@ export function AuthProvider({ children }) {
     return sendPasswordResetEmail(auth, email);
   }
 
-  function updateProfile({ displayName, photo }) {
+  async function updateProfile({ displayName, photo }) {
     const user = auth.currentUser;
-    let photoURL = undefined;
+    let photoURL = "";
+
     if (photo) {
-      // TODO: Handle photo upload logic
-      photoURL = URL.createObjectURL(photo);
+      const photoRef = ref(
+        storage,
+        `${user.uid}/profile/profile_pic/${photo.name}`
+      );
+      await uploadBytes(photoRef, photo);
+      photoURL = await getDownloadURL(photoRef);
     }
-    return firebaseUpdateProfile(user, { displayName, photoURL });
+
+    // Update Firebase Auth profile
+    await firebaseUpdateProfile(user, {
+      displayName,
+      photoURL: photoURL || user.photoURL || "",
+    });
+
+    // Save extra info to Firestore
+    await setDoc(doc(db, "users", user.uid), {
+      nickname: displayName,
+      profilePictureUrl: photoURL || user.photoURL || "",
+      email: user.email,
+      uid: user.uid,
+    });
   }
 
   useEffect(() => {
