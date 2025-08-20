@@ -29,6 +29,7 @@ const AuthForm = ({
         display: "flex",
         flexDirection: "column",
         gap: 2,
+        boxSizing: "border-box",
         maxWidth: isMobile ? "100%" : 400,
         width: "100%",
         alignSelf: "start",
