@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
-import { storage, db, auth } from "../services/firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { doc, setDoc } from "firebase/firestore";
+import { auth } from "../services/firebase";
+import { useDispatch, useSelector } from "react-redux";
+import { updateUserProfile, fetchUserProfile } from "../store/userSlice";
 import {
   onAuthStateChanged,
   createUserWithEmailAndPassword,
@@ -10,7 +10,6 @@ import {
   GoogleAuthProvider,
   signOut,
   sendPasswordResetEmail,
-  updateProfile as firebaseUpdateProfile,
 } from "firebase/auth";
 
 const AuthContext = React.createContext();
@@ -22,6 +21,11 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+
+  const userProfile = useSelector((state) => state.user.profile);
+  const profileStatus = useSelector((state) => state.user.status);
+  const profileError = useSelector((state) => state.user.error);
 
   function signup(email, password) {
     return createUserWithEmailAndPassword(auth, email, password);
@@ -46,43 +50,32 @@ export function AuthProvider({ children }) {
 
   async function updateProfile({ displayName, photo }) {
     const user = auth.currentUser;
-    let photoURL = "";
-
-    if (photo) {
-      const photoRef = ref(
-        storage,
-        `${user.uid}/profile/profile_pic/${photo.name}`
-      );
-      await uploadBytes(photoRef, photo);
-      photoURL = await getDownloadURL(photoRef);
-    }
-
-    // Update Firebase Auth profile
-    await firebaseUpdateProfile(user, {
-      displayName,
-      photoURL: photoURL || user.photoURL || "",
-    });
-
-    // Save extra info to Firestore
-    await setDoc(doc(db, "users", user.uid), {
-      nickname: displayName,
-      profilePictureUrl: photoURL || user.photoURL || "",
-      email: user.email,
-      uid: user.uid,
-    });
+    if (!user) return;
+    await dispatch(
+      updateUserProfile({
+        uid: user.uid,
+        displayName,
+        photo,
+      }).unwrap()
+    );
   }
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
       setLoading(false);
+      if (user) {
+        dispatch(fetchUserProfile(user.uid));
+      }
     });
-
     return unsubscribe;
-  }, []);
+  }, [dispatch]);
 
   const value = {
     currentUser,
+    userProfile,
+    profileStatus,
+    profileError,
     signup,
     login,
     loginWithGoogle,
