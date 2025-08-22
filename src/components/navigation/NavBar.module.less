@@ -133,16 +133,38 @@
           background: #f2f2f2;
         }
       }
+      .signOut {
+        width: 100%;
+      }
     }
   }
 }
 
-@media (max-width: 768px) {
-  .navbar .menuToggle {
-    display: flex;
+.rightSection {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  .profile_pic {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
   }
-  .navbar .navLinksContainer {
-    display: none;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    .menuToggle {
+      display: flex;
+    }
+    .navLinksContainer {
+      display: none;
+    }
+
+    .rightSection {
+      gap: 0.5rem;
+    }
   }
 
   .navLinksContainerMobile {

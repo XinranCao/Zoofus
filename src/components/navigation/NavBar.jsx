@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { IoClose, IoMenu } from "react-icons/io5";
 import { useState, useEffect, useRef } from "react";
+import { useSelector } from "react-redux";
 import styles from "./NavBar.module.less";
 
 const Navbar = () => {
@@ -10,6 +11,7 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const menuToggleRef = useRef(null);
+  const { profilePictureUrl = [] } = useSelector((state) => state.user.profile);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -71,20 +73,31 @@ const Navbar = () => {
         <div className={styles.logo}>
           <Link to="/">Zoofus</Link>
         </div>
-        <button
-          ref={menuToggleRef}
-          className={`${styles.menuToggle} ${menuOpen ? styles.open : ""}`}
-          onClick={() => setMenuOpen((open) => !open)}
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-        >
-          <span className={styles.menuIcon}>
-            <IoMenu />
-          </span>
-          <span className={styles.closeIcon}>
-            <IoClose />
-          </span>
-        </button>
-        <div className={styles.navLinksContainer}>{getNavLinkComponents()}</div>
+        <div className={styles.rightSection}>
+          {currentUser && (
+            <img
+              src={profilePictureUrl}
+              alt="profile picture"
+              className={styles.profile_pic}
+            />
+          )}
+          <button
+            ref={menuToggleRef}
+            className={`${styles.menuToggle} ${menuOpen ? styles.open : ""}`}
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+          >
+            <span className={styles.menuIcon}>
+              <IoMenu />
+            </span>
+            <span className={styles.closeIcon}>
+              <IoClose />
+            </span>
+          </button>
+          <div className={styles.navLinksContainer}>
+            {getNavLinkComponents()}
+          </div>
+        </div>
       </nav>
       <div className={styles.navLinksContainerMobile}>
         {getNavLinkComponents()}
