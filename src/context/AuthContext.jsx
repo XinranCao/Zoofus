@@ -51,12 +51,12 @@ export function AuthProvider({ children }) {
   async function updateProfile({ displayName, photo }) {
     const user = auth.currentUser;
     if (!user) return;
-    await dispatch(
+    dispatch(
       updateUserProfile({
         uid: user.uid,
         displayName,
         photo,
-      }).unwrap()
+      })
     );
   }
 
