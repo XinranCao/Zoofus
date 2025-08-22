@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { IoClose, IoMenu } from "react-icons/io5";
+import { FaUserAlt } from "react-icons/fa";
 import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import styles from "./NavBar.module.less";
@@ -11,7 +12,7 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const menuToggleRef = useRef(null);
-  const { profilePictureUrl = [] } = useSelector((state) => state.user.profile);
+  const userProfile = useSelector((state) => state.user.profile);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -74,13 +75,16 @@ const Navbar = () => {
           <Link to="/">Zoofus</Link>
         </div>
         <div className={styles.rightSection}>
-          {currentUser && (
-            <img
-              src={profilePictureUrl}
-              alt="profile picture"
-              className={styles.profile_pic}
-            />
-          )}
+          {currentUser &&
+            (userProfile?.profilePictureUrl ? (
+              <img
+                src={userProfile.profilePictureUrl}
+                alt="profile picture"
+                className={styles.profile_pic}
+              />
+            ) : (
+              <FaUserAlt />
+            ))}
           <button
             ref={menuToggleRef}
             className={`${styles.menuToggle} ${menuOpen ? styles.open : ""}`}
