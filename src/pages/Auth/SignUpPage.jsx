@@ -52,8 +52,9 @@ const SignUpPage = () => {
         sx={{
           minHeight: "calc(100vh - 64px)",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "flex-start",
           px: isMobile ? 1 : 0,
           bgcolor: "background.default",
         }}
