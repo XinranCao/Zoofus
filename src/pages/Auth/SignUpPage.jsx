@@ -6,6 +6,7 @@ import ProfileSetupForm from "../../components/auth/ProfileSetupForm";
 import { Box, Typography, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import PageContainer from "../../components/PageContainer";
+import { compressImage } from "../../utils/image";
 
 const SignUpPage = () => {
   const [step, setStep] = useState(1);
@@ -37,7 +38,11 @@ const SignUpPage = () => {
   const handleStep2 = async ({ name, photo }) => {
     setLoading(true);
     try {
-      await updateProfile({ displayName: name, photo });
+      let processedPhoto = photo;
+      if (photo) {
+        processedPhoto = await compressImage(photo, 0.2);
+      }
+      await updateProfile({ displayName: name, photo: processedPhoto });
       navigate("/");
     } catch {
       setError("Failed to set up profile");
