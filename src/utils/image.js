@@ -53,3 +53,11 @@ export function scalePoints(points, fromWidth, fromHeight, toWidth, toHeight) {
   }
   return scaled;
 }
+
+export function getFitSize(nw, nh, maxW, maxH) {
+  const ratio = Math.min(maxW / nw, maxH / nh);
+  return {
+    width: Math.round(nw * ratio),
+    height: Math.round(nh * ratio),
+  };
+}

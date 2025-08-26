@@ -2,7 +2,16 @@ import { useEffect, useState } from "react";
 import { useImageCustom, scalePoints } from "../../utils/image";
 import styles from "./ImageLassoPanel.module.less";
 
-function MaskedImage({ src, lassoPoints, borderColor, borderWidth }) {
+function MaskedImage({
+  src,
+  lassoPoints,
+  borderColor,
+  borderWidth,
+  displayWidth = 500,
+  displayHeight = 500,
+  naturalWidth,
+  naturalHeight,
+}) {
   const [image] = useImageCustom(src, "anonymous");
   const [maskUrl, setMaskUrl] = useState(null);
 
@@ -18,8 +27,8 @@ function MaskedImage({ src, lassoPoints, borderColor, borderWidth }) {
 
     const scaledPoints = scalePoints(
       lassoPoints,
-      500,
-      500,
+      displayWidth,
+      displayHeight,
       image.width,
       image.height
     );
@@ -49,7 +58,14 @@ function MaskedImage({ src, lassoPoints, borderColor, borderWidth }) {
     ctx.restore();
 
     setMaskUrl(canvas.toDataURL());
-  }, [image, lassoPoints, borderColor, borderWidth]);
+  }, [
+    image,
+    lassoPoints,
+    borderColor,
+    borderWidth,
+    displayWidth,
+    displayHeight,
+  ]);
 
   if (!maskUrl) return null;
 
