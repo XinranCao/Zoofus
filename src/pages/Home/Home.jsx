@@ -104,18 +104,32 @@ const HomePage = () => {
     setLassoPoints([]);
   };
 
-  const handleMouseDown = (e) => {
+  const getPointerPosition = (e) => {
+    // Konva wraps native event in e.evt
+    if (e.evt.touches && e.evt.touches.length > 0) {
+      // Touch event
+      const rect = e.target.getStage().container().getBoundingClientRect();
+      const x = e.evt.touches[0].clientX - rect.left;
+      const y = e.evt.touches[0].clientY - rect.top;
+      return [x, y];
+    } else {
+      // Mouse event
+      return [e.evt.layerX, e.evt.layerY];
+    }
+  };
+
+  const handlePointerDown = (e) => {
     if (!imageSrc || confirmed) return;
     setDrawing(true);
-    setLassoPoints([e.evt.layerX, e.evt.layerY]);
+    setLassoPoints(getPointerPosition(e));
   };
 
-  const handleMouseMove = (e) => {
+  const handlePointerMove = (e) => {
     if (!drawing || confirmed) return;
-    setLassoPoints((pts) => [...pts, e.evt.layerX, e.evt.layerY]);
+    setLassoPoints((pts) => [...pts, ...getPointerPosition(e)]);
   };
 
-  const handleMouseUp = () => {
+  const handlePointerUp = () => {
     setDrawing(false);
   };
 
@@ -136,13 +150,20 @@ const HomePage = () => {
           <input type="file" accept="image/*" onChange={handleImageUpload} />
           {imageSrc && !confirmed && (
             <div className={styles.stageWrapper}>
+              <div className={styles.buttonRow}>
+                <button onClick={handleRedo}>Redo</button>
+                <button onClick={handleConfirm}>Confirm</button>
+              </div>
               <Stage
                 width={500}
                 height={500}
                 className={styles.stage}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
+                onMouseDown={handlePointerDown}
+                onMouseMove={handlePointerMove}
+                onMouseUp={handlePointerUp}
+                onTouchStart={handlePointerDown}
+                onTouchMove={handlePointerMove}
+                onTouchEnd={handlePointerUp}
               >
                 <Layer>
                   {stageImage && (
@@ -154,15 +175,11 @@ const HomePage = () => {
                       stroke="#00f"
                       strokeWidth={2}
                       tension={0.5}
-                      closed={false}
+                      closed={confirmed}
                     />
                   )}
                 </Layer>
               </Stage>
-              <div className={styles.buttonRow}>
-                <button onClick={handleRedo}>Redo</button>
-                <button onClick={handleConfirm}>Confirm</button>
-              </div>
             </div>
           )}
           {imageSrc && confirmed && (
