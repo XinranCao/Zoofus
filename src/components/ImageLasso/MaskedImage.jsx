@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useImageCustom, scalePoints } from "../../utils/image";
-import styles from "./ImageLassoPanel.module.less";
 
 function MaskedImage({
   src,
@@ -9,8 +8,7 @@ function MaskedImage({
   borderWidth,
   displayWidth = 500,
   displayHeight = 500,
-  naturalWidth,
-  naturalHeight,
+  styles,
 }) {
   const [image] = useImageCustom(src, "anonymous");
   const [maskUrl, setMaskUrl] = useState(null);
