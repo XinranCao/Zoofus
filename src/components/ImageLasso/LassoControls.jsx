@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -5,11 +6,13 @@ import {
   Typography,
   TextField,
   Slider,
+  Popover,
 } from "@mui/material";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import ReplayIcon from "@mui/icons-material/Replay";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useImageLasso } from "./ImageLassoContext";
+import { ChromePicker } from "react-color";
 
 const LassoControls = () => {
   const {
@@ -29,13 +32,23 @@ const LassoControls = () => {
     onClose,
   } = useImageLasso();
 
-  // Local handler for manual input
+  const [colorAnchor, setColorAnchor] = useState(null);
+
   const handleBorderWidthInput = (e) => {
     let val = Number(e.target.value);
     if (isNaN(val)) val = 0;
     val = Math.max(0, Math.min(100, val));
     setBorderWidth(val);
   };
+
+  const handleColorButtonClick = (e) => {
+    setColorAnchor(e.currentTarget);
+  };
+
+  const handleColorClose = () => {
+    setColorAnchor(null);
+  };
+
   return (
     <>
       {!imageSrc ? (
@@ -100,11 +113,32 @@ const LassoControls = () => {
                 <Typography variant="body2" sx={{ mb: 1 }}>
                   Border Color
                 </Typography>
-                <input
-                  type="color"
-                  value={borderColor}
-                  onChange={(e) => setBorderColor(e.target.value)}
+                <Button
+                  variant="outlined"
+                  sx={{
+                    minWidth: 40,
+                    width: 40,
+                    height: 40,
+                    p: 0,
+                    border: "2px solid #ccc",
+                    background: borderColor,
+                  }}
+                  onClick={handleColorButtonClick}
                 />
+                <Popover
+                  open={Boolean(colorAnchor)}
+                  anchorEl={colorAnchor}
+                  onClose={handleColorClose}
+                  anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                >
+                  <Box sx={{ p: 2 }}>
+                    <ChromePicker
+                      color={borderColor}
+                      onChange={(color) => setBorderColor(color.hex)}
+                      disableAlpha
+                    />
+                  </Box>
+                </Popover>
               </Box>
               <Box sx={{ mt: 2 }}>
                 <Typography variant="body2" sx={{ mb: 1 }}>
@@ -113,7 +147,7 @@ const LassoControls = () => {
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <Slider
                     min={0}
-                    max={50}
+                    max={100}
                     value={borderWidth}
                     onChange={(_, val) => setBorderWidth(val)}
                     valueLabelDisplay="auto"
