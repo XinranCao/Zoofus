@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useImageCustom, scalePoints } from "../../utils/image";
+import polygonClipping from "polygon-clipping";
+
+function pointsToPolygon(points) {
+  const poly = [];
+  for (let i = 0; i < points.length; i += 2) {
+    poly.push([points[i], points[i + 1]]);
+  }
+  return [poly];
+}
 
 const MaskedImage = React.memo(function MaskedImage(props) {
   const {
@@ -32,11 +41,33 @@ const MaskedImage = React.memo(function MaskedImage(props) {
       image.height
     );
 
+    const shapePoly = pointsToPolygon(scaledPoints);
+    const imageRect = [
+      [
+        [0, 0],
+        [image.width, 0],
+        [image.width, image.height],
+        [0, image.height],
+      ],
+    ];
+
+    const clipped = polygonClipping.intersection(shapePoly, imageRect);
+    const clippedPoints =
+      clipped && clipped.length && clipped[0].length
+        ? clipped[0][0].flat()
+        : [];
+
+    if (clippedPoints.length < 6) {
+      setMaskUrl(null);
+      return;
+    }
+
+    // --- Draw mask (use unclamped points) ---
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(scaledPoints[0], scaledPoints[1]);
-    for (let i = 2; i < scaledPoints.length; i += 2) {
-      ctx.lineTo(scaledPoints[i], scaledPoints[i + 1]);
+    ctx.moveTo(clippedPoints[0], clippedPoints[1]);
+    for (let i = 2; i < clippedPoints.length; i += 2) {
+      ctx.lineTo(clippedPoints[i], clippedPoints[i + 1]);
     }
     ctx.closePath();
     ctx.clip();
@@ -44,15 +75,31 @@ const MaskedImage = React.memo(function MaskedImage(props) {
     ctx.drawImage(image, 0, 0);
     ctx.restore();
 
+    // --- Draw border (clamp points inward) ---
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(scaledPoints[0], scaledPoints[1]);
-    for (let i = 2; i < scaledPoints.length; i += 2) {
-      ctx.lineTo(scaledPoints[i], scaledPoints[i + 1]);
+    // Clamp each point to be at least borderWidth/2 away from the edge
+    const borderPoints = [];
+    for (let i = 0; i < clippedPoints.length; i += 2) {
+      const x = Math.max(
+        borderWidth / 2,
+        Math.min(image.width - borderWidth / 2, clippedPoints[i])
+      );
+      const y = Math.max(
+        borderWidth / 2,
+        Math.min(image.height - borderWidth / 2, clippedPoints[i + 1])
+      );
+      borderPoints.push([x, y]);
+    }
+    ctx.moveTo(borderPoints[0][0], borderPoints[0][1]);
+    for (let i = 1; i < borderPoints.length; i++) {
+      ctx.lineTo(borderPoints[i][0], borderPoints[i][1]);
     }
     ctx.closePath();
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = borderWidth;
+    ctx.lineJoin = "miter";
+    ctx.lineCap = "square";
     ctx.stroke();
     ctx.restore();
 
