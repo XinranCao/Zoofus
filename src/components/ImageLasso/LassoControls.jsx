@@ -2,23 +2,25 @@ import { Box, Button, Stack, Typography, Input, Slider } from "@mui/material";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import ReplayIcon from "@mui/icons-material/Replay";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import { useImageLasso } from "./ImageLassoContext";
 
-const LassoControls = ({
-  imageSrc,
-  confirmed,
-  shapeType,
-  lassoPoints,
-  getCurrentShapePoints,
-  handleConfirm,
-  handleRedoAll,
-  inputRef,
-  borderColor,
-  setBorderColor,
-  borderWidth,
-  setBorderWidth,
-  styles,
-  onClose,
-}) => {
+const LassoControls = () => {
+  const {
+    imageSrc,
+    confirmed,
+    shapeType,
+    lassoPoints,
+    getCurrentShapePoints,
+    handleConfirm,
+    handleRedoAll,
+    inputRef,
+    borderColor,
+    setBorderColor,
+    borderWidth,
+    setBorderWidth,
+    styles,
+    onClose,
+  } = useImageLasso();
   return (
     <>
       {!imageSrc ? (

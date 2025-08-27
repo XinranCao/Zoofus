@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Box,
   Select,
@@ -7,13 +8,8 @@ import {
   ToggleButtonGroup,
 } from "@mui/material";
 
-const ShapeSelector = ({
-  shapeType,
-  setShapeType,
-  SHAPES,
-  isMobile,
-  disabled,
-}) => {
+const ShapeSelector = React.memo(function ShapeSelector(props) {
+  const { shapeType, setShapeType, SHAPES, isMobile, disabled } = props;
   if (disabled) return null;
 
   return isMobile ? (
@@ -59,6 +55,6 @@ const ShapeSelector = ({
       ))}
     </ToggleButtonGroup>
   );
-};
+});
 
 export default ShapeSelector;

@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useImageCustom, scalePoints } from "../../utils/image";
 
-function MaskedImage({
-  src,
-  lassoPoints,
-  borderColor,
-  borderWidth,
-  displayWidth = 500,
-  displayHeight = 500,
-  styles,
-}) {
+const MaskedImage = React.memo(function MaskedImage(props) {
+  const {
+    src,
+    lassoPoints,
+    borderColor,
+    borderWidth,
+    displayWidth = 500,
+    displayHeight = 500,
+    styles,
+  } = props;
   const [image] = useImageCustom(src, "anonymous");
   const [maskUrl, setMaskUrl] = useState(null);
 
@@ -56,18 +57,11 @@ function MaskedImage({
     ctx.restore();
 
     setMaskUrl(canvas.toDataURL());
-  }, [
-    image,
-    lassoPoints,
-    borderColor,
-    borderWidth,
-    displayWidth,
-    displayHeight,
-  ]);
+  }, [image, lassoPoints, borderColor, borderWidth, displayWidth, displayHeight]);
 
   if (!maskUrl) return null;
 
   return <img src={maskUrl} alt="masked" className={styles.resultImage} />;
-}
+});
 
 export default MaskedImage;
