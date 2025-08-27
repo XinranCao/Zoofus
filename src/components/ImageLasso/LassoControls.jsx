@@ -1,4 +1,11 @@
-import { Box, Button, Stack, Typography, Input, Slider } from "@mui/material";
+import {
+  Box,
+  Button,
+  Stack,
+  Typography,
+  TextField,
+  Slider,
+} from "@mui/material";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import ReplayIcon from "@mui/icons-material/Replay";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -21,6 +28,14 @@ const LassoControls = () => {
     styles,
     onClose,
   } = useImageLasso();
+
+  // Local handler for manual input
+  const handleBorderWidthInput = (e) => {
+    let val = Number(e.target.value);
+    if (isNaN(val)) val = 0;
+    val = Math.max(0, Math.min(100, val));
+    setBorderWidth(val);
+  };
   return (
     <>
       {!imageSrc ? (
@@ -85,30 +100,39 @@ const LassoControls = () => {
                 <Typography variant="body2" sx={{ mb: 1 }}>
                   Border Color
                 </Typography>
-                <Input
+                <input
                   type="color"
                   value={borderColor}
                   onChange={(e) => setBorderColor(e.target.value)}
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    p: 0,
-                    border: "none",
-                    bgcolor: "transparent",
-                  }}
                 />
               </Box>
               <Box sx={{ mt: 2 }}>
                 <Typography variant="body2" sx={{ mb: 1 }}>
                   Border Width
                 </Typography>
-                <Slider
-                  min={0}
-                  max={50}
-                  value={borderWidth}
-                  onChange={(_, val) => setBorderWidth(val)}
-                  valueLabelDisplay="auto"
-                />
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Slider
+                    min={0}
+                    max={50}
+                    value={borderWidth}
+                    onChange={(_, val) => setBorderWidth(val)}
+                    valueLabelDisplay="auto"
+                    sx={{ flex: 1 }}
+                  />
+                  <TextField
+                    type="number"
+                    size="small"
+                    value={borderWidth}
+                    onChange={handleBorderWidthInput}
+                    slotProps={{
+                      input: {
+                        min: 0,
+                        max: 100,
+                      },
+                    }}
+                    sx={{ width: 70 }}
+                  />
+                </Box>
               </Box>
             </Stack>
           )}
