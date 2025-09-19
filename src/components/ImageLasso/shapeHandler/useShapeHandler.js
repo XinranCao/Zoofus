@@ -38,12 +38,13 @@ export function useShapeHandlers(imageSrc) {
   };
 }
 
+// lassoPaths: array of arrays, each array is [x1, y1, x2, y2, ...]
 export function getShapePoints(
   shapeType,
   rectProps,
   triangleProps,
   starProps,
-  lassoPoints
+  lassoPaths // <-- updated from lassoPoints
 ) {
   switch (shapeType) {
     case "triangle": {
@@ -100,6 +101,10 @@ export function getShapePoints(
       return spoints;
     }
     default:
-      return lassoPoints;
+      // For lasso, flatten all paths into a single array of points
+      if (Array.isArray(lassoPaths)) {
+        return lassoPaths.flat();
+      }
+      return [];
   }
 }

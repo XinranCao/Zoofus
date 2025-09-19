@@ -13,7 +13,7 @@ function pointsToPolygon(points) {
 const MaskedImage = React.memo(function MaskedImage(props) {
   const {
     src,
-    lassoPoints,
+    lassoPaths,
     borderColor,
     borderWidth,
     displayWidth = 500,
@@ -24,7 +24,11 @@ const MaskedImage = React.memo(function MaskedImage(props) {
   const [maskUrl, setMaskUrl] = useState(null);
 
   useEffect(() => {
-    if (!image || lassoPoints.length < 6) {
+    if (
+      !image ||
+      !Array.isArray(lassoPaths) ||
+      lassoPaths.every((path) => path.length < 6)
+    ) {
       setMaskUrl(null);
       return;
     }
@@ -33,15 +37,32 @@ const MaskedImage = React.memo(function MaskedImage(props) {
     canvas.height = image.height;
     const ctx = canvas.getContext("2d");
 
-    const scaledPoints = scalePoints(
-      lassoPoints,
-      displayWidth,
-      displayHeight,
-      image.width,
-      image.height
-    );
+    // Scale all paths to image coordinates
+    const polygons = lassoPaths
+      .filter((path) => path.length >= 6)
+      .map((path) =>
+        pointsToPolygon(
+          scalePoints(
+            path,
+            displayWidth,
+            displayHeight,
+            image.width,
+            image.height
+          )
+        )
+      );
 
-    const shapePoly = pointsToPolygon(scaledPoints);
+    // Union all polygons
+    let unionPoly;
+    if (polygons.length === 1) {
+      unionPoly = polygons[0];
+    } else if (polygons.length > 1) {
+      unionPoly = polygonClipping.union(...polygons);
+    } else {
+      unionPoly = [];
+    }
+
+    // Intersect with image bounds
     const imageRect = [
       [
         [0, 0],
@@ -50,26 +71,31 @@ const MaskedImage = React.memo(function MaskedImage(props) {
         [0, image.height],
       ],
     ];
+    const clipped = polygonClipping.intersection(unionPoly, imageRect);
 
-    const clipped = polygonClipping.intersection(shapePoly, imageRect);
-    const clippedPoints =
-      clipped && clipped.length && clipped[0].length
-        ? clipped[0][0].flat()
-        : [];
-
-    if (clippedPoints.length < 6) {
+    if (
+      !clipped ||
+      !clipped.length ||
+      !clipped.some((poly) => poly.length && poly[0].length >= 3)
+    ) {
       setMaskUrl(null);
       return;
     }
 
-    // --- Draw mask (use unclamped points) ---
+    // --- Draw mask for all polygons ---
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(clippedPoints[0], clippedPoints[1]);
-    for (let i = 2; i < clippedPoints.length; i += 2) {
-      ctx.lineTo(clippedPoints[i], clippedPoints[i + 1]);
-    }
-    ctx.closePath();
+    clipped.forEach((poly) => {
+      poly.forEach((ring) => {
+        if (ring.length >= 3) {
+          ctx.moveTo(ring[0][0], ring[0][1]);
+          for (let i = 1; i < ring.length; i++) {
+            ctx.lineTo(ring[i][0], ring[i][1]);
+          }
+          ctx.closePath();
+        }
+      });
+    });
     ctx.clip();
 
     ctx.drawImage(image, 0, 0);
@@ -78,24 +104,28 @@ const MaskedImage = React.memo(function MaskedImage(props) {
     // --- Draw border (clamp points inward) ---
     ctx.save();
     ctx.beginPath();
-    // Clamp each point to be at least borderWidth/2 away from the edge
-    const borderPoints = [];
-    for (let i = 0; i < clippedPoints.length; i += 2) {
-      const x = Math.max(
-        borderWidth / 2,
-        Math.min(image.width - borderWidth / 2, clippedPoints[i])
-      );
-      const y = Math.max(
-        borderWidth / 2,
-        Math.min(image.height - borderWidth / 2, clippedPoints[i + 1])
-      );
-      borderPoints.push([x, y]);
-    }
-    ctx.moveTo(borderPoints[0][0], borderPoints[0][1]);
-    for (let i = 1; i < borderPoints.length; i++) {
-      ctx.lineTo(borderPoints[i][0], borderPoints[i][1]);
-    }
-    ctx.closePath();
+    clipped.forEach((poly) => {
+      poly.forEach((ring) => {
+        if (ring.length >= 3) {
+          // Clamp each point to be at least borderWidth/2 away from the edge
+          const borderPoints = ring.map(([x, y]) => [
+            Math.max(
+              borderWidth / 2,
+              Math.min(image.width - borderWidth / 2, x)
+            ),
+            Math.max(
+              borderWidth / 2,
+              Math.min(image.height - borderWidth / 2, y)
+            ),
+          ]);
+          ctx.moveTo(borderPoints[0][0], borderPoints[0][1]);
+          for (let i = 1; i < borderPoints.length; i++) {
+            ctx.lineTo(borderPoints[i][0], borderPoints[i][1]);
+          }
+          ctx.closePath();
+        }
+      });
+    });
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = borderWidth;
     ctx.lineJoin = "miter";
@@ -104,7 +134,7 @@ const MaskedImage = React.memo(function MaskedImage(props) {
     ctx.restore();
 
     setMaskUrl(canvas.toDataURL());
-  }, [image, lassoPoints, borderColor, borderWidth, displayWidth, displayHeight]);
+  }, [image, lassoPaths, borderColor, borderWidth, displayWidth, displayHeight]);
 
   if (!maskUrl) return null;
 

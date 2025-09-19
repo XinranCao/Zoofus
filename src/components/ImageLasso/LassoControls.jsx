@@ -19,7 +19,7 @@ const LassoControls = () => {
     imageSrc,
     confirmed,
     shapeType,
-    lassoPoints,
+    lassoPaths,
     getCurrentShapePoints,
     handleConfirm,
     handleRedoAll,
@@ -64,7 +64,9 @@ const LassoControls = () => {
                 color="primary"
                 startIcon={<CheckCircleIcon />}
                 disabled={
-                  (shapeType === "lasso" && lassoPoints.length < 6) ||
+                  (shapeType === "lasso" &&
+                    (lassoPaths.length === 0 ||
+                      lassoPaths.every((path) => path.length < 6))) ||
                   (shapeType !== "lasso" && getCurrentShapePoints().length < 6)
                 }
                 onClick={handleConfirm}
@@ -84,7 +86,7 @@ const LassoControls = () => {
               </Button>
               <Typography variant="body2" color="text.secondary">
                 {shapeType === "lasso"
-                  ? 'Draw a lasso around the area you want to select. Click "Confirm" when done.'
+                  ? 'Draw as many freehand areas as you want. Click "Confirm" when done.'
                   : 'Move and resize the shape to mask the area. Click "Confirm" when done.'}
               </Typography>
             </Stack>

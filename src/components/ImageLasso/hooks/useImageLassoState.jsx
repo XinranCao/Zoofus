@@ -22,7 +22,6 @@ export function useImageLassoState(onClose, styles) {
   const [imageSrc, setImageSrc] = useState(null);
   const [imgNaturalWidth, setImgNaturalWidth] = useState(PANEL_SIZE);
   const [imgNaturalHeight, setImgNaturalHeight] = useState(PANEL_SIZE);
-  const [confirmed, setConfirmed] = useState(false);
   const [borderColor, setBorderColor] = useState("#ffffff");
   const [borderWidth, setBorderWidth] = useState(5);
   const [stageImage] = useImageCustom(imageSrc, "anonymous");
@@ -57,15 +56,19 @@ export function useImageLassoState(onClose, styles) {
     setStarProps,
   } = useShapeHandlers(imageSrc);
 
+  // Lasso logic (multi-part support)
   const {
-    lassoPoints,
-    setLassoPoints,
+    lassoPaths,
+    setLassoPaths,
     setDrawing,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
     handleRedo,
-  } = useLassoDrawing({ imageSrc, confirmed, shapeType });
+    confirmed,
+    setConfirmed,
+    handleConfirm,
+  } = useLassoDrawing({ imageSrc, shapeType });
 
   const {
     limitRectDrag,
@@ -98,8 +101,9 @@ export function useImageLassoState(onClose, styles) {
     setRectProps(INITIAL_RECT);
     setTriangleProps(INITIAL_TRIANGLE);
     setStarProps(INITIAL_STAR);
-    setLassoPoints([]);
+    setLassoPaths([]);
     setDrawing(false);
+    setConfirmed(false);
   }, [shapeType]);
 
   // --- Get shape points for masking (with rotation support) ---
@@ -110,21 +114,18 @@ export function useImageLassoState(onClose, styles) {
         rectProps,
         triangleProps,
         starProps,
-        lassoPoints
+        lassoPaths
       ),
-    [shapeType, rectProps, triangleProps, starProps, lassoPoints]
+    [shapeType, rectProps, triangleProps, starProps, lassoPaths]
   );
+
   const handleRedoAll = () => {
     setConfirmed(false);
-    setLassoPoints([]);
+    setLassoPaths([]);
     if (shapeType === "rectangle") setRectProps(INITIAL_RECT);
     if (shapeType === "triangle") setTriangleProps(INITIAL_TRIANGLE);
     if (shapeType === "star") setStarProps(INITIAL_STAR);
-    handleRedo(); // still clears lassoPoints for lasso
-  };
-
-  const handleConfirm = () => {
-    setConfirmed(true);
+    handleRedo();
   };
 
   const handleImageUpload = (e) => {
@@ -142,7 +143,7 @@ export function useImageLassoState(onClose, styles) {
       img.src = url;
     }
     setConfirmed(false);
-    setLassoPoints([]);
+    setLassoPaths([]);
   };
 
   // --- Selection logic for Transformer ---
@@ -196,8 +197,8 @@ export function useImageLassoState(onClose, styles) {
     setStarProps,
     isMobile,
     fit,
-    lassoPoints,
-    setLassoPoints,
+    lassoPaths,
+    setLassoPaths,
     setDrawing,
     handlePointerDown,
     handlePointerMove,

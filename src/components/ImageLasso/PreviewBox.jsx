@@ -25,7 +25,7 @@ const PreviewBox = () => {
     setShapeType,
     SHAPES,
     isMobile,
-    lassoPoints,
+    lassoPaths,
     getCurrentShapePoints,
     borderColor,
     borderWidth,
@@ -34,7 +34,7 @@ const PreviewBox = () => {
     inputRef,
     handleImageUpload,
     setConfirmed,
-    setLassoPoints,
+    setLassoPaths,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
@@ -150,15 +150,20 @@ const PreviewBox = () => {
                       height={fit.height}
                     />
                   )}
-                  {shapeType === "lasso" && lassoPoints.length > 2 && (
-                    <Line
-                      points={lassoPoints}
-                      stroke="#1976d2"
-                      strokeWidth={2}
-                      tension={0.5}
-                      closed={false}
-                    />
-                  )}
+                  {shapeType === "lasso" &&
+                    lassoPaths.length > 0 &&
+                    lassoPaths.map((path, idx) =>
+                      path.length > 2 ? (
+                        <Line
+                          key={idx}
+                          points={path}
+                          stroke="#1976d2"
+                          strokeWidth={2}
+                          tension={0.5}
+                          closed={false}
+                        />
+                      ) : null
+                    )}
                   {shapeType === "rectangle" && (
                     <>
                       <Rect
@@ -243,9 +248,7 @@ const PreviewBox = () => {
             ) : (
               <MaskedImage
                 src={imageSrc}
-                lassoPoints={
-                  shapeType === "lasso" ? lassoPoints : getCurrentShapePoints()
-                }
+                lassoPaths={shapeType === "lasso" ? lassoPaths : []}
                 borderColor={borderColor}
                 borderWidth={borderWidth}
                 displayWidth={fit.width}
@@ -265,7 +268,7 @@ const PreviewBox = () => {
           onChange={(e) => {
             handleImageUpload(e);
             setConfirmed(false);
-            setLassoPoints([]);
+            setLassoPaths([]);
           }}
         />
       </Box>
