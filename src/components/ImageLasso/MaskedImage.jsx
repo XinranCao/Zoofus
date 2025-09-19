@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useImageCustom, scalePoints } from "../../utils/image";
 import polygonClipping from "polygon-clipping";
+import { joinOpenPathsToClosedRings } from "./utils/lassoUtils";
 
 function pointsToPolygon(points) {
   const poly = [];
@@ -38,30 +39,48 @@ const MaskedImage = React.memo(function MaskedImage(props) {
     const ctx = canvas.getContext("2d");
 
     // Scale all paths to image coordinates
-    const polygons = lassoPaths
-      .filter((path) => path.length >= 6)
+    const scaledPaths = lassoPaths
+      .filter((path) => path.length >= 4)
       .map((path) =>
-        pointsToPolygon(
-          scalePoints(
-            path,
-            displayWidth,
-            displayHeight,
-            image.width,
-            image.height
-          )
+        scalePoints(
+          path,
+          displayWidth,
+          displayHeight,
+          image.width,
+          image.height
         )
       );
 
-    // Union all polygons
+    // Find closed rings and which paths were used
+    const { rings: closedRings, used } = joinOpenPathsToClosedRings(
+      scaledPaths,
+      100
+    );
+
+    const autoClosedIsolatedPaths = scaledPaths
+      .map((path, idx) => {
+        if (!used[idx] && path.length >= 6) {
+          // Always auto-close by connecting end to start
+          const startX = path[0];
+          const startY = path[1];
+          return [...path, startX, startY];
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    const allPolygons = [...closedRings, ...autoClosedIsolatedPaths].map(
+      pointsToPolygon
+    );
+
     let unionPoly;
-    if (polygons.length === 1) {
-      unionPoly = polygons[0];
-    } else if (polygons.length > 1) {
-      unionPoly = polygonClipping.union(...polygons);
+    if (allPolygons.length === 1) {
+      unionPoly = allPolygons[0];
+    } else if (allPolygons.length > 1) {
+      unionPoly = polygonClipping.union(...allPolygons);
     } else {
       unionPoly = [];
     }
-
     // Intersect with image bounds
     const imageRect = [
       [
