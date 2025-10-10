@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef, useEffect } from "react";
 import { Box, Typography, IconButton, Input } from "@mui/material";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import {
@@ -14,8 +14,11 @@ import {
 import MaskedImage from "./MaskedImage";
 import ShapeSelector from "./ShapeSelector";
 import { useImageLasso } from "./ImageLassoContext";
+import { useLassoDrawing } from "./hooks/useLassoDrawing";
 
 const PreviewBox = () => {
+  const transformerRef = useRef();
+  const shapeNodeRef = useRef();
   const {
     imageSrc,
     confirmed,
@@ -25,69 +28,95 @@ const PreviewBox = () => {
     setShapeType,
     SHAPES,
     isMobile,
-    lassoPaths,
     borderColor,
     borderWidth,
     imgNaturalWidth,
     imgNaturalHeight,
     inputRef,
     handleImageUpload,
-    setConfirmed,
+    styles,
+    PANEL_SIZE,
+    shapes,
+    setShapes,
+    lassoSelections,
+    setLassoSelections,
+    activeShapeId,
+    setActiveShapeId,
+    addShape,
+    addLassoSelection,
+    updateShapeProps,
+    removeShape,
+  } = useImageLasso();
+
+  // Freehand drawing hook
+  const {
+    drawing,
+    lassoPaths,
     setLassoPaths,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
-    rectRef,
-    rectTransformerRef,
-    rectProps,
-    setRectProps,
-    limitRectDrag,
-    handleRectTransform,
-    triangleRef,
-    triangleTransformerRef,
-    triangleProps,
-    setTriangleProps,
-    limitTriangleDrag,
-    handleTriangleTransform,
-    starRef,
-    starTransformerRef,
-    starProps,
-    setStarProps,
-    limitStarDrag,
-    handleStarTransform,
-    styles,
-    PANEL_SIZE,
-  } = useImageLasso();
+  } = useLassoDrawing({ imageSrc, shapeType });
 
-  const handleRectDragMove = useCallback(
-    (e) => {
-      setRectProps({
-        ...rectProps,
-        ...limitRectDrag(e.target.position()),
+  // Add finished lasso paths to global selections
+  useEffect(() => {
+    if (!drawing && lassoPaths.length > 0) {
+      lassoPaths.forEach((path) => {
+        if (
+          path.length >= 4 &&
+          !lassoSelections.some(
+            (sel) =>
+              sel.path.length === path.length &&
+              sel.path.every((v, i) => v === path[i])
+          )
+        ) {
+          addLassoSelection(path);
+        }
       });
+      setLassoPaths([]);
+    }
+  }, [drawing, lassoPaths, lassoSelections, addLassoSelection, setLassoPaths]);
+
+  // Shape drag handler
+  const handleShapeDragMove = useCallback(
+    (id, type, e) => {
+      const pos = e.target.position();
+      let newProps;
+      if (type === "rectangle") {
+        newProps = {
+          ...shapes.find((s) => s.id === id).props,
+          x: pos.x,
+          y: pos.y,
+        };
+      }
+      if (type === "triangle") {
+        newProps = {
+          ...shapes.find((s) => s.id === id).props,
+          x: pos.x,
+          y: pos.y,
+        };
+      }
+      if (type === "star") {
+        newProps = {
+          ...shapes.find((s) => s.id === id).props,
+          x: pos.x,
+          y: pos.y,
+        };
+      }
+      updateShapeProps(id, newProps);
     },
-    [rectProps, limitRectDrag, setRectProps]
+    [shapes, updateShapeProps]
   );
 
-  const handleTriangleDragMove = useCallback(
-    (e) => {
-      setTriangleProps({
-        ...triangleProps,
-        ...limitTriangleDrag(e.target.position()),
-      });
-    },
-    [triangleProps, limitTriangleDrag, setTriangleProps]
-  );
-
-  const handleStarDragMove = useCallback(
-    (e) => {
-      setStarProps({
-        ...starProps,
-        ...limitStarDrag(e.target.position()),
-      });
-    },
-    [starProps, limitStarDrag, setStarProps]
-  );
+  // Only attach pointer events for freehand drawing
+  const stageEvents =
+    shapeType === "lasso" && !confirmed
+      ? {
+          onPointerDown: handlePointerDown,
+          onPointerMove: handlePointerMove,
+          onPointerUp: handlePointerUp,
+        }
+      : {};
 
   return (
     <Box className={styles.previewContainer}>
@@ -98,6 +127,10 @@ const PreviewBox = () => {
           SHAPES={SHAPES}
           isMobile={isMobile}
           disabled={!imageSrc || confirmed}
+          addShape={addShape}
+          addLassoSelection={addLassoSelection}
+          imageSrc={imageSrc}
+          confirmed={confirmed}
         />
       </Box>
       <Box
@@ -134,13 +167,8 @@ const PreviewBox = () => {
                 width={fit.width}
                 height={fit.height}
                 className={styles.stage}
-                onMouseDown={handlePointerDown}
-                onMouseMove={handlePointerMove}
-                onMouseUp={handlePointerUp}
-                onTouchStart={handlePointerDown}
-                onTouchMove={handlePointerMove}
-                onTouchEnd={handlePointerUp}
                 style={{ width: fit.width, height: fit.height }}
+                {...stageEvents}
               >
                 <Layer>
                   {stageImage && (
@@ -150,105 +178,172 @@ const PreviewBox = () => {
                       height={fit.height}
                     />
                   )}
+                  {/* Render finished lasso selections */}
+                  {lassoSelections.map((sel) =>
+                    sel.path.length > 2 ? (
+                      <Line
+                        key={sel.id}
+                        points={sel.path}
+                        stroke={
+                          activeShapeId === sel.id ? "#d32f2f" : "#1976d2"
+                        }
+                        strokeWidth={2}
+                        tension={0.5}
+                        closed={false}
+                        onClick={() => setActiveShapeId(sel.id)}
+                      />
+                    ) : null
+                  )}
+                  {/* Render all shapes */}
+                  {shapes.map((shape) => {
+                    const isActive = activeShapeId === shape.id;
+                    if (shape.type === "rectangle") {
+                      return (
+                        <Rect
+                          key={shape.id}
+                          {...shape.props}
+                          fill="rgba(25, 118, 210, 0.1)"
+                          stroke={isActive ? "#d32f2f" : "#1976d2"}
+                          strokeWidth={2}
+                          draggable={isActive}
+                          rotation={shape.props.rotation || 0}
+                          onDragMove={(e) =>
+                            handleShapeDragMove(shape.id, "rectangle", e)
+                          }
+                          onClick={() => setActiveShapeId(shape.id)}
+                          ref={isActive ? shapeNodeRef : undefined}
+                          onTransformEnd={(e) => {
+                            const node = e.target;
+                            const scaleX = node.scaleX();
+                            const scaleY = node.scaleY();
+                            updateShapeProps(shape.id, {
+                              ...shape.props,
+                              x: node.x(),
+                              y: node.y(),
+                              width: Math.max(5, node.width() * scaleX),
+                              height: Math.max(5, node.height() * scaleY),
+                              rotation: node.rotation(),
+                            });
+                            node.scaleX(1);
+                            node.scaleY(1);
+                          }}
+                        />
+                      );
+                    }
+                    if (shape.type === "triangle") {
+                      return (
+                        <RegularPolygon
+                          key={shape.id}
+                          x={shape.props.x}
+                          y={shape.props.y}
+                          sides={3}
+                          radius={shape.props.radius}
+                          fill="rgba(25, 118, 210, 0.1)"
+                          stroke={isActive ? "#d32f2f" : "#1976d2"}
+                          strokeWidth={2}
+                          rotation={shape.props.rotation || 0}
+                          draggable={isActive}
+                          onDragMove={(e) =>
+                            handleShapeDragMove(shape.id, "triangle", e)
+                          }
+                          onClick={() => setActiveShapeId(shape.id)}
+                          ref={isActive ? shapeNodeRef : undefined}
+                          onTransformEnd={(e) => {
+                            const node = e.target;
+                            const scaleX = node.scaleX();
+                            updateShapeProps(shape.id, {
+                              ...shape.props,
+                              x: node.x(),
+                              y: node.y(),
+                              radius: Math.max(5, shape.props.radius * scaleX),
+                              rotation: node.rotation(),
+                            });
+                            node.scaleX(1);
+                            node.scaleY(1);
+                          }}
+                        />
+                      );
+                    }
+                    if (shape.type === "star") {
+                      return (
+                        <Star
+                          key={shape.id}
+                          x={shape.props.x}
+                          y={shape.props.y}
+                          numPoints={shape.props.numPoints}
+                          innerRadius={shape.props.innerRadius}
+                          outerRadius={shape.props.outerRadius}
+                          fill="rgba(25, 118, 210, 0.1)"
+                          stroke={isActive ? "#d32f2f" : "#1976d2"}
+                          strokeWidth={2}
+                          rotation={shape.props.rotation || 0}
+                          draggable={isActive}
+                          onDragMove={(e) =>
+                            handleShapeDragMove(shape.id, "star", e)
+                          }
+                          onClick={() => setActiveShapeId(shape.id)}
+                          ref={isActive ? shapeNodeRef : undefined}
+                          onTransformEnd={(e) => {
+                            const node = e.target;
+                            const scaleX = node.scaleX();
+                            updateShapeProps(shape.id, {
+                              ...shape.props,
+                              x: node.x(),
+                              y: node.y(),
+                              innerRadius: Math.max(
+                                5,
+                                shape.props.innerRadius * scaleX
+                              ),
+                              outerRadius: Math.max(
+                                5,
+                                shape.props.outerRadius * scaleX
+                              ),
+                              rotation: node.rotation(),
+                            });
+                            node.scaleX(1);
+                            node.scaleY(1);
+                          }}
+                        />
+                      );
+                    }
+                    return null;
+                  })}
+                  {/* Render currently drawing lasso path */}
                   {shapeType === "lasso" &&
-                    lassoPaths.length > 0 &&
+                    !confirmed &&
                     lassoPaths.map((path, idx) =>
                       path.length > 2 ? (
                         <Line
-                          key={idx}
+                          key={`drawing-${idx}`}
                           points={path}
-                          stroke="#1976d2"
+                          stroke="#d32f2f"
                           strokeWidth={2}
                           tension={0.5}
                           closed={false}
                         />
                       ) : null
                     )}
-                  {shapeType === "rectangle" && (
-                    <>
-                      <Rect
-                        ref={rectRef}
-                        {...rectProps}
-                        fill="rgba(25, 118, 210, 0.1)"
-                        stroke="#1976d2"
-                        strokeWidth={2}
-                        draggable
-                        rotation={rectProps.rotation || 0}
-                        onDragMove={handleRectDragMove}
-                        onTransformEnd={handleRectTransform}
-                        onClick={() => setShapeType("rectangle")}
-                      />
-                      <Transformer
-                        ref={rectTransformerRef}
-                        boundBoxFunc={(oldBox, newBox) => {
-                          newBox.width = Math.max(20, newBox.width);
-                          newBox.height = Math.max(20, newBox.height);
-                          return newBox;
-                        }}
-                      />
-                    </>
-                  )}
-                  {shapeType === "triangle" && (
-                    <>
-                      <RegularPolygon
-                        ref={triangleRef}
-                        x={triangleProps.x}
-                        y={triangleProps.y}
-                        sides={3}
-                        radius={triangleProps.radius}
-                        fill="rgba(25, 118, 210, 0.1)"
-                        stroke="#1976d2"
-                        strokeWidth={2}
-                        rotation={triangleProps.rotation || 0}
-                        draggable
-                        onDragMove={handleTriangleDragMove}
-                        onTransformEnd={handleTriangleTransform}
-                        onClick={() => setShapeType("triangle")}
-                      />
-                      <Transformer
-                        ref={triangleTransformerRef}
-                        boundBoxFunc={(oldBox, newBox) => {
-                          newBox.width = Math.max(20, newBox.width);
-                          newBox.height = Math.max(20, newBox.height);
-                          return newBox;
-                        }}
-                      />
-                    </>
-                  )}
-                  {shapeType === "star" && (
-                    <>
-                      <Star
-                        ref={starRef}
-                        x={starProps.x}
-                        y={starProps.y}
-                        numPoints={starProps.numPoints}
-                        innerRadius={starProps.innerRadius}
-                        outerRadius={starProps.outerRadius}
-                        fill="rgba(25, 118, 210, 0.1)"
-                        stroke="#1976d2"
-                        strokeWidth={2}
-                        rotation={starProps.rotation || 0}
-                        draggable
-                        onDragMove={handleStarDragMove}
-                        onTransformEnd={handleStarTransform}
-                        onClick={() => setShapeType("star")}
-                      />
-                      <Transformer
-                        ref={starTransformerRef}
-                        boundBoxFunc={(oldBox, newBox) => {
-                          newBox.width = Math.max(20, newBox.width);
-                          newBox.height = Math.max(20, newBox.height);
-                          return newBox;
-                        }}
-                      />
-                    </>
+                  {/* Transformer for active shape */}
+                  {activeShapeId && shapeNodeRef.current && (
+                    <Transformer
+                      ref={transformerRef}
+                      nodes={[shapeNodeRef.current]}
+                      rotateEnabled={true}
+                      enabledAnchors={[
+                        "top-left",
+                        "top-right",
+                        "bottom-left",
+                        "bottom-right",
+                      ]}
+                    />
                   )}
                 </Layer>
               </Stage>
             ) : (
               <MaskedImage
                 src={imageSrc}
-                lassoPaths={shapeType === "lasso" ? lassoPaths : []}
+                lassoPaths={lassoSelections.map((sel) => sel.path)}
+                shapes={shapes}
                 borderColor={borderColor}
                 borderWidth={borderWidth}
                 displayWidth={fit.width}
@@ -267,8 +362,6 @@ const PreviewBox = () => {
           sx={{ display: "none" }}
           onChange={(e) => {
             handleImageUpload(e);
-            setConfirmed(false);
-            setLassoPaths([]);
           }}
         />
       </Box>

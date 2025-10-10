@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useImageCustom, scalePoints } from "../../utils/image";
 import polygonClipping from "polygon-clipping";
 import { joinOpenPathsToClosedRings } from "./utils/lassoUtils";
+import { getShapePoints } from "./shapeHandler/useShapeHandler";
 
 function pointsToPolygon(points) {
   const poly = [];
@@ -15,6 +16,7 @@ const MaskedImage = React.memo(function MaskedImage(props) {
   const {
     src,
     lassoPaths,
+    shapes,
     borderColor,
     borderWidth,
     displayWidth = 500,
@@ -25,11 +27,7 @@ const MaskedImage = React.memo(function MaskedImage(props) {
   const [maskUrl, setMaskUrl] = useState(null);
 
   useEffect(() => {
-    if (
-      !image ||
-      !Array.isArray(lassoPaths) ||
-      lassoPaths.every((path) => path.length < 6)
-    ) {
+    if (!image) {
       setMaskUrl(null);
       return;
     }
@@ -38,8 +36,8 @@ const MaskedImage = React.memo(function MaskedImage(props) {
     canvas.height = image.height;
     const ctx = canvas.getContext("2d");
 
-    // Scale all paths to image coordinates
-    const scaledPaths = lassoPaths
+    // Scale all lasso paths to image coordinates
+    const scaledLassoPaths = lassoPaths
       .filter((path) => path.length >= 4)
       .map((path) =>
         scalePoints(
@@ -51,13 +49,29 @@ const MaskedImage = React.memo(function MaskedImage(props) {
         )
       );
 
+    // Scale all shapes to image coordinates
+    const scaledShapePaths = shapes
+      .map((shape) =>
+        scalePoints(
+          getShapePoints(shape.type, shape.props, shape.props, shape.props, []),
+          displayWidth,
+          displayHeight,
+          image.width,
+          image.height
+        )
+      )
+      .filter((pts) => pts.length >= 6);
+
+    // Combine all paths
+    const allPaths = [...scaledLassoPaths, ...scaledShapePaths];
+
     // Find closed rings and which paths were used
     const { rings: closedRings, used } = joinOpenPathsToClosedRings(
-      scaledPaths,
+      allPaths,
       100
     );
 
-    const autoClosedIsolatedPaths = scaledPaths
+    const autoClosedIsolatedPaths = allPaths
       .map((path, idx) => {
         if (!used[idx] && path.length >= 6) {
           // Always auto-close by connecting end to start
@@ -153,7 +167,7 @@ const MaskedImage = React.memo(function MaskedImage(props) {
     ctx.restore();
 
     setMaskUrl(canvas.toDataURL());
-  }, [image, lassoPaths, borderColor, borderWidth, displayWidth, displayHeight]);
+  }, [image, lassoPaths, shapes, borderColor, borderWidth, displayWidth, displayHeight]);
 
   if (!maskUrl) return null;
 

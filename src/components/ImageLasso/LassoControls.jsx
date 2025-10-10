@@ -18,9 +18,8 @@ const LassoControls = () => {
   const {
     imageSrc,
     confirmed,
-    shapeType,
-    lassoPaths,
-    getCurrentShapePoints,
+    shapes,
+    lassoSelections,
     handleConfirm,
     handleRedoAll,
     inputRef,
@@ -61,12 +60,7 @@ const LassoControls = () => {
                 variant="contained"
                 color="primary"
                 startIcon={<CheckCircleIcon />}
-                disabled={
-                  (shapeType === "lasso" &&
-                    (lassoPaths.length === 0 ||
-                      lassoPaths.every((path) => path.length < 6))) ||
-                  (shapeType !== "lasso" && getCurrentShapePoints().length < 6)
-                }
+                disabled={shapes.length === 0 && lassoSelections.length === 0}
                 onClick={handleConfirm}
               >
                 Confirm Selection

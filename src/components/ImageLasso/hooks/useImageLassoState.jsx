@@ -6,15 +6,12 @@ import CropFreeIcon from "@mui/icons-material/CropFree";
 import ChangeHistoryIcon from "@mui/icons-material/ChangeHistory";
 import CropSquareIcon from "@mui/icons-material/CropSquare";
 import StarIcon from "@mui/icons-material/Star";
+import { v4 as uuidv4 } from "uuid";
 import {
-  useShapeHandlers,
-  getShapePoints,
   INITIAL_RECT,
   INITIAL_TRIANGLE,
   INITIAL_STAR,
 } from "../shapeHandler/useShapeHandler";
-import { useLassoDrawing } from "./useLassoDrawing";
-import { useShapeTransform } from "./useShapeTransform";
 
 const PANEL_SIZE = 500;
 
@@ -28,14 +25,6 @@ export function useImageLassoState(onClose, styles) {
   const [shapeType, setShapeType] = useState("lasso");
   const inputRef = useRef();
 
-  // Transformer refs
-  const rectRef = useRef();
-  const rectTransformerRef = useRef();
-  const triangleRef = useRef();
-  const triangleTransformerRef = useRef();
-  const starRef = useRef();
-  const starTransformerRef = useRef();
-
   // Responsive
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -46,88 +35,58 @@ export function useImageLassoState(onClose, styles) {
     [imgNaturalWidth, imgNaturalHeight]
   );
 
-  // Shape states
-  const {
-    rectProps,
-    setRectProps,
-    triangleProps,
-    setTriangleProps,
-    starProps,
-    setStarProps,
-  } = useShapeHandlers(imageSrc);
+  // --- NEW: Store all shapes and lasso selections ---
+  const [shapes, setShapes] = useState([]); // { id, type, props }
+  const [lassoSelections, setLassoSelections] = useState([]); // { id, path }
+  const [activeShapeId, setActiveShapeId] = useState(null);
+  const [confirmed, setConfirmed] = useState(false);
 
-  // Lasso logic (multi-part support)
-  const {
-    lassoPaths,
-    setLassoPaths,
-    setDrawing,
-    handlePointerDown,
-    handlePointerMove,
-    handlePointerUp,
-    handleRedo,
-    confirmed,
-    setConfirmed,
-    handleConfirm,
-  } = useLassoDrawing({ imageSrc, shapeType });
-
-  const {
-    limitRectDrag,
-    handleRectTransform,
-    limitTriangleDrag,
-    handleTriangleTransform,
-    limitStarDrag,
-    handleStarTransform,
-  } = useShapeTransform({
-    rectRef,
-    rectProps,
-    setRectProps,
-    triangleRef,
-    triangleProps,
-    setTriangleProps,
-    starRef,
-    starProps,
-    setStarProps,
-  });
-
-  // Reset shapes when image changes
-  useEffect(() => {
-    setRectProps(INITIAL_RECT);
-    setTriangleProps(INITIAL_TRIANGLE);
-    setStarProps(INITIAL_STAR);
-  }, [imageSrc]);
-
-  // Reset shapes and lasso when shapeType changes
-  useEffect(() => {
-    setRectProps(INITIAL_RECT);
-    setTriangleProps(INITIAL_TRIANGLE);
-    setStarProps(INITIAL_STAR);
-    setLassoPaths([]);
-    setDrawing(false);
-    setConfirmed(false);
-  }, [shapeType]);
-
-  // --- Get shape points for masking (with rotation support) ---
-  const getCurrentShapePoints = useMemo(
-    () => () =>
-      getShapePoints(
-        shapeType,
-        rectProps,
-        triangleProps,
-        starProps,
-        lassoPaths
-      ),
-    [shapeType, rectProps, triangleProps, starProps, lassoPaths]
-  );
-
-  const handleRedoAll = () => {
-    setConfirmed(false);
-    setLassoPaths([]);
-    if (shapeType === "rectangle") setRectProps(INITIAL_RECT);
-    if (shapeType === "triangle") setTriangleProps(INITIAL_TRIANGLE);
-    if (shapeType === "star") setStarProps(INITIAL_STAR);
-    handleRedo();
+  // --- Add shape ---
+  const addShape = (type) => {
+    let props;
+    if (type === "rectangle") props = { ...INITIAL_RECT };
+    if (type === "triangle") props = { ...INITIAL_TRIANGLE };
+    if (type === "star") props = { ...INITIAL_STAR };
+    const id = uuidv4();
+    setShapes((prev) => [...prev, { id, type, props }]);
+    setActiveShapeId(id);
   };
 
+  // --- Add lasso selection ---
+  const addLassoSelection = (path) => {
+    const id = uuidv4();
+    setLassoSelections((prev) => [...prev, { id, path }]);
+    setActiveShapeId(id);
+  };
+
+  // --- Update shape props ---
+  const updateShapeProps = (id, newProps) => {
+    setShapes((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, props: newProps } : s))
+    );
+  };
+
+  // --- Remove shape ---
+  const removeShape = (id) => {
+    setShapes((prev) => prev.filter((s) => s.id !== id));
+    setLassoSelections((prev) => prev.filter((l) => l.id !== id));
+    if (activeShapeId === id) setActiveShapeId(null);
+  };
+
+  // --- Reset all shapes/selections ---
+  const handleRedoAll = () => {
+    setConfirmed(false);
+    setShapes([]);
+    setLassoSelections([]);
+    setActiveShapeId(null);
+  };
+
+  // --- Confirm selection ---
+  const handleConfirm = () => {
+    setConfirmed(true);
+  };
+
+  // --- Image upload ---
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -142,33 +101,16 @@ export function useImageLassoState(onClose, styles) {
       };
       img.src = url;
     }
-    setConfirmed(false);
-    setLassoPaths([]);
+    handleRedoAll();
   };
 
-  // --- Selection logic for Transformer ---
-  useEffect(() => {
-    if (
-      shapeType === "rectangle" &&
-      rectTransformerRef.current &&
-      rectRef.current
-    ) {
-      rectTransformerRef.current.nodes([rectRef.current]);
-      rectTransformerRef.current.getLayer().batchDraw();
-    }
-    if (
-      shapeType === "triangle" &&
-      triangleTransformerRef.current &&
-      triangleRef.current
-    ) {
-      triangleTransformerRef.current.nodes([triangleRef.current]);
-      triangleTransformerRef.current.getLayer().batchDraw();
-    }
-    if (shapeType === "star" && starTransformerRef.current && starRef.current) {
-      starTransformerRef.current.nodes([starRef.current]);
-      starTransformerRef.current.getLayer().batchDraw();
-    }
-  }, [shapeType, confirmed]);
+  // --- SHAPES for selector ---
+  const SHAPES = [
+    { value: "lasso", label: "Freehand", icon: <CropFreeIcon /> },
+    { value: "triangle", label: "Triangle", icon: <ChangeHistoryIcon /> },
+    { value: "rectangle", label: "Rectangle", icon: <CropSquareIcon /> },
+    { value: "star", label: "Star", icon: <StarIcon /> },
+  ];
 
   return {
     imageSrc,
@@ -183,43 +125,9 @@ export function useImageLassoState(onClose, styles) {
     shapeType,
     setShapeType,
     inputRef,
-    rectRef,
-    rectTransformerRef,
-    rectProps,
-    setRectProps,
-    triangleRef,
-    triangleTransformerRef,
-    triangleProps,
-    setTriangleProps,
-    starRef,
-    starTransformerRef,
-    starProps,
-    setStarProps,
     isMobile,
     fit,
-    lassoPaths,
-    setLassoPaths,
-    setDrawing,
-    handlePointerDown,
-    handlePointerMove,
-    handlePointerUp,
-    handleRedo,
-    limitRectDrag,
-    handleRectTransform,
-    limitTriangleDrag,
-    handleTriangleTransform,
-    limitStarDrag,
-    handleStarTransform,
-    getCurrentShapePoints,
-    handleRedoAll,
-    handleConfirm,
-    handleImageUpload,
-    SHAPES: [
-      { value: "lasso", label: "Freehand", icon: <CropFreeIcon /> },
-      { value: "triangle", label: "Triangle", icon: <ChangeHistoryIcon /> },
-      { value: "rectangle", label: "Rectangle", icon: <CropSquareIcon /> },
-      { value: "star", label: "Star", icon: <StarIcon /> },
-    ],
+    SHAPES,
     imgNaturalWidth,
     setImgNaturalWidth,
     imgNaturalHeight,
@@ -227,5 +135,19 @@ export function useImageLassoState(onClose, styles) {
     styles,
     PANEL_SIZE,
     onClose,
+    // --- NEW MULTI-SHAPE ---
+    shapes,
+    setShapes,
+    lassoSelections,
+    setLassoSelections,
+    activeShapeId,
+    setActiveShapeId,
+    addShape,
+    addLassoSelection,
+    updateShapeProps,
+    removeShape,
+    handleRedoAll,
+    handleConfirm,
+    handleImageUpload,
   };
 }
