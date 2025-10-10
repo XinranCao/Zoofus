@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from "react";
+import React, { useCallback, useRef, useEffect } from "react";
 import { Box, Typography, IconButton, Input } from "@mui/material";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import {
@@ -18,7 +18,8 @@ import { useLassoDrawing } from "./hooks/useLassoDrawing";
 
 const PreviewBox = () => {
   const transformerRef = useRef();
-  const shapeNodeRef = useRef();
+  // Ref map for all shapes
+  const shapeRefs = useRef({});
   const {
     imageSrc,
     confirmed,
@@ -77,6 +78,12 @@ const PreviewBox = () => {
     }
   }, [drawing, lassoPaths, lassoSelections, addLassoSelection, setLassoPaths]);
 
+  // Delete active shape or lasso selection
+  const handleDeleteActive = () => {
+    if (!activeShapeId) return;
+    removeShape(activeShapeId);
+  };
+
   // Shape drag handler
   const handleShapeDragMove = useCallback(
     (id, type, e) => {
@@ -131,6 +138,8 @@ const PreviewBox = () => {
           addLassoSelection={addLassoSelection}
           imageSrc={imageSrc}
           confirmed={confirmed}
+          activeShapeId={activeShapeId}
+          handleDeleteActive={handleDeleteActive}
         />
       </Box>
       <Box
@@ -197,6 +206,11 @@ const PreviewBox = () => {
                   {/* Render all shapes */}
                   {shapes.map((shape) => {
                     const isActive = activeShapeId === shape.id;
+                    // Create a ref for each shape
+                    if (!shapeRefs.current[shape.id]) {
+                      shapeRefs.current[shape.id] = React.createRef();
+                    }
+                    const ref = shapeRefs.current[shape.id];
                     if (shape.type === "rectangle") {
                       return (
                         <Rect
@@ -211,7 +225,7 @@ const PreviewBox = () => {
                             handleShapeDragMove(shape.id, "rectangle", e)
                           }
                           onClick={() => setActiveShapeId(shape.id)}
-                          ref={isActive ? shapeNodeRef : undefined}
+                          ref={ref}
                           onTransformEnd={(e) => {
                             const node = e.target;
                             const scaleX = node.scaleX();
@@ -247,7 +261,7 @@ const PreviewBox = () => {
                             handleShapeDragMove(shape.id, "triangle", e)
                           }
                           onClick={() => setActiveShapeId(shape.id)}
-                          ref={isActive ? shapeNodeRef : undefined}
+                          ref={ref}
                           onTransformEnd={(e) => {
                             const node = e.target;
                             const scaleX = node.scaleX();
@@ -282,7 +296,7 @@ const PreviewBox = () => {
                             handleShapeDragMove(shape.id, "star", e)
                           }
                           onClick={() => setActiveShapeId(shape.id)}
-                          ref={isActive ? shapeNodeRef : undefined}
+                          ref={ref}
                           onTransformEnd={(e) => {
                             const node = e.target;
                             const scaleX = node.scaleX();
@@ -324,19 +338,21 @@ const PreviewBox = () => {
                       ) : null
                     )}
                   {/* Transformer for active shape */}
-                  {activeShapeId && shapeNodeRef.current && (
-                    <Transformer
-                      ref={transformerRef}
-                      nodes={[shapeNodeRef.current]}
-                      rotateEnabled={true}
-                      enabledAnchors={[
-                        "top-left",
-                        "top-right",
-                        "bottom-left",
-                        "bottom-right",
-                      ]}
-                    />
-                  )}
+                  {activeShapeId &&
+                    shapeRefs.current[activeShapeId] &&
+                    shapeRefs.current[activeShapeId].current && (
+                      <Transformer
+                        ref={transformerRef}
+                        nodes={[shapeRefs.current[activeShapeId].current]}
+                        rotateEnabled={true}
+                        enabledAnchors={[
+                          "top-left",
+                          "top-right",
+                          "bottom-left",
+                          "bottom-right",
+                        ]}
+                      />
+                    )}
                 </Layer>
               </Stage>
             ) : (

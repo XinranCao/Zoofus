@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import ReplayIcon from "@mui/icons-material/Replay";
+import UndoIcon from "@mui/icons-material/Undo";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useImageLasso } from "./ImageLassoContext";
 import { ChromePicker } from "react-color";
@@ -20,6 +21,8 @@ const LassoControls = () => {
     confirmed,
     shapes,
     lassoSelections,
+    setShapes,
+    setLassoSelections,
     handleConfirm,
     handleRedoAll,
     inputRef,
@@ -30,6 +33,31 @@ const LassoControls = () => {
   } = useImageLasso();
 
   const [colorAnchor, setColorAnchor] = useState(null);
+
+  // Redo last action: remove last shape or lasso
+  const handleRedoLast = () => {
+    if (shapes.length === 0 && lassoSelections.length === 0) return;
+
+    // Merge all items with type info
+    const allItems = [
+      ...shapes.map((s) => ({ ...s, type: "shape" })),
+      ...lassoSelections.map((l) => ({ ...l, type: "lasso" })),
+    ];
+
+    // Find the latest item by timestamp
+    const lastItem = allItems.reduce(
+      (latest, item) => (!latest || item.ts > latest.ts ? item : latest),
+      null
+    );
+
+    if (!lastItem) return;
+
+    if (lastItem.type === "shape") {
+      setShapes((prev) => prev.filter((s) => s.id !== lastItem.id));
+    } else if (lastItem.type === "lasso") {
+      setLassoSelections((prev) => prev.filter((l) => l.id !== lastItem.id));
+    }
+  };
 
   const handleBorderWidthInput = (e) => {
     let val = Number(e.target.value);
@@ -75,6 +103,15 @@ const LassoControls = () => {
                 }}
               >
                 Choose Another Image
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                startIcon={<UndoIcon />}
+                onClick={handleRedoLast}
+                disabled={shapes.length === 0 && lassoSelections.length === 0}
+              >
+                Redo Last
               </Button>
             </Stack>
           ) : (

@@ -48,14 +48,14 @@ export function useImageLassoState(onClose, styles) {
     if (type === "triangle") props = { ...INITIAL_TRIANGLE };
     if (type === "star") props = { ...INITIAL_STAR };
     const id = uuidv4();
-    setShapes((prev) => [...prev, { id, type, props }]);
+    setShapes((prev) => [...prev, { id, type, props, ts: Date.now() }]);
     setActiveShapeId(id);
   };
 
   // --- Add lasso selection ---
   const addLassoSelection = (path) => {
     const id = uuidv4();
-    setLassoSelections((prev) => [...prev, { id, path }]);
+    setLassoSelections((prev) => [...prev, { id, path, ts: Date.now() }]);
     setActiveShapeId(id);
   };
 

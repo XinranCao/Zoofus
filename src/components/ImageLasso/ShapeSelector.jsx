@@ -8,6 +8,7 @@ import {
   ToggleButtonGroup,
   Button,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const ShapeSelector = React.memo(function ShapeSelector(props) {
   const {
@@ -17,9 +18,10 @@ const ShapeSelector = React.memo(function ShapeSelector(props) {
     isMobile,
     disabled,
     addShape,
-    addLassoSelection,
     imageSrc,
     confirmed,
+    activeShapeId,
+    handleDeleteActive,
   } = props;
   if (disabled) return null;
 
@@ -70,17 +72,25 @@ const ShapeSelector = React.memo(function ShapeSelector(props) {
           ))}
         </ToggleButtonGroup>
       )}
-      <Box sx={{ mt: 1, display: "flex", gap: 1 }}>
-        {shapeType !== "lasso" && (
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => addShape(shapeType)}
-            disabled={!imageSrc || confirmed}
-          >
-            Add Shape
-          </Button>
-        )}
+      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => addShape(shapeType)}
+          disabled={!imageSrc || confirmed || shapeType === "lasso"}
+        >
+          Add Shape
+        </Button>
+        <Button
+          variant="outlined"
+          color="error"
+          size="small"
+          startIcon={<DeleteIcon />}
+          onClick={handleDeleteActive}
+          disabled={!activeShapeId}
+        >
+          Delete
+        </Button>
       </Box>
     </Box>
   );
