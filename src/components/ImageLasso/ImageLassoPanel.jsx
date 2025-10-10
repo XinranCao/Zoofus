@@ -9,7 +9,6 @@ import styles from "./ImageLassoPanel.module.less";
 
 const ImageLassoPanel = ({ onClose }) => {
   const contextValue = useImageLassoState(onClose, styles);
-
   return (
     <ImageLassoContext.Provider value={contextValue}>
       <Box>

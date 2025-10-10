@@ -26,7 +26,6 @@ const PreviewBox = () => {
     SHAPES,
     isMobile,
     lassoPaths,
-    getCurrentShapePoints,
     borderColor,
     borderWidth,
     imgNaturalWidth,
@@ -91,8 +90,8 @@ const PreviewBox = () => {
   );
 
   return (
-    <Box>
-      <Box>
+    <Box className={styles.previewContainer}>
+      <Box className={styles.controlsBox}>
         <ShapeSelector
           shapeType={shapeType}
           setShapeType={setShapeType}
@@ -127,6 +126,7 @@ const PreviewBox = () => {
               width: PANEL_SIZE,
               height: PANEL_SIZE,
               position: "relative",
+              display: "flex",
             }}
           >
             {!confirmed ? (

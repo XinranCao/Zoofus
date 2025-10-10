@@ -1,7 +1,14 @@
 import { useState } from "react";
 import PageContainer from "../../components/PageContainer";
 import ImageLassoPanel from "../../components/ImageLasso/ImageLassoPanel";
-import { Button, Dialog, DialogTitle, DialogContent, Box } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Box,
+  DialogActions,
+} from "@mui/material";
 import styles from "./Home.module.less";
 
 const HomePage = () => {
@@ -31,6 +38,11 @@ const HomePage = () => {
           <DialogContent>
             <ImageLassoPanel onClose={() => setOpen(false)} />
           </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpen(false)} color="primary">
+              Close
+            </Button>
+          </DialogActions>
         </Dialog>
       </div>
     </PageContainer>

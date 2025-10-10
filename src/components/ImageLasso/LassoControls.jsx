@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -28,8 +28,6 @@ const LassoControls = () => {
     setBorderColor,
     borderWidth,
     setBorderWidth,
-    styles,
-    onClose,
   } = useImageLasso();
 
   const [colorAnchor, setColorAnchor] = useState(null);
@@ -84,11 +82,6 @@ const LassoControls = () => {
               >
                 Choose Another Image
               </Button>
-              <Typography variant="body2" color="text.secondary">
-                {shapeType === "lasso"
-                  ? 'Draw as many freehand areas as you want. Click "Confirm" when done.'
-                  : 'Move and resize the shape to mask the area. Click "Confirm" when done.'}
-              </Typography>
             </Stack>
           ) : (
             <Stack spacing={2} sx={{ mt: 2 }}>
@@ -174,16 +167,6 @@ const LassoControls = () => {
           )}
         </>
       )}
-      <Button
-        variant="outlined"
-        className={styles.closeButton}
-        onClick={() => {
-          if (typeof window !== "undefined") window.scrollTo(0, 0);
-          if (typeof onClose === "function") onClose();
-        }}
-      >
-        Close
-      </Button>
     </>
   );
 };
