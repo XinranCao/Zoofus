@@ -24,7 +24,7 @@ const LassoControls = () => {
     setShapes,
     setLassoSelections,
     handleConfirm,
-    // handleRedoAll,
+    handleRedoAll,
     inputRef,
     borderColor,
     setBorderColor,
@@ -116,14 +116,14 @@ const LassoControls = () => {
             </Stack>
           ) : (
             <Stack spacing={2} sx={{ mt: 2 }}>
-              {/* <Button
+              <Button
                 variant="outlined"
                 color="secondary"
                 startIcon={<ReplayIcon />}
                 onClick={handleRedoAll}
               >
                 Redo
-              </Button> */}
+              </Button>
               <Button
                 variant="outlined"
                 color="primary"
