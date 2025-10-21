@@ -24,6 +24,7 @@ export function useImageLassoState(onClose, styles) {
   const [stageImage] = useImageCustom(imageSrc, "anonymous");
   const [shapeType, setShapeType] = useState("lasso");
   const inputRef = useRef();
+  const [selectMode, setSelectMode] = useState("select"); // "select" or "deselect"
 
   // Responsive
   const theme = useTheme();
@@ -48,14 +49,17 @@ export function useImageLassoState(onClose, styles) {
     if (type === "triangle") props = { ...INITIAL_TRIANGLE };
     if (type === "star") props = { ...INITIAL_STAR };
     const id = uuidv4();
-    setShapes((prev) => [...prev, { id, type, props, ts: Date.now() }]);
+    setShapes((prev) => [
+      ...prev,
+      { id, type, props, ts: Date.now(), mode: selectMode },
+    ]);
     setActiveShapeId(id);
   };
 
   // --- Add lasso selection ---
-  const addLassoSelection = (path) => {
+  const addLassoSelection = (path, mode = selectMode) => {
     const id = uuidv4();
-    setLassoSelections((prev) => [...prev, { id, path, ts: Date.now() }]);
+    setLassoSelections((prev) => [...prev, { id, path, ts: Date.now(), mode }]);
     setActiveShapeId(id);
   };
 
@@ -149,5 +153,7 @@ export function useImageLassoState(onClose, styles) {
     handleRedoAll,
     handleConfirm,
     handleImageUpload,
+    selectMode,
+    setSelectMode,
   };
 }

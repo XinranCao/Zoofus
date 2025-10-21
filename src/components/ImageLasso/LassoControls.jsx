@@ -7,6 +7,8 @@ import {
   TextField,
   Slider,
   Popover,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import ReplayIcon from "@mui/icons-material/Replay";
@@ -31,33 +33,9 @@ const LassoControls = () => {
     borderWidth,
     setBorderWidth,
   } = useImageLasso();
+  const { selectMode, setSelectMode } = useImageLasso();
 
   const [colorAnchor, setColorAnchor] = useState(null);
-
-  // Redo last action: remove last shape or lasso
-  // const handleRedoLast = () => {
-  //   if (shapes.length === 0 && lassoSelections.length === 0) return;
-
-  //   // Merge all items with type info
-  //   const allItems = [
-  //     ...shapes.map((s) => ({ ...s, type: "shape" })),
-  //     ...lassoSelections.map((l) => ({ ...l, type: "lasso" })),
-  //   ];
-
-  //   // Find the latest item by timestamp
-  //   const lastItem = allItems.reduce(
-  //     (latest, item) => (!latest || item.ts > latest.ts ? item : latest),
-  //     null
-  //   );
-
-  //   if (!lastItem) return;
-
-  //   if (lastItem.type === "shape") {
-  //     setShapes((prev) => prev.filter((s) => s.id !== lastItem.id));
-  //   } else if (lastItem.type === "lasso") {
-  //     setLassoSelections((prev) => prev.filter((l) => l.id !== lastItem.id));
-  //   }
-  // };
 
   const handleBorderWidthInput = (e) => {
     let val = Number(e.target.value);
@@ -75,7 +53,15 @@ const LassoControls = () => {
   };
 
   return (
-    <>
+    <Box
+      sx={{
+        minHeight: 340,
+        height: 340,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-start",
+      }}
+    >
       {!imageSrc ? (
         <Typography variant="body1" sx={{ mt: 2 }}>
           Click "Select an image" to begin.
@@ -84,6 +70,17 @@ const LassoControls = () => {
         <>
           {!confirmed ? (
             <Stack spacing={2} sx={{ mt: 2 }}>
+              <ToggleButtonGroup
+                value={selectMode}
+                exclusive
+                onChange={(_, val) => {
+                  if (val) setSelectMode(val);
+                }}
+                sx={{ mb: 1 }}
+              >
+                <ToggleButton value="select">Select</ToggleButton>
+                <ToggleButton value="deselect">Deselect</ToggleButton>
+              </ToggleButtonGroup>
               <Button
                 variant="contained"
                 color="primary"
@@ -198,7 +195,7 @@ const LassoControls = () => {
           )}
         </>
       )}
-    </>
+    </Box>
   );
 };
 

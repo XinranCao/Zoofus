@@ -15,7 +15,7 @@ function pointsToPolygon(points) {
 const MaskedImage = React.memo(function MaskedImage(props) {
   const {
     src,
-    lassoPaths,
+    lassoSelections = [],
     shapes,
     borderColor,
     borderWidth,
@@ -36,12 +36,25 @@ const MaskedImage = React.memo(function MaskedImage(props) {
     canvas.height = image.height;
     const ctx = canvas.getContext("2d");
 
-    // Scale all lasso paths to image coordinates
-    const scaledLassoPaths = lassoPaths
-      .filter((path) => path.length >= 4)
-      .map((path) =>
+    // Separate lassoSelections by mode
+    const selectLassoPaths = lassoSelections
+      .filter((sel) => sel.mode !== "deselect")
+      .filter((sel) => sel.path.length >= 4)
+      .map((sel) =>
         scalePoints(
-          path,
+          sel.path,
+          displayWidth,
+          displayHeight,
+          image.width,
+          image.height
+        )
+      );
+    const deselectLassoPaths = lassoSelections
+      .filter((sel) => sel.mode === "deselect")
+      .filter((sel) => sel.path.length >= 4)
+      .map((sel) =>
+        scalePoints(
+          sel.path,
           displayWidth,
           displayHeight,
           image.width,
@@ -50,7 +63,20 @@ const MaskedImage = React.memo(function MaskedImage(props) {
       );
 
     // Scale all shapes to image coordinates
-    const scaledShapePaths = shapes
+    const selectShapePaths = shapes
+      .filter((shape) => shape.mode !== "deselect")
+      .map((shape) =>
+        scalePoints(
+          getShapePoints(shape.type, shape.props, shape.props, shape.props, []),
+          displayWidth,
+          displayHeight,
+          image.width,
+          image.height
+        )
+      )
+      .filter((pts) => pts.length >= 6);
+    const deselectShapePaths = shapes
+      .filter((shape) => shape.mode === "deselect")
       .map((shape) =>
         scalePoints(
           getShapePoints(shape.type, shape.props, shape.props, shape.props, []),
@@ -62,16 +88,17 @@ const MaskedImage = React.memo(function MaskedImage(props) {
       )
       .filter((pts) => pts.length >= 6);
 
-    // Combine all paths
-    const allPaths = [...scaledLassoPaths, ...scaledShapePaths];
+    // Combine all select and deselect paths
+    const allSelectPaths = [...selectLassoPaths, ...selectShapePaths];
+    const allDeselectPaths = [...deselectLassoPaths, ...deselectShapePaths];
 
-    // Find closed rings and which paths were used
+    // Find closed rings and which paths were used (for select)
     const { rings: closedRings, used } = joinOpenPathsToClosedRings(
-      allPaths,
+      allSelectPaths,
       100
     );
 
-    const autoClosedIsolatedPaths = allPaths
+    const autoClosedIsolatedPaths = allSelectPaths
       .map((path, idx) => {
         if (!used[idx] && path.length >= 6) {
           // Always auto-close by connecting end to start
@@ -95,6 +122,18 @@ const MaskedImage = React.memo(function MaskedImage(props) {
     } else {
       unionPoly = [];
     }
+
+    // Subtract all deselect polygons
+    let deselectPolygons = allDeselectPaths
+      .filter((pts) => pts.length >= 6)
+      .map(pointsToPolygon);
+    let finalPoly = unionPoly;
+    if (deselectPolygons.length > 0 && finalPoly && finalPoly.length) {
+      deselectPolygons.forEach((dPoly) => {
+        finalPoly = polygonClipping.difference(finalPoly, dPoly);
+      });
+    }
+
     // Intersect with image bounds
     const imageRect = [
       [
@@ -104,7 +143,7 @@ const MaskedImage = React.memo(function MaskedImage(props) {
         [0, image.height],
       ],
     ];
-    const clipped = polygonClipping.intersection(unionPoly, imageRect);
+    const clipped = polygonClipping.intersection(finalPoly, imageRect);
 
     if (
       !clipped ||
@@ -167,7 +206,7 @@ const MaskedImage = React.memo(function MaskedImage(props) {
     ctx.restore();
 
     setMaskUrl(canvas.toDataURL());
-  }, [image, lassoPaths, shapes, borderColor, borderWidth, displayWidth, displayHeight]);
+  }, [image, lassoSelections, shapes, borderColor, borderWidth, displayWidth, displayHeight]);
 
   if (!maskUrl) return null;
 

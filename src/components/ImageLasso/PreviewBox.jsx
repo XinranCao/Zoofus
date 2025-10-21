@@ -16,6 +16,16 @@ import ShapeSelector from "./ShapeSelector";
 import { useImageLasso } from "./ImageLassoContext";
 import { useLassoDrawing } from "./hooks/useLassoDrawing";
 
+// Centralized color definitions for lasso and shapes
+const LASSO_COLORS = {
+  drawing: "#1976d2", // blue for drawing
+  selected: "#43a047", // green for selected
+  deselected: "#e53935", // red for deselected
+  inactive: "#bdbdbd", // gray for inactive
+  deselectFill: "rgba(229, 57, 53, 0.08)", // light red
+  selectFill: "rgba(67, 160, 71, 0.10)", // light green
+};
+
 const PreviewBox = () => {
   const transformerRef = useRef();
   // Ref map for all shapes
@@ -58,6 +68,7 @@ const PreviewBox = () => {
     handlePointerMove,
     handlePointerUp,
   } = useLassoDrawing({ imageSrc, shapeType });
+  const { selectMode } = useImageLasso();
 
   // Add finished lasso paths to global selections
   useEffect(() => {
@@ -71,12 +82,19 @@ const PreviewBox = () => {
               sel.path.every((v, i) => v === path[i])
           )
         ) {
-          addLassoSelection(path);
+          addLassoSelection(path, selectMode);
         }
       });
       setLassoPaths([]);
     }
-  }, [drawing, lassoPaths, lassoSelections, addLassoSelection, setLassoPaths]);
+  }, [
+    drawing,
+    lassoPaths,
+    lassoSelections,
+    addLassoSelection,
+    setLassoPaths,
+    selectMode,
+  ]);
 
   // Delete active shape or lasso selection
   const handleDeleteActive = () => {
@@ -127,7 +145,8 @@ const PreviewBox = () => {
 
   return (
     <Box className={styles.previewContainer}>
-      <Box className={styles.controlsBox}>
+      {/* Reserve space for controls to prevent layout shift */}
+      <Box className={styles.controlsBox} sx={{ minHeight: 100 }}>
         <ShapeSelector
           shapeType={shapeType}
           setShapeType={setShapeType}
@@ -190,37 +209,68 @@ const PreviewBox = () => {
                   {/* Render finished lasso selections */}
                   {lassoSelections.map((sel) =>
                     sel.path.length > 2 ? (
-                      <Line
-                        key={sel.id}
-                        points={sel.path}
-                        stroke={
-                          activeShapeId === sel.id ? "#d32f2f" : "#1976d2"
-                        }
-                        strokeWidth={2}
-                        tension={0.5}
-                        closed={false}
-                        onClick={() => setActiveShapeId(sel.id)}
-                      />
+                      <>
+                        {/* Invisible thick line for easier hit area */}
+                        <Line
+                          key={sel.id + "-hit"}
+                          points={sel.path}
+                          stroke="#000"
+                          strokeWidth={16}
+                          opacity={0}
+                          tension={0.5}
+                          closed={false}
+                          onClick={() => setActiveShapeId(sel.id)}
+                          listening={true}
+                          perfectDrawEnabled={false}
+                        />
+                        {/* Visible line */}
+                        <Line
+                          key={sel.id}
+                          points={sel.path}
+                          stroke={
+                            activeShapeId === sel.id
+                              ? LASSO_COLORS.drawing
+                              : sel.mode === "deselect"
+                              ? LASSO_COLORS.deselected
+                              : LASSO_COLORS.selected
+                          }
+                          strokeWidth={2}
+                          tension={0.5}
+                          closed={false}
+                          dash={sel.mode === "deselect" ? [10, 6] : []}
+                          onClick={() => setActiveShapeId(sel.id)}
+                        />
+                      </>
                     ) : null
                   )}
                   {/* Render all shapes */}
                   {shapes.map((shape) => {
                     const isActive = activeShapeId === shape.id;
-                    // Create a ref for each shape
                     if (!shapeRefs.current[shape.id]) {
                       shapeRefs.current[shape.id] = React.createRef();
                     }
                     const ref = shapeRefs.current[shape.id];
+                    const isDeselect = shape.mode === "deselect";
+                    const strokeColor = isActive
+                      ? LASSO_COLORS.drawing
+                      : isDeselect
+                      ? LASSO_COLORS.deselected
+                      : LASSO_COLORS.selected;
+                    const fillColor = isDeselect
+                      ? LASSO_COLORS.deselectFill
+                      : LASSO_COLORS.selectFill;
+                    const dash = isDeselect ? [10, 6] : [];
                     if (shape.type === "rectangle") {
                       return (
                         <Rect
                           key={shape.id}
                           {...shape.props}
-                          fill="rgba(25, 118, 210, 0.1)"
-                          stroke={isActive ? "#d32f2f" : "#1976d2"}
+                          fill={fillColor}
+                          stroke={strokeColor}
                           strokeWidth={2}
                           draggable={isActive}
                           rotation={shape.props.rotation || 0}
+                          dash={dash}
                           onDragMove={(e) =>
                             handleShapeDragMove(shape.id, "rectangle", e)
                           }
@@ -252,11 +302,12 @@ const PreviewBox = () => {
                           y={shape.props.y}
                           sides={3}
                           radius={shape.props.radius}
-                          fill="rgba(25, 118, 210, 0.1)"
-                          stroke={isActive ? "#d32f2f" : "#1976d2"}
+                          fill={fillColor}
+                          stroke={strokeColor}
                           strokeWidth={2}
                           rotation={shape.props.rotation || 0}
                           draggable={isActive}
+                          dash={dash}
                           onDragMove={(e) =>
                             handleShapeDragMove(shape.id, "triangle", e)
                           }
@@ -287,11 +338,12 @@ const PreviewBox = () => {
                           numPoints={shape.props.numPoints}
                           innerRadius={shape.props.innerRadius}
                           outerRadius={shape.props.outerRadius}
-                          fill="rgba(25, 118, 210, 0.1)"
-                          stroke={isActive ? "#d32f2f" : "#1976d2"}
+                          fill={fillColor}
+                          stroke={strokeColor}
                           strokeWidth={2}
                           rotation={shape.props.rotation || 0}
                           draggable={isActive}
+                          dash={dash}
                           onDragMove={(e) =>
                             handleShapeDragMove(shape.id, "star", e)
                           }
@@ -330,7 +382,7 @@ const PreviewBox = () => {
                         <Line
                           key={`drawing-${idx}`}
                           points={path}
-                          stroke="#d32f2f"
+                          stroke={LASSO_COLORS.drawing}
                           strokeWidth={2}
                           tension={0.5}
                           closed={false}
@@ -358,7 +410,7 @@ const PreviewBox = () => {
             ) : (
               <MaskedImage
                 src={imageSrc}
-                lassoPaths={lassoSelections.map((sel) => sel.path)}
+                lassoSelections={lassoSelections}
                 shapes={shapes}
                 borderColor={borderColor}
                 borderWidth={borderWidth}
