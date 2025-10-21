@@ -74,12 +74,12 @@ export function useImageLassoState(onClose, styles) {
   };
 
   // --- Reset all shapes/selections ---
-  const handleRedoAll = () => {
-    setConfirmed(false);
-    setShapes([]);
-    setLassoSelections([]);
-    setActiveShapeId(null);
-  };
+  // const handleRedoAll = () => {
+  //   setConfirmed(false);
+  //   setShapes([]);
+  //   setLassoSelections([]);
+  //   setActiveShapeId(null);
+  // };
 
   // --- Confirm selection ---
   const handleConfirm = () => {
@@ -101,7 +101,7 @@ export function useImageLassoState(onClose, styles) {
       };
       img.src = url;
     }
-    handleRedoAll();
+    // handleRedoAll();
   };
 
   // --- SHAPES for selector ---
@@ -146,7 +146,7 @@ export function useImageLassoState(onClose, styles) {
     addLassoSelection,
     updateShapeProps,
     removeShape,
-    handleRedoAll,
+    // handleRedoAll,
     handleConfirm,
     handleImageUpload,
   };

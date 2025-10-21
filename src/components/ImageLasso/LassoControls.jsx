@@ -24,7 +24,7 @@ const LassoControls = () => {
     setShapes,
     setLassoSelections,
     handleConfirm,
-    handleRedoAll,
+    // handleRedoAll,
     inputRef,
     borderColor,
     setBorderColor,
@@ -35,29 +35,29 @@ const LassoControls = () => {
   const [colorAnchor, setColorAnchor] = useState(null);
 
   // Redo last action: remove last shape or lasso
-  const handleRedoLast = () => {
-    if (shapes.length === 0 && lassoSelections.length === 0) return;
+  // const handleRedoLast = () => {
+  //   if (shapes.length === 0 && lassoSelections.length === 0) return;
 
-    // Merge all items with type info
-    const allItems = [
-      ...shapes.map((s) => ({ ...s, type: "shape" })),
-      ...lassoSelections.map((l) => ({ ...l, type: "lasso" })),
-    ];
+  //   // Merge all items with type info
+  //   const allItems = [
+  //     ...shapes.map((s) => ({ ...s, type: "shape" })),
+  //     ...lassoSelections.map((l) => ({ ...l, type: "lasso" })),
+  //   ];
 
-    // Find the latest item by timestamp
-    const lastItem = allItems.reduce(
-      (latest, item) => (!latest || item.ts > latest.ts ? item : latest),
-      null
-    );
+  //   // Find the latest item by timestamp
+  //   const lastItem = allItems.reduce(
+  //     (latest, item) => (!latest || item.ts > latest.ts ? item : latest),
+  //     null
+  //   );
 
-    if (!lastItem) return;
+  //   if (!lastItem) return;
 
-    if (lastItem.type === "shape") {
-      setShapes((prev) => prev.filter((s) => s.id !== lastItem.id));
-    } else if (lastItem.type === "lasso") {
-      setLassoSelections((prev) => prev.filter((l) => l.id !== lastItem.id));
-    }
-  };
+  //   if (lastItem.type === "shape") {
+  //     setShapes((prev) => prev.filter((s) => s.id !== lastItem.id));
+  //   } else if (lastItem.type === "lasso") {
+  //     setLassoSelections((prev) => prev.filter((l) => l.id !== lastItem.id));
+  //   }
+  // };
 
   const handleBorderWidthInput = (e) => {
     let val = Number(e.target.value);
@@ -104,7 +104,7 @@ const LassoControls = () => {
               >
                 Choose Another Image
               </Button>
-              <Button
+              {/* <Button
                 variant="outlined"
                 color="secondary"
                 startIcon={<UndoIcon />}
@@ -112,18 +112,18 @@ const LassoControls = () => {
                 disabled={shapes.length === 0 && lassoSelections.length === 0}
               >
                 Redo Last
-              </Button>
+              </Button> */}
             </Stack>
           ) : (
             <Stack spacing={2} sx={{ mt: 2 }}>
-              <Button
+              {/* <Button
                 variant="outlined"
                 color="secondary"
                 startIcon={<ReplayIcon />}
                 onClick={handleRedoAll}
               >
                 Redo
-              </Button>
+              </Button> */}
               <Button
                 variant="outlined"
                 color="primary"
