@@ -19,7 +19,18 @@ export class TapeLimitError extends Error {}
 
 export async function listTapes(uid: string): Promise<Tape[]> {
   const snap = await getDocs(query(tapesRef(uid), orderBy("createdAt", "desc")));
-  return snap.docs.map((d) => ({ id: d.id, ...tapeDocSchema.parse(d.data()) }) as Tape);
+  const tapes: Tape[] = [];
+  for (const d of snap.docs) {
+    // One unreadable tape must not hide the rest of the roll.
+    const parsed = tapeDocSchema.safeParse(d.data());
+    if (parsed.success) tapes.push({ id: d.id, ...parsed.data } as Tape);
+    else
+      console.warn(
+        `Skipping tape ${d.id}: its data could not be read`,
+        parsed.error.issues,
+      );
+  }
+  return tapes;
 }
 
 export async function saveTape(uid: string, tape: TapeSpec): Promise<string> {

@@ -136,17 +136,18 @@ describe("hostile input", () => {
     expect(hex("#abc123")).toBe("#abc123");
   });
 
-  it("rejects hostile values in the schema", async () => {
+  it("never lets hostile values through the schema", async () => {
     const { patternSpecSchema } = await import("./patternSchema");
-    expect(
-      patternSpecSchema.safeParse({ kind: "doodle", bg: "cream-100", strokes: hostile })
-        .success,
-    ).toBe(false);
-    expect(patternSpecSchema.safeParse({ kind: "dots", bg: "url(x)" }).success).toBe(
-      false,
+    const doodle = patternSpecSchema.parse({
+      kind: "doodle",
+      bg: "cream-100",
+      strokes: hostile,
+    });
+    expect(doodle.strokes).toEqual([]);
+    // a colour that is not one of the 16 reads as paper white
+    expect(patternSpecSchema.parse({ kind: "dots", bg: "url(x)" }).bg).toBe("sheet-50");
+    expect(patternSpecSchema.parse({ kind: "dots", bg: "chartreuse-400" }).bg).toBe(
+      "sheet-50",
     );
-    expect(
-      patternSpecSchema.safeParse({ kind: "dots", bg: "chartreuse-400" }).success,
-    ).toBe(false);
   });
 });

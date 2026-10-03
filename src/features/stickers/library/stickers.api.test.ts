@@ -32,7 +32,13 @@ vi.mock("firebase/storage", () => ({
   deleteObject: m.deleteObject,
 }));
 
-import { deleteSticker, saveSticker, updateStickerEdge } from "./stickers.api";
+import { getDocs, Timestamp } from "firebase/firestore";
+import {
+  deleteSticker,
+  listStickers,
+  saveSticker,
+  updateStickerEdge,
+} from "./stickers.api";
 import { MAX_STICKER_BYTES, MAX_STICKERS, StickerLimitError } from "./sticker.schema";
 import { DEFAULT_EDGE } from "@/paper/renderSticker";
 
@@ -192,5 +198,42 @@ describe("deleteSticker", () => {
   it("still deletes legacy stickers with only one file", async () => {
     await deleteSticker("u1", { id: "s1", storagePath: "u1/stickers/s1.png" });
     expect(m.deleteObject).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("listStickers", () => {
+  const base = (over: object = {}) => ({
+    name: "S",
+    storagePath: "u/stickers/a.webp",
+    imageUrl: "https://x/a.webp",
+    width: 10,
+    height: 10,
+    createdAt: Timestamp.fromDate(new Date("2026-01-01")),
+    ...over,
+  });
+  const snap = (docs: { id: string; data: object }[]) => ({
+    docs: docs.map((d) => ({ id: d.id, data: () => d.data })),
+  });
+
+  it("does not fail the whole book because one sticker is unreadable", async () => {
+    vi.mocked(getDocs).mockResolvedValue(
+      snap([
+        { id: "good", data: base() },
+        { id: "broken", data: { name: 5 } },
+        // saved with an edge the current schema refuses: shown as a plain sticker
+        {
+          id: "oldedge",
+          data: base({
+            sourcePath: "u/stickers/a-src.png",
+            sourceUrl: "https://x/src",
+            edge: { shape: "zigzag", scale: 1, fill: { kind: "dots", bg: "pink-200" } },
+          }),
+        },
+      ]) as never,
+    );
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const list = await listStickers("u");
+    expect(list.map((s) => s.id)).toEqual(["good", "oldedge"]);
+    expect(list[1]!.kind).toBe("legacy");
   });
 });

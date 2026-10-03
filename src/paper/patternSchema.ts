@@ -1,33 +1,35 @@
 import { z } from "zod";
-import {
-  MAX_DOODLE_STROKES,
-  MAX_STROKE_LENGTH,
-  PATTERN_KINDS,
-  STROKE_PATTERN,
-  USER_COLORS,
-} from "./pattern";
+import { MAX_DOODLE_STROKES, PATTERN_KINDS, USER_COLORS, isSafeStroke } from "./pattern";
 import type { EdgeSpec } from "./renderSticker";
 
 /** Users print with the 16 palette colours only. */
 const userColour = z.enum(USER_COLORS);
 
+/**
+ * Saved prints are read leniently. Documents written by older versions can carry values the
+ * current limits refuse (a doodle stroke with an arc command, a colour outside the 16): rather
+ * than failing the whole list, a bad stroke is dropped and a bad colour or number falls back to
+ * its default. Writing is held to the limits by the editors, the rules and `cleanForFirestore`.
+ */
+const strokes = z
+  .array(z.unknown())
+  .transform((list) => list.filter(isSafeStroke).slice(0, MAX_DOODLE_STROKES));
+
 export const patternSpecSchema = z.object({
   kind: z.enum(PATTERN_KINDS as [string, ...string[]]),
-  bg: userColour,
-  ink: userColour.optional(),
-  scale: z.number().min(6).max(28).optional(),
-  angle: z.number().min(0).max(180).optional(),
-  weight: z.number().min(0.1).max(0.9).optional(),
+  bg: userColour.catch("sheet-50"),
+  ink: userColour.optional().catch(undefined),
+  scale: z.number().min(6).max(28).optional().catch(undefined),
+  angle: z.number().min(0).max(180).optional().catch(undefined),
+  weight: z.number().min(0.1).max(0.9).optional().catch(undefined),
   /** exactly 8 rows of 8 cells, each 0 or 1 */
   pixels: z
     .array(z.string().regex(/^[01]{8}$/))
     .length(8)
-    .optional(),
-  /** ≤ 60 paths of ≤ 2,000 characters, path data only (no markup) */
-  strokes: z
-    .array(z.string().max(MAX_STROKE_LENGTH).regex(STROKE_PATTERN))
-    .max(MAX_DOODLE_STROKES)
-    .optional(),
+    .optional()
+    .catch(undefined),
+  /** at most 60 paths of at most 2,000 characters, path data only (no markup) */
+  strokes: strokes.optional().catch(undefined),
 });
 
 export const edgeSpecSchema = z.object({

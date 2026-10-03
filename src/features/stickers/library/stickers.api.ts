@@ -31,10 +31,36 @@ const stickersRef = (uid: string) => collection(db, "users", uid, "stickers");
 
 export async function listStickers(uid: string): Promise<Sticker[]> {
   const snap = await getDocs(query(stickersRef(uid), orderBy("createdAt", "desc")));
-  return snap.docs.map((d) => {
-    const data = stickerDocSchema.parse(d.data());
-    return { id: d.id, ...data, kind: stickerKind(data) } as Sticker;
-  });
+  const stickers: Sticker[] = [];
+  for (const d of snap.docs) {
+    // One unreadable document must never take the whole book down with it.
+    const parsed = stickerDocSchema.safeParse(d.data());
+    if (parsed.success) {
+      stickers.push({
+        id: d.id,
+        ...parsed.data,
+        kind: stickerKind(parsed.data),
+      } as Sticker);
+      continue;
+    }
+    // A bad edge only costs the sticker its editability: show it as a plain, baked sticker.
+    const {
+      edge: _edge,
+      seed: _seed,
+      sourcePath: _sp,
+      sourceUrl: _su,
+      ...rest
+    } = d.data();
+    const plain = stickerDocSchema.safeParse(rest);
+    if (plain.success)
+      stickers.push({ id: d.id, ...plain.data, kind: "legacy" } as Sticker);
+    else
+      console.warn(
+        `Skipping sticker ${d.id}: its data could not be read`,
+        parsed.error.issues,
+      );
+  }
+  return stickers;
 }
 
 export interface NewSticker {
