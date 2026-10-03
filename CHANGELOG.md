@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Other
+- Added a contributor-facing README, `CLAUDE.md` project guide, and a `@claude` GitHub Actions workflow (`.github/workflows/claude.yml`).
+
 ## v0.1.0 – 2025-10-20
 
 First release: authentication, user profiles and the Image Lasso tool.

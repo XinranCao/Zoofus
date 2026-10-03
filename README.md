@@ -1,70 +1,39 @@
-# Getting Started with Create React App
+# Zoofus
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A React + Firebase web app. Sign up or log in (email/password or Google), then use the **Image Lasso** tool: upload an image, select regions with a freehand lasso or rectangle/triangle/star shapes (with select and deselect modes), and preview the masked cut-out with an adjustable border color and width.
 
-## Available Scripts
+Stack: React 19, Vite 7, MUI 7, Redux Toolkit, react-router 7, Konva/react-konva, polygon-clipping, Less modules, Firebase 12 (Auth, Firestore, Storage, Analytics, Hosting).
 
-In the project directory, you can run:
+## Setup
+1. Node 20 or newer, then `npm install`.
+2. Create a `.env` in the repo root (never commit it) with your Firebase web config:
+   `VITE_APP_API_KEY`, `VITE_APP_AUTH_DOMAIN`, `VITE_APP_PROJECT_ID`, `VITE_APP_STORAGE_BUCKET`, `VITE_APP_MESSAGING_SENDER_ID`, `VITE_APP_APP_ID`, `VITE_APP_MEASUREMENT_ID`.
 
-### `npm start`
+## Commands
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Vite dev server (http://localhost:5173) |
+| `npm run build` | Production build into `dist/` |
+| `npm run preview` | Serve the production build |
+| `npm run deploy` | Build, then `firebase deploy` to Hosting |
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Project structure
+- `src/main.jsx`, `src/App.jsx` – providers and routes (`/login`, `/signup`, `/`)
+- `src/context/AuthContext.jsx` – Firebase Auth wrapper
+- `src/store/` – Redux store and user profile thunks
+- `src/services/firebase.js` – Firebase initialization
+- `src/pages/` – Auth and Home pages
+- `src/components/ImageLasso/` – the lasso tool (state hook, Konva preview, controls, masking)
+- `src/components/auth/`, `src/components/navigation/` – forms and nav bar
+- `src/utils/image.js` – image helpers
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Branches and releases
+- `dev` is the development branch; all work lands here.
+- `main` holds only tagged releases (`vX.Y.Z`), created by merging `dev`. See `CHANGELOG.md`.
 
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Deploy
+Releases are deployed to Firebase Hosting (project `zoofus-48264`) from the tagged commit on `main`:
+```bash
+firebase login        # once
+npm run deploy
+```

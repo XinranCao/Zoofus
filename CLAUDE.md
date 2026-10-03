@@ -60,4 +60,12 @@ Local runs need a `.env` with `VITE_APP_*` Firebase keys. Never read, print or c
 - Releases to `main` and Firebase deploys are never done from GitHub Actions.
 
 ## Known issues / backlog
-(To be filled in during Phase 4.)
+Confirmed in the Phase 4 health check (build passes; dev server starts; `npm audit` reports 17 vulns):
+- **Tests broken:** `npm test` runs `vite test` (not a command). No Vitest/jsdom installed. `src/App.test.js` is a CRA test looking for "learn react"; `src/setupTests.js` is Jest-style. Testing-library deps are present but unused.
+- **Profile update bug:** `AuthContext.updateProfile` (`src/context/AuthContext.jsx`) dispatches `updateUserProfile` without `await`/`unwrap`; `userSlice.js` has no `rejected` case. `SignUpPage.handleStep2` therefore navigates before the upload finishes and upload errors are silently swallowed.
+- **Analytics at import:** `src/services/firebase.js` calls `getAnalytics(app)` unguarded (no `isSupported()`), and the `analytics`/`googleProvider` values are unused.
+- **CRA leftovers:** `package.json` `eslintConfig` (ESLint not installed) and `browserslist`; `src/reportWebVitals.js` + call in `src/main.jsx` (`web-vitals` dep); unused `src/App.css` and `src/logo.svg`; `public/manifest.json` (CRA placeholder, not linked from `index.html`); `README.md` was CRA boilerplate (rewritten).
+- **No export:** the masked image can't be saved/downloaded yet (`MaskedImage.jsx`).
+- **CI/deploy:** no build/test check on pushes to `dev`; deploys are manual (`npm run deploy`). PR preview workflow needs the repo secret `FIREBASE_SERVICE_ACCOUNT_ZOOFUS_48264`, which is missing.
+- **Other:** single 1.5 MB JS bundle (Vite chunk warning); `npm audit` vulnerabilities; "Redo" button actually resets everything; a few commented-out blocks.
+- Not an issue: `UndoIcon` in `LassoControls.jsx` is used.
