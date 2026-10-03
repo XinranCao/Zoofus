@@ -8,9 +8,10 @@
 ### Fixes
 - Profile setup now awaits the upload and surfaces errors instead of navigating early and swallowing failures.
 - Firebase Analytics is only initialized in supported browsers.
-- Applied npm audit fixes (17 -> 4 findings); pinned rollup 4.59.0.
+- Cleared all `npm audit` findings (17 -> 0); pinned rollup 4.59.0 (4.64.0 hangs the build).
 
 ### Other
+- Tag-triggered release workflow (test, build, Firebase live deploy, GitHub Release); PR previews now run tests and build with Node 22.
 - Vitest + Testing Library setup with first tests; CI workflow (test + build) on pushes and PRs.
 - Lazy-loaded the Image Lasso panel and split vendor chunks (main bundle 1.5 MB -> 244 kB).
 - Removed Create React App leftovers (`App.css`, `logo.svg`, `reportWebVitals`, `manifest.json`, unused config).

@@ -32,8 +32,14 @@ Stack: React 19, Vite 7, MUI 7, Redux Toolkit, react-router 7, Konva/react-konva
 - `dev` is the development branch; all work lands here.
 - `main` holds only tagged releases (`vX.Y.Z`), created by merging `dev`. See `CHANGELOG.md`.
 
+## CI/CD
+- **CI** (`ci.yml`): `npm ci`, `npm test`, `npm run build` on every push and PR to `dev`/`main`.
+- **PR previews** (`firebase-hosting-pull-request.yml`): each PR gets a Firebase Hosting preview URL.
+- **Release** (`release.yml`): pushing a tag `vX.Y.Z` on `main` runs tests, builds, deploys to Firebase Hosting (live) and creates the GitHub Release from `CHANGELOG.md`.
+- Required GitHub secrets: `FIREBASE_SERVICE_ACCOUNT_ZOOFUS_48264`, the `VITE_APP_*` Firebase config values, and `CLAUDE_CODE_OAUTH_TOKEN` (for `@claude`).
+
 ## Deploy
-Releases are deployed to Firebase Hosting (project `zoofus-48264`) from the tagged commit on `main`:
+Normally automatic on tag (see above). Manual fallback from the tagged commit on `main`:
 ```bash
 firebase login        # once
 npm run deploy

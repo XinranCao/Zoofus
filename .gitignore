@@ -35,3 +35,7 @@ hosting.*.cache
 # Claude Code local-only files (CLAUDE.md and .github/workflows/claude.yml are tracked)
 .claude/
 CLAUDE_SETUP_TASK.md
+
+# Firebase CLI logs
+firebase-debug.log
+*-debug.log

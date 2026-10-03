@@ -50,18 +50,19 @@ Local runs need a `.env` with `VITE_APP_*` Firebase keys. Never read, print or c
 4. `npm version X.Y.Z --no-git-tag-version`, then commit `RELEASE: vX.Y.Z` on `dev` and push `dev`.
 5. `git switch main && git pull --ff-only && git merge --no-ff dev -m "RELEASE: vX.Y.Z"`
 6. `git tag -a vX.Y.Z -m "Zoofus vX.Y.Z"`, then `git push origin main && git push origin vX.Y.Z`
-7. `gh release create vX.Y.Z --title "Zoofus vX.Y.Z" --notes-file <the changelog section>`
-8. **Deploy to Firebase on every release.** While on the tagged commit on `main` (needs `.env` locally), run `npm run deploy` (user approves the prompt), then check the Hosting URL loads. Do this for every new tag.
+7. Pushing the tag triggers `.github/workflows/release.yml`, which verifies the tag is on `main` and matches `package.json`, runs tests + build, **deploys to Firebase Hosting (live)** and creates the GitHub Release from the `CHANGELOG.md` section. Watch it with `gh run watch`, then check https://zoofus-48264.web.app loads. Every tag is deployed this way.
+8. If the workflow fails, fix forward on `dev` and release a patch; as a last resort deploy manually from the tagged commit with `npm run deploy` (needs local `.env`; user approves).
 9. `git switch dev`.
 - `git log --first-parent main --oneline` lists the releases.
 
 ## Working from GitHub
 - Mention `@claude` in an issue or PR comment to have Claude work on it in GitHub Actions (`.github/workflows/claude.yml`, auth secret `CLAUDE_CODE_OAUTH_TOKEN`).
 - Claude opens PRs into `dev`, and follows this same `CLAUDE.md`.
-- Releases to `main` and Firebase deploys are never done from GitHub Actions.
+- `@claude` never merges to `main` or tags releases. Only the human-pushed `vX.Y.Z` tag triggers `release.yml` (deploy + GitHub Release).
 
 ## Known issues / backlog
-- PR preview deploys need the repo secret `FIREBASE_SERVICE_ACCOUNT_ZOOFUS_48264` (issue #8, set up via `firebase init hosting:github`).
-- 4 high `npm audit` findings remain, all from Firebase's gRPC dependency; the only fix downgrades firebase to v9, so it is deferred until Firebase ships a patched release.
-- Do not upgrade `rollup` past 4.59.0 without checking: 4.64.0 made `vite build` hang (pinned via `overrides` in package.json).
+- Do not upgrade `rollup` past 4.59.0 without checking: 4.64.0 made `vite build` hang (pinned via `overrides` in package.json). `@grpc/grpc-js` is also overridden to ^1.14.5 to clear audit findings (Firestore pins 1.9.x; unused in the browser bundle). `npm audit` is clean.
+- Workflows that build the app (`firebase-hosting-pull-request.yml`, `release.yml`) need the repo secrets `VITE_APP_*` (same names as `.env`) plus `FIREBASE_SERVICE_ACCOUNT_ZOOFUS_48264`.
 - "Redo" in the lasso panel resets everything (it is not a redo). No ESLint yet. Minor commented-out code remains in the lasso components.
+- Next sprint: main feature development, then the first major version (v1.0.0).
+
