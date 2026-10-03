@@ -32,7 +32,7 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
   - `domain/` pure, tested logic: `types.ts` (unified `Selection` model), `geometry.ts` (selection → polygon, ring joining), `mask.ts` (polygon-clipping: select union minus deselect, clipped to image), `render.ts` (canvas cut-out + border)
   - `store/editorStore.ts` – Zustand store per editor instance with undo/redo history (`EditorStoreProvider`, `useEditor`)
   - `components/` Konva canvas, shapes, controls, result panel; `StickerEditor.tsx` is the entry
-  - `library/` saved stickers: `sticker.schema.ts`, `stickers.api.ts` (Firestore `users/{uid}/stickers/{id}` + Storage `{uid}/stickers/{id}.png`), `useStickers.ts`, `StickerBookPage.tsx`
+  - `library/` saved stickers: `sticker.schema.ts`, `stickers.api.ts` (Firestore `users/{uid}/stickers/{id}` + Storage `{uid}/stickers/{id}.png`), `useStickers.ts`, `StickerBookPage.tsx`, `StickerPreviewDialog.tsx` (zoom/pan preview via `react-zoom-pan-pinch`)
 - `firestore.rules`, `storage.rules`, `rules-tests/` – owner-only security rules and their emulator tests. **Deploying rules changes production: ask the user first** (`firebase deploy --only firestore:rules,storage`).
 - `e2e/` – Playwright tests; `src/**/*.test.tsx` – Testing Library component tests
 - `src/features/pages/` – collage page data model (schema, pure ops, API, hooks; no UI yet). `src/features/account/` – account page (export/delete), email verification banner

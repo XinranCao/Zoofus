@@ -38,6 +38,18 @@ test("sign up, cut and save a sticker, then delete the account", async ({ page }
   await page.goto("/stickers");
   await expect(page.getByText("Blue square")).toBeVisible();
 
+  // Preview: opens a dialog with the sticker, zoom changes the level, Escape closes it
+  await page.getByRole("button", { name: "Preview Blue square" }).click();
+  const preview = page.getByRole("dialog", { name: "Blue square" });
+  await expect(preview.getByAltText("Blue square")).toBeVisible();
+  await expect(preview.locator("output")).toHaveText("100%");
+  await preview.getByRole("button", { name: "Zoom in" }).click();
+  await expect(preview.locator("output")).not.toHaveText("100%");
+  await preview.getByRole("button", { name: "Reset" }).click();
+  await expect(preview.locator("output")).toHaveText("100%");
+  await page.keyboard.press("Escape");
+  await expect(preview).toBeHidden();
+
   // Rename, then delete the sticker
   await page.getByRole("button", { name: "Rename Blue square" }).click();
   const dialog = page.getByRole("dialog", { name: "Rename sticker" });
