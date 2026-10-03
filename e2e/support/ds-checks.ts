@@ -156,7 +156,12 @@ export async function cjkProblems(
     let n = 0;
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-      if (!/[㐀-鿿＀-￯　-〿]/.test(node.nodeValue ?? "")) continue;
+      if (
+        !new RegExp("[\\u3400-\\u9fff\\uff00-\\uffef\\u3000-\\u303f]").test(
+          node.nodeValue ?? "",
+        )
+      )
+        continue;
       const el = node.parentElement;
       if (!el || el.closest("script,style")) continue;
       const r = el.getBoundingClientRect();
@@ -197,6 +202,10 @@ export async function cjkProblems(
     for (const el of Array.from(document.querySelectorAll<HTMLElement>(sel))) {
       const r = el.getBoundingClientRect();
       if (r.width === 0) continue;
+      // an icon-only control has no label to overflow (its hit-area pseudo-element is not text)
+      if (!(el.textContent ?? "").trim()) continue;
+      // a sticker tile's button wraps a tilted picture, whose corner pokes out by a pixel or two
+      if (el.matches(".zf-tile__open")) continue;
       const face = el.querySelector<HTMLElement>(".zf-face") ?? el;
       // scrollWidth counts text that overflows its box (a label wider than the torn face)
       if (face.scrollWidth > face.clientWidth + 1)
@@ -568,7 +577,14 @@ export async function inspect(
   screen: string,
   opts: InspectOptions,
 ): Promise<Problem[]> {
-  await page.waitForTimeout(450); // let enter animations settle before the screenshot
+  // let enter animations settle, and let web fonts finish loading (a late CJK slice would
+  // otherwise be measured in its wider fallback)
+  await page.waitForTimeout(450);
+  for (let i = 0; i < 2; i++) {
+    await page.evaluate(() =>
+      document.fonts.ready.then(() => new Promise(requestAnimationFrame)),
+    );
+  }
   await page.screenshot({ path: opts.shotPath, fullPage: false });
   const problems = [
     ...(await flatnessProblems(page, screen)),

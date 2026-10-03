@@ -201,6 +201,7 @@
     height: 8px;
     color: var(--doodle);
     overflow: visible;
+    pointer-events: none; /* a drawn line never takes the tap from the control under it */
   }
   .zf-divider {
     display: block;
@@ -939,7 +940,7 @@
       align-items: start !important;
     }
     .zf-sheet .zf-dialog__face {
-      padding: 22px 16px 20px;
+      padding: 26px 26px 24px;
     }
   }
   @media (min-width: 760px) {
@@ -1114,5 +1115,75 @@
   .zf-toast-in {
     animation: none !important;
     opacity: 1;
+  }
+}
+
+/*
+ * Touch targets on a phone. The torn shapes keep their drawn size; each control grows an invisible
+ * hit area (a pseudo-element, which belongs to the control) up to 44 × 44, and the colour swatches
+ * are spaced so those areas do not overlap. A tap on the margin of a control still lands on it.
+ */
+@media (max-width: 759px) {
+  .zf-wordmark::after,
+  .zf-slider__thumb::after,
+  .zf-swatch::after,
+  .zf-menu-btn button::after {
+    content: "";
+    position: absolute;
+    inset: -8px 0;
+  }
+  .zf-wordmark {
+    position: relative;
+  }
+  .zf-chip .zf-face,
+  .zf-btn.sm .zf-face,
+  .zf-btn.quiet .zf-face {
+    min-height: 44px;
+  }
+  .zf-chip .zf-face,
+  .zf-btn.sm .zf-face {
+    box-sizing: border-box;
+  }
+  .zf-toggle-group {
+    gap: 8px;
+  }
+  .zf-wordmark {
+    display: inline-block;
+  }
+  .zf-wordmark::after {
+    inset: -10px 0;
+  }
+  .zf-slider__thumb::after {
+    inset: -12px;
+  }
+  .zf-menu-btn {
+    min-width: 44px;
+  }
+  .zf-menu-btn button::after {
+    inset: -8px;
+  }
+  /* 16 colours at 48px centres: 28px chips with a 20px gap */
+  .zf-swatches,
+  .zf-swatches.compact {
+    grid-template-columns: repeat(auto-fill, 28px) !important;
+    gap: 20px !important;
+  }
+  .zf-swatch::after {
+    inset: -10px; /* 28 + 20 = a 48px pitch: neighbours' areas meet, never overlap */
+  }
+  .zf-close::after {
+    content: "";
+    position: absolute;
+    inset: -12px;
+  }
+  /* the pixel grid fills the width it has, and dragging paints, so a cell need not be a full tap target */
+  .zf-pixels {
+    grid-template-columns: repeat(8, 1fr);
+    width: min(100%, 304px);
+  }
+  .zf-pixel {
+    width: auto;
+    height: auto;
+    aspect-ratio: 1;
   }
 }

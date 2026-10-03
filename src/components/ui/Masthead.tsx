@@ -2,7 +2,7 @@ import * as RMenu from "@radix-ui/react-dropdown-menu";
 import { useTranslation } from "react-i18next";
 import { Link, NavLink } from "react-router-dom";
 import { tornClip } from "@/paper/torn";
-import type { CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { LANGUAGES } from "@/i18n";
 import { Avatar } from "./Avatar";
 import { Button, ButtonLink } from "./Button";
@@ -100,6 +100,39 @@ function MenuContent({
 }
 
 /**
+ * A non-modal menu (the page behind stays in the accessibility tree) that still behaves like a
+ * menu: Esc and an outside click close it and focus returns to the trigger (Radix does both), Tab
+ * closes it and moves on (Radix would trap it), and on a phone the page behind does not scroll.
+ */
+function Menu({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const onTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      document
+        .querySelector<HTMLElement>('[aria-haspopup="menu"][aria-expanded="true"]')
+        ?.focus(); // so the default Tab continues from the trigger, past the menu
+      setOpen(false);
+      e.stopPropagation(); // keep Radix from cancelling the Tab
+    };
+    document.addEventListener("keydown", onTab, true);
+    const phone = window.matchMedia?.("(max-width: 759.98px)").matches;
+    const before = document.body.style.overflow;
+    if (phone) document.body.style.overflow = "hidden"; // scroll lock; not aria-hidden
+    return () => {
+      document.removeEventListener("keydown", onTab, true);
+      document.body.style.overflow = before;
+    };
+  }, [open]);
+  return (
+    <RMenu.Root modal={false} open={open} onOpenChange={setOpen}>
+      {children}
+    </RMenu.Root>
+  );
+}
+
+/**
  * The top band: wordmark, main navigation and the avatar menu. It holds no slogan. A peach scrap
  * torn on the bottom edge only (xl, flush, measured). Under 760px a menu button replaces the nav.
  * Sticky on desktop; flat, so its torn edge and lip separate it from the content.
@@ -183,7 +216,7 @@ export function Masthead({
                   </NavLink>
                 ))}
                 <span style={{ width: 8 }} />
-                <RMenu.Root modal={false}>
+                <Menu>
                   <RMenu.Trigger asChild>
                     <Avatar
                       name={user.name}
@@ -192,10 +225,10 @@ export function Masthead({
                     />
                   </RMenu.Trigger>
                   <MenuContent user={user} items={desktopItems} seed="menu" />
-                </RMenu.Root>
+                </Menu>
               </nav>
               <span className="zf-menu-btn">
-                <RMenu.Root modal={false}>
+                <Menu>
                   <RMenu.Trigger asChild>
                     <Button
                       variant="quiet"
@@ -205,7 +238,7 @@ export function Masthead({
                     />
                   </RMenu.Trigger>
                   <MenuContent user={user} items={mobileItems} seed="mm" />
-                </RMenu.Root>
+                </Menu>
               </span>
             </>
           ) : (

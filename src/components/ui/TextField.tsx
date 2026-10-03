@@ -58,7 +58,18 @@ export function TextField({
       <RLabel.Root className="zf-field__label" htmlFor={id}>
         {label}
       </RLabel.Root>
-      <div className="zf-field__box zf-torn" style={boxStyle}>
+      {/* a tap anywhere on the scrap, torn margin included, focuses the field */}
+      <div
+        className="zf-field__box zf-torn"
+        style={boxStyle}
+        onPointerDown={(e) => {
+          const el = e.currentTarget.querySelector("input");
+          if (el && e.target !== el && !disabled) {
+            e.preventDefault();
+            el.focus();
+          }
+        }}
+      >
         <div className="zf-face">
           <input
             id={id}

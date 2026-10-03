@@ -1,5 +1,6 @@
 import * as RPopover from "@radix-ui/react-popover";
 import * as RRadio from "@radix-ui/react-radio-group";
+import { useTranslation } from "react-i18next";
 import { useId, type ComponentProps, type CSSProperties } from "react";
 import { cn } from "@/lib/cn";
 import { hex, USER_COLORS } from "@/paper/pattern";
@@ -89,8 +90,11 @@ export function ColorPicker({
   columns?: number;
   label?: string;
 }) {
+  const { t } = useTranslation();
   const list = colors.map((c): [string, string] =>
-    typeof c === "string" ? [c, COLOR_NAMES[c] ?? c] : c,
+    typeof c === "string"
+      ? [c, t(`colours.${c}`, { defaultValue: COLOR_NAMES[c] ?? c })]
+      : c,
   );
   return (
     <RRadio.Root
@@ -127,10 +131,14 @@ export function ColorPickerPopover({
   label?: string;
   columns?: number;
 }) {
+  const { t } = useTranslation();
   return (
     <RPopover.Root>
       <RPopover.Trigger asChild>
-        <Swatch token={value} label={`${label}: ${COLOR_NAMES[value] ?? value}`} />
+        <Swatch
+          token={value}
+          label={`${label}: ${t(`colours.${value}`, { defaultValue: COLOR_NAMES[value] ?? value })}`}
+        />
       </RPopover.Trigger>
       <RPopover.Portal>
         <RPopover.Content asChild sideOffset={8} align="start">
