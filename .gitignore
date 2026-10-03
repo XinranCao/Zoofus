@@ -53,3 +53,10 @@ design-system/verification/desktop/
 design-system/verification/mobile/
 design-system/verification/zh/
 design-system/verification/compare/*.png
+
+# Designer / setup instructions addressed to Claude Code: kept out of the project and out of git
+zoofus-ds-round*/
+design-system/CLAUDE_CODE_*
+design-system/CLAUDE_SNIPPET.md
+design-system/START_HERE.md
+CLAUDE_CODE_PROMPT*.txt

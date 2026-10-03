@@ -41,7 +41,9 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
 - `src/pages/HomePage.tsx` – opens the editor in a dialog
 - `design-system/` – the Zoofus design system (reference docs and code, never imported); `ADOPTION_PLAN.md`, `ADOPTION_REPORT.md`, `verification/` screenshots
 - `src/paper/` – ported paper primitives (torn clip pairs, patterns, dieCut, renderSticker) with tests; `src/styles/` – Tailwind theme, tokens, components.css; `src/components/ui/` – Radix-based UI kit, gallery at `/dev/design-system` (dev only); `src/i18n/` – locales; `src/features/tape/` – tape studio (`/tape`)
-- `e2e/design-system.spec.ts` – screenshots at 390 and 1280px plus axe, flat/no-radius and title checks
+- `e2e/design-system.spec.ts` – all 23 screen states at 390 and 1280px in English, Chinese and reduced motion, with axe, flat/no-radius, contrast, torn-edge, layout and CJK-font checks (`e2e/support/ds-checks.ts`); `interaction`, `lasso`, `performance`, `storage-cleanup` specs; `gallery-compare.spec.ts` (`DS_GALLERY=1`)
+- `src/lib/cjkFonts.ts` – the Chinese font stylesheet is loaded only when Chinese is on screen; `src/components/ui/GoogleButton.tsx` – Google's own button spec, the one deliberate exception to the torn look
+- `RELEASE_CHECKLIST.md` – deploy commands, rules changes, smoke test, rollback
 
 ## Conventions
 
@@ -97,7 +99,7 @@ Stored images are compressed on save by `encodeWithin` + `COMPRESSION` in `src/l
 
 - Do not upgrade `rollup` past 4.59.0 without checking: 4.64.0 made `vite build` hang (pinned via `overrides`). `@grpc/grpc-js` is overridden to ^1.14.5 to clear audit findings. `npm audit` is clean.
 - Workflows that build the app need the repo secrets `VITE_APP_*` plus `FIREBASE_SERVICE_ACCOUNT_ZOOFUS_48264`.
-- Redesign (#16) and i18n (#15) are implemented on `dev`, unreleased. Before releasing, deploy the new rules (tapes, sticker `edge`/`seed`/`sourcePath`, storage update): `firebase deploy --only firestore:rules,storage`.
+- Redesign (#16) and i18n (#15) are implemented on `dev`, unreleased. Round 2 added limits on user designs to the rules. Follow `RELEASE_CHECKLIST.md` (rules first, smoke test, rollback) when releasing; deploying rules changes production, so ask the user first.
 - App Check needs the one-time console setup in `docs/app-check.md`; until then it is inactive.
 - Not done yet: pinch-zoom on the canvas, HEIC support (non-Safari browsers), error monitoring (skipped by decision), thumbnails for pre-existing stickers.
 - PR previews use the production backend; do not test destructive flows there.

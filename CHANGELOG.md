@@ -6,6 +6,10 @@
 
 - Full UI redesign on the Zoofus design system (Tailwind v4 + Radix, torn-paper look, MUI removed), English and Chinese.
 - Sticker edge studio (shape, width, pattern fill), editable edges for saved stickers, and a tape studio at /tape.
+- The edge and its print are proportional to the sticker, so the downloaded PNG matches the on-screen preview at any size.
+- Paint pixels by dragging; starter tapes stay on the roll; a freehand lasso that leaves the photo selects the corner it goes round.
+- Faster start: the sticker maker, Chinese fonts and Analytics load only when needed; no layout shift while stickers load.
+- Touch targets of 44 px on phones; a Google button that follows Google's branding; limits on user-designed prints in the security rules.
 
 ## v0.3.1 – 2026-10-03
 
