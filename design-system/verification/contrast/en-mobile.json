@@ -1,0 +1,206 @@
+{
+  "checked": 281,
+  "lowest": [
+    {
+      "screen": "en/mobile/07-home-empty",
+      "text": "No. 02 · Sticker book",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/08-menu-open",
+      "text": "No. 02 · Sticker book",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/10-book-empty",
+      "text": "No. 00 · Sticker book",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/17-book-grid",
+      "text": "No. 02 · 1 sticker",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/17-book-grid",
+      "text": "Cut Oct 3",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/20-tape-studio",
+      "text": "No. 03 · Tape",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/20-tape-studio",
+      "text": "My tape roll · 4",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/20-tape-studio",
+      "text": "Pink dots",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/20-tape-studio",
+      "text": "Lime stripe",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/20-tape-studio",
+      "text": "Picnic",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/20-tape-studio",
+      "text": "Masking",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/21-account",
+      "text": "No. 04 · Account",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/21-account",
+      "text": "ds-en-mobile-1791052250109@example.com",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 14,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/01-login",
+      "text": "Log in",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/02-login-error",
+      "text": "Log in",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/03-reset-dialog",
+      "text": "Send link",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/04-signup-step1",
+      "text": "Continue",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/05-signup-field-error",
+      "text": "Continue",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/06-signup-step2",
+      "text": "Start cutting",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/07-home-empty",
+      "text": "Upload a photo",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 17,
+      "weight": 400
+    }
+  ],
+  "cjkFonts": []
+}
