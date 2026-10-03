@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import PageContainer from "../../components/PageContainer";
-import ImageLassoPanel from "../../components/ImageLasso/ImageLassoPanel";
+const ImageLassoPanel = lazy(() =>
+  import("../../components/ImageLasso/ImageLassoPanel")
+);
 import {
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   Box,
+  CircularProgress,
   DialogActions,
 } from "@mui/material";
 import styles from "./Home.module.less";
@@ -36,7 +39,9 @@ const HomePage = () => {
         >
           <DialogTitle>Image Lasso Selection</DialogTitle>
           <DialogContent>
-            <ImageLassoPanel onClose={() => setOpen(false)} />
+            <Suspense fallback={<CircularProgress />}>
+              <ImageLassoPanel onClose={() => setOpen(false)} />
+            </Suspense>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpen(false)} color="primary">
