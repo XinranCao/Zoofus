@@ -81,9 +81,16 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
 - Claude opens PRs into `dev`, and follows this same `CLAUDE.md`.
 - `@claude` never merges to `main` or tags releases. Only the human-pushed `vX.Y.Z` tag triggers `release.yml` (deploy + GitHub Release).
 
+## Repository protection
+
+`dev` and `main` require the CI checks `build-and-test`, `security-rules` and `e2e`, and block force-push and deletion. Admins (the owner) can still push directly, which the auto-save hook and the release process rely on. To rewrite history on `dev`, lift the protection temporarily (`gh api -X DELETE repos/XinranCao/Zoofus/branches/dev/protection`), then restore it.
+
 ## Known issues / backlog
 
 - Do not upgrade `rollup` past 4.59.0 without checking: 4.64.0 made `vite build` hang (pinned via `overrides`). `@grpc/grpc-js` is overridden to ^1.14.5 to clear audit findings. `npm audit` is clean.
 - Workflows that build the app need the repo secrets `VITE_APP_*` plus `FIREBASE_SERVICE_ACCOUNT_ZOOFUS_48264`.
-- v0.3.0 milestone tracks the refactor, redesign and foundations (issues #11 to #20). Redesign (#16) waits on the design guide.
-- Freehand strokes can't be moved or resized after drawing (only shapes have a transformer).
+- v0.4.0 milestone: UI redesign (#16, needs `docs/ui-style-brief.md` design guide) and i18n (#15).
+- App Check needs the one-time console setup in `docs/app-check.md`; until then it is inactive.
+- Not done yet: pinch-zoom on the canvas, HEIC support (non-Safari browsers), error monitoring (skipped by decision), thumbnails for pre-existing stickers.
+- PR previews use the production backend; do not test destructive flows there.
+- Freehand strokes can be moved with the arrow keys but have no resize handles (only shapes have a transformer).
