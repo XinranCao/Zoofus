@@ -68,6 +68,7 @@ export default function AccountPage() {
       await deleteAccount(currentUser);
       navigate("/signup");
     } catch (err) {
+      console.error("Account deletion failed", err);
       const code = (err as { code?: string }).code;
       setDeleteError(
         code === "auth/wrong-password" || code === "auth/invalid-credential"

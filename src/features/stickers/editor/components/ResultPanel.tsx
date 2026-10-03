@@ -20,7 +20,11 @@ function useCutout() {
   const { image, fit } = useEditorImage();
   const selections = useEditor((s) => s.selections);
   const border = useEditor((s) => s.border);
-  const [result, setResult] = useState<{ url: string; blob: Blob } | null>(null);
+  const [result, setResult] = useState<{
+    url: string;
+    blob: Blob;
+    canvas: HTMLCanvasElement;
+  } | null>(null);
 
   const canvas = useMemo(() => {
     if (!image) return null;
@@ -38,7 +42,7 @@ function useCutout() {
     canvas.toBlob((blob) => {
       if (!blob || cancelled) return;
       objectUrl = URL.createObjectURL(blob);
-      setResult({ url: objectUrl, blob });
+      setResult({ url: objectUrl, blob, canvas });
     }, "image/png");
     return () => {
       cancelled = true;
@@ -46,7 +50,8 @@ function useCutout() {
     };
   }, [canvas]);
 
-  if (!canvas || !result) return null;
+  // Ignore a result that belongs to an earlier canvas: its blob URL may already be revoked.
+  if (!canvas || !result || result.canvas !== canvas) return null;
   return { ...result, canvas, width: canvas.width, height: canvas.height };
 }
 

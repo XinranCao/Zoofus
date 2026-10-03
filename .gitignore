@@ -42,3 +42,7 @@ firebase-debug.log
 
 # Local emulator data
 .emulator-data
+
+# Playwright
+test-results
+playwright-report

@@ -53,7 +53,7 @@ export async function deleteAccount(user: User): Promise<void> {
   await Promise.all(stickers.map((s) => deleteSticker(uid, s)));
   await Promise.all(pages.map((p) => deletePage(uid, p.id)));
   await deleteFolder(`${uid}/stickers`);
-  await deleteFolder(`${uid}/profile`);
+  await deleteFolder(`${uid}/profile/profile_pic`);
   await deleteDoc(doc(db, "users", uid));
   await deleteUser(user);
 }

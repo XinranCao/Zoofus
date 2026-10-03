@@ -13,6 +13,7 @@ Local runs need a `.env` with `VITE_APP_*` Firebase keys. Never read, print or c
 - `npm run typecheck` (tsc, strict), `npm run lint` (ESLint), `npm run format` / `format:check` (Prettier)
 - `npm test` – Vitest (jsdom) single run; `npm run test:watch`. Tests live next to code as `*.test.ts(x)`.
 - `npm run test:rules` – Firestore/Storage security rules tests against the local emulators (needs Java 17+; CI job `security-rules`)
+- `npm run test:e2e` – Playwright end-to-end flow (sign up, cut, save, delete) against the emulators; uses your Chrome locally, Chromium in CI (job `e2e`)
 - `npm run emulators` + `npm run dev:emulated` – local Firebase emulators (Auth, Firestore, Storage) and an app wired to them (`.env.emulator`). Prefer this for anything that writes data.
 - `npm run check` – typecheck + lint + tests + build (run before every push)
 - `npm run deploy` – manual build + `firebase deploy` (normally releases deploy from CI on a tag)
@@ -33,6 +34,9 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
   - `components/` Konva canvas, shapes, controls, result panel; `StickerEditor.tsx` is the entry
   - `library/` saved stickers: `sticker.schema.ts`, `stickers.api.ts` (Firestore `users/{uid}/stickers/{id}` + Storage `{uid}/stickers/{id}.png`), `useStickers.ts`, `StickerBookPage.tsx`
 - `firestore.rules`, `storage.rules`, `rules-tests/` – owner-only security rules and their emulator tests. **Deploying rules changes production: ask the user first** (`firebase deploy --only firestore:rules,storage`).
+- `e2e/` – Playwright tests; `src/**/*.test.tsx` – Testing Library component tests
+- `src/features/pages/` – collage page data model (schema, pure ops, API, hooks; no UI yet). `src/features/account/` – account page (export/delete), email verification banner
+- `docs/app-check.md` – one-time App Check console setup
 - `src/components/ErrorBoundary.tsx`, `src/pages/NotFoundPage.tsx` – error and 404 handling
 - `src/pages/HomePage.tsx` – opens the editor in a dialog
 - `docs/ui-style-brief.md` – brief for the UI redesign (Tailwind + Radix, hand-torn scrapbook style)

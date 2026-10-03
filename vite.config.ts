@@ -30,6 +30,6 @@ export default defineConfig({
     setupFiles: "./src/setupTests.ts",
     globals: true,
     // Security rules tests need the emulators: run them with `npm run test:rules`.
-    exclude: [...configDefaults.exclude, "rules-tests/**"],
+    exclude: [...configDefaults.exclude, "rules-tests/**", "e2e/**"],
   },
 });
