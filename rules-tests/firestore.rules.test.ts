@@ -145,12 +145,67 @@ describe("users/{uid}/stickers/{id}", () => {
     );
   });
 
-  it("allows only renaming after creation", async () => {
+  it("accepts a source file, an edge and a seed, and validates the edge", async () => {
+    const db = env.authenticatedContext("alice").firestore();
+    const edge = {
+      shape: "torn",
+      scale: 1.2,
+      fill: { kind: "dots", bg: "pink-200", ink: "sheet-50", scale: 9, weight: 0.35 },
+    };
+    await assertSucceeds(
+      setDoc(doc(db, "users/alice/stickers/e1"), {
+        ...sticker("alice"),
+        sourcePath: "alice/stickers/e1_src.webp",
+        sourceUrl: "https://example.com/src.webp",
+        edge,
+        seed: "abc",
+      }),
+    );
+    const bad = (e: unknown) =>
+      setDoc(doc(db, "users/alice/stickers/e2"), { ...sticker("alice"), edge: e });
+    await assertFails(bad({ ...edge, shape: "zigzag" }));
+    await assertFails(bad({ ...edge, scale: 2 }));
+    await assertFails(bad({ ...edge, fill: { ...edge.fill, kind: "plaid" } }));
+    await assertFails(
+      bad({ ...edge, fill: { kind: "pixels", bg: "cream-100", pixels: ["00000000"] } }),
+    );
+    await assertFails(bad({ ...edge, extra: true }));
+    await assertFails(
+      setDoc(doc(db, "users/alice/stickers/e3"), {
+        ...sticker("alice"),
+        sourcePath: "bob/stickers/x.webp",
+      }),
+    );
+  });
+
+  it("lets the owner redo the edge (new file, edge, size) but nothing else", async () => {
+    const db = env.authenticatedContext("alice").firestore();
+    const ref = doc(db, "users/alice/stickers/e4");
+    await setDoc(ref, sticker("alice"));
+    await assertSucceeds(
+      updateDoc(ref, {
+        storagePath: "alice/stickers/e4_v2.webp",
+        imageUrl: "https://example.com/v2.webp",
+        edge: { shape: "smooth", scale: 1, fill: { kind: "solid", bg: "sheet-50" } },
+        width: 420,
+        height: 320,
+      }),
+    );
+    await assertFails(updateDoc(ref, { storagePath: "bob/stickers/steal.webp" }));
+    await assertFails(updateDoc(ref, { createdAt: new Date(2020, 1, 1) }));
+  });
+
+  it("keeps the source, thumbnail and unknown fields fixed after creation", async () => {
     const db = env.authenticatedContext("alice").firestore();
     const ref = doc(db, "users/alice/stickers/s1");
     await setDoc(ref, sticker("alice"));
-    await assertFails(updateDoc(ref, { width: 999 }));
-    await assertFails(updateDoc(ref, { imageUrl: "https://evil.example/x.png" }));
+    await assertFails(updateDoc(ref, { sourcePath: "alice/stickers/other.webp" }));
+    await assertFails(
+      updateDoc(ref, { thumbnailPath: "alice/stickers/other_thumb.webp" }),
+    );
+    await assertFails(updateDoc(ref, { extra: 1 }));
+    await assertFails(updateDoc(ref, { name: "" }));
+    await assertFails(updateDoc(ref, { width: 0 }));
   });
 });
 

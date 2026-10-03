@@ -74,14 +74,23 @@ export function canvasToBlob(
   );
 }
 
-export class UnsupportedImageError extends Error {}
+export type ImageErrorCode = "notImage" | "tooLarge" | "undecodable";
+
+/** A photo we cannot use. `code` lets the UI show a translated message. */
+export class UnsupportedImageError extends Error {
+  code: ImageErrorCode;
+  constructor(message: string, code: ImageErrorCode) {
+    super(message);
+    this.code = code;
+  }
+}
 
 /** Decode a user-picked photo (honouring EXIF rotation) onto a canvas of at most `maxSide` px. */
 async function decodeToCanvas(file: File, maxSide: number): Promise<HTMLCanvasElement> {
   if (!file.type.startsWith("image/"))
-    throw new UnsupportedImageError("That file is not an image.");
+    throw new UnsupportedImageError("That file is not an image.", "notImage");
   if (file.size > MAX_SOURCE_BYTES)
-    throw new UnsupportedImageError("That image is larger than 30 MB.");
+    throw new UnsupportedImageError("That image is larger than 30 MB.", "tooLarge");
 
   let bitmap: ImageBitmap;
   try {
@@ -89,6 +98,7 @@ async function decodeToCanvas(file: File, maxSide: number): Promise<HTMLCanvasEl
   } catch {
     throw new UnsupportedImageError(
       "Your browser can't open that image format. Try a JPEG or PNG.",
+      "undecodable",
     );
   }
   try {

@@ -1,20 +1,15 @@
-import {
-  Alert,
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { PageContainer } from "@/components/layout/PageContainer";
+import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
+import { Paper } from "@/components/ui/Paper";
+import { Tape } from "@/components/ui/Tape";
+import { TextField } from "@/components/ui/TextField";
+import { ToastNote } from "@/components/ui/Toast";
 import { useAuth } from "@/features/auth/useAuth";
+import { downloadBlob } from "@/features/stickers/studio/export";
 import {
   deleteAccount,
   exportAccountData,
@@ -22,26 +17,14 @@ import {
   usesPassword,
 } from "./account.api";
 
-const CONFIRM_WORD = "DELETE";
-
-function downloadJson(data: unknown, filename: string) {
-  const url = URL.createObjectURL(
-    new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }),
-  );
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 export default function AccountPage() {
+  const { t } = useTranslation();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [password, setPassword] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -49,12 +32,17 @@ export default function AccountPage() {
 
   if (!currentUser) return null;
   const needsPassword = usesPassword(currentUser);
+  const word = t("account.confirmWord");
 
   const onExport = async () => {
     setExporting(true);
     setExportError(false);
     try {
-      downloadJson(await exportAccountData(currentUser.uid), "zoofus-data.json");
+      const data = await exportAccountData(currentUser.uid);
+      downloadBlob(
+        new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }),
+        "zoofus-data.json",
+      );
     } catch {
       setExportError(true);
     } finally {
@@ -75,8 +63,8 @@ export default function AccountPage() {
       const code = (err as { code?: string }).code;
       setDeleteError(
         code === "auth/wrong-password" || code === "auth/invalid-credential"
-          ? "That password is not correct."
-          : "Could not delete the account. Nothing was changed if you were asked to sign in again.",
+          ? t("account.wrongPassword")
+          : t("account.deleteFailed"),
       );
     } finally {
       setDeleting(false);
@@ -84,88 +72,123 @@ export default function AccountPage() {
   };
 
   return (
-    <PageContainer>
-      <Box sx={{ p: 3, maxWidth: 560, mx: "auto" }}>
-        <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
-          Account
-        </Typography>
-        <Typography color="text.secondary" sx={{ mb: 3 }}>
-          {currentUser.email}
-        </Typography>
+    <div className="zf-page" style={{ maxWidth: 760 }}>
+      <div className="zf-kicker">{t("account.kicker")}</div>
+      <h1 className="zf-display" style={{ margin: "4px 0 6px" }}>
+        {t("account.title")}
+      </h1>
+      <p className="zf-muted" style={{ margin: "0 0 32px" }}>
+        {currentUser.email}
+      </p>
 
-        <Stack spacing={1} sx={{ mb: 5 }}>
-          <Typography variant="h6">Your data</Typography>
-          <Typography variant="body2">
-            Download your profile, stickers and pages as a JSON file.
-          </Typography>
-          <Box>
-            <Button variant="outlined" disabled={exporting} onClick={onExport}>
-              Download my data
-            </Button>
-          </Box>
-          {exportError && <Alert severity="error">Could not export your data.</Alert>}
-        </Stack>
-
-        <Stack spacing={1}>
-          <Typography variant="h6" color="error">
-            Delete account
-          </Typography>
-          <Typography variant="body2">
-            Permanently deletes your profile, stickers, pages and uploaded files. This
-            cannot be undone.
-          </Typography>
-          <Box>
-            <Button variant="outlined" color="error" onClick={() => setDialogOpen(true)}>
-              Delete my account
-            </Button>
-          </Box>
-        </Stack>
-
-        <Dialog
-          open={dialogOpen}
-          onClose={() => !deleting && setDialogOpen(false)}
-          fullWidth
-          maxWidth="xs"
+      <div style={{ display: "grid", gap: 36 }}>
+        <Paper
+          seed="acct-data"
+          size="lg"
+          tone="scrap-cool"
+          rotate={0.6}
+          tape={<Tape seed="ad" x="14%" y="4px" color="tape-celery" />}
+          faceStyle={{ padding: "28px 26px" }}
         >
-          <DialogTitle>Delete your account?</DialogTitle>
-          <DialogContent>
-            <Stack spacing={2} sx={{ pt: 1 }}>
-              <TextField
-                label={`Type ${CONFIRM_WORD} to confirm`}
-                value={confirmText}
-                onChange={(e) => setConfirmText(e.target.value)}
+          <h2 className="zf-h2">{t("account.dataTitle")}</h2>
+          <p style={{ margin: "8px 0 16px" }}>{t("account.dataBody")}</p>
+          <Button
+            variant="secondary"
+            icon="download"
+            seed="exp"
+            loading={exporting}
+            onClick={() => void onExport()}
+          >
+            {exporting ? t("account.downloading") : t("account.download")}
+          </Button>
+          {exportError && (
+            <div style={{ marginTop: 14 }}>
+              <ToastNote
+                kind="error"
+                title={t("auth.errors.toastTitle")}
+                body={t("account.exportFailed")}
+                seed="exp-error"
+                role="alert"
               />
-              {needsPassword && (
-                <TextField
-                  label="Password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              )}
-              {deleteError && <Alert severity="error">{deleteError}</Alert>}
-            </Stack>
-          </DialogContent>
-          <DialogActions>
-            <Button disabled={deleting} onClick={() => setDialogOpen(false)}>
-              Cancel
+            </div>
+          )}
+        </Paper>
+
+        <Paper
+          seed="acct-delete"
+          size="lg"
+          tone="scrap-pink"
+          rotate={-0.6}
+          faceStyle={{ padding: "28px 26px" }}
+        >
+          <h2 className="zf-h2" style={{ color: "var(--danger)" }}>
+            {t("account.deleteTitle")}
+          </h2>
+          <p style={{ margin: "8px 0 16px" }}>{t("account.deleteBody")}</p>
+          <Button variant="danger" icon="trash" seed="del" onClick={() => setOpen(true)}>
+            {t("account.deleteButton")}
+          </Button>
+        </Paper>
+      </div>
+
+      <Dialog
+        open={open}
+        onOpenChange={(o) => !deleting && setOpen(o)}
+        width={420}
+        seed="acct-dialog"
+        tapes={1}
+        title={t("account.dialogTitle")}
+        actions={
+          <>
+            <Button
+              variant="quiet"
+              seed="adc"
+              disabled={deleting}
+              onClick={() => setOpen(false)}
+            >
+              {t("common.cancel")}
             </Button>
             <Button
-              color="error"
-              variant="contained"
-              disabled={
-                deleting ||
-                confirmText !== CONFIRM_WORD ||
-                (needsPassword && password === "")
-              }
-              onClick={onDelete}
+              variant="danger"
+              seed="add"
+              loading={deleting}
+              disabled={confirmText !== word || (needsPassword && password === "")}
+              onClick={() => void onDelete()}
             >
-              Delete everything
+              {deleting ? t("account.deleting") : t("account.deleteEverything")}
             </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    </PageContainer>
+          </>
+        }
+      >
+        <div style={{ display: "grid", gap: 16, margin: "8px 0 22px" }}>
+          <TextField
+            label={t("account.confirmLabel", { word })}
+            seed="acf"
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            autoComplete="off"
+          />
+          {needsPassword && (
+            <TextField
+              label={t("account.password")}
+              type="password"
+              autoComplete="current-password"
+              seed="acp"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          )}
+          {deleteError && (
+            <ToastNote
+              kind="error"
+              title={t("auth.errors.toastTitle")}
+              body={deleteError}
+              seed="acd-error"
+              role="alert"
+            />
+          )}
+        </div>
+      </Dialog>
+    </div>
   );
 }

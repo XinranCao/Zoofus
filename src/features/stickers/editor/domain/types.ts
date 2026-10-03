@@ -47,8 +47,3 @@ export interface StarSelection extends SelectionBase {
 
 export type ShapeSelection = RectangleSelection | TriangleSelection | StarSelection;
 export type Selection = FreehandSelection | ShapeSelection;
-
-export interface Border {
-  color: string;
-  width: number;
-}

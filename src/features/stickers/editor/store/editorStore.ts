@@ -6,7 +6,8 @@ import {
   type ReactNode,
 } from "react";
 import { createStore, useStore, type StoreApi } from "zustand";
-import type { Border, Selection, SelectionMode, Tool } from "../domain/types";
+import { DEFAULT_EDGE, type EdgeSpec } from "@/paper/renderSticker";
+import type { Selection, SelectionMode, Tool } from "../domain/types";
 
 const HISTORY_LIMIT = 100;
 
@@ -19,7 +20,12 @@ export interface EditorState {
   activeId: string | null;
   past: Selection[][];
   future: Selection[][];
-  border: Border;
+  /** The sticker edge chosen in step 2; saved with the sticker. */
+  edge: EdgeSpec;
+  /** Seed for the sticker's edge shape: same seed, same edge, on screen and in the file. */
+  seed: string;
+  imageStatus: "idle" | "loading" | "error";
+  imageError: string | null;
 
   setImage: (url: string | null) => void;
   setTool: (tool: Tool) => void;
@@ -34,7 +40,8 @@ export interface EditorState {
   redo: () => void;
   confirm: () => void;
   backToEdit: () => void;
-  setBorder: (patch: Partial<Border>) => void;
+  setEdge: (patch: Partial<EdgeSpec>) => void;
+  setImageStatus: (status: "idle" | "loading" | "error", error?: string | null) => void;
 }
 
 export type EditorStore = StoreApi<EditorState>;
@@ -61,12 +68,18 @@ export function createEditorStore(): EditorStore {
       activeId: null,
       past: [],
       future: [],
-      border: { color: "#ffffff", width: 5 },
+      edge: DEFAULT_EDGE,
+      seed: crypto.randomUUID(),
+      imageStatus: "idle",
+      imageError: null,
 
       // A new image starts a fresh session.
       setImage: (url) =>
         set({
           imageUrl: url,
+          seed: crypto.randomUUID(),
+          imageStatus: url ? "idle" : get().imageStatus,
+          imageError: null,
           view: "edit",
           selections: [],
           activeId: null,
@@ -123,7 +136,9 @@ export function createEditorStore(): EditorStore {
 
       confirm: () => set({ view: "result", activeId: null }),
       backToEdit: () => set({ view: "edit" }),
-      setBorder: (patch) => set({ border: { ...get().border, ...patch } }),
+      setEdge: (patch) => set({ edge: { ...get().edge, ...patch } }),
+      setImageStatus: (imageStatus, imageError = null) =>
+        set({ imageStatus, imageError }),
     };
   });
 }

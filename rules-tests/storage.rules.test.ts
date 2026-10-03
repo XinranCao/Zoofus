@@ -53,6 +53,22 @@ describe("stickers", () => {
     );
   });
 
+  it("lets the owner replace a sticker file (redo the edge)", async () => {
+    const storage = env.authenticatedContext("alice").storage();
+    const file = ref(storage, "alice/stickers/replace.webp");
+    await assertSucceeds(uploadBytes(file, bytes(10), { contentType: "image/webp" }));
+    await assertSucceeds(uploadBytes(file, bytes(20), { contentType: "image/webp" }));
+    await assertFails(
+      uploadBytes(
+        ref(env.authenticatedContext("bob").storage(), "alice/stickers/replace.webp"),
+        bytes(20),
+        {
+          contentType: "image/webp",
+        },
+      ),
+    );
+  });
+
   it("accepts WebP stickers", async () => {
     const storage = env.authenticatedContext("alice").storage();
     await assertSucceeds(

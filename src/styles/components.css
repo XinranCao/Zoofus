@@ -782,6 +782,40 @@
     color: var(--ink-muted);
   }
 
+  .zf-tile__open {
+    all: unset;
+    cursor: pointer;
+    display: grid;
+    gap: 6px;
+    justify-items: center;
+    max-width: 100%;
+  }
+  .zf-tile__open:focus-visible {
+    outline: 2px solid var(--plum-900);
+    outline-offset: 4px;
+  }
+  .zf-tile__actions {
+    display: flex;
+    gap: 2px;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity var(--dur-quick);
+  }
+  .zf-tile:hover .zf-tile__actions,
+  .zf-tile:focus-within .zf-tile__actions {
+    opacity: 1;
+  }
+  @media (hover: none) {
+    .zf-tile__actions {
+      opacity: 1;
+    }
+  }
+  .zf-sticker-img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
   /* ---------- lasso canvas ---------- */
   .zf-well .zf-face {
     --tone: var(--field);

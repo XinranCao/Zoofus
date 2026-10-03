@@ -51,25 +51,42 @@ service cloud.firestore {
 
       // users/{uid}/stickers/{stickerId}: the owner's saved stickers
       match /stickers/{stickerId} {
+        function validEdge(e) {
+          return e is map
+            && e.keys().hasOnly(['shape', 'scale', 'fill'])
+            && e.shape in ['smooth', 'wobbly', 'torn']
+            && e.scale is number && e.scale >= 0 && e.scale <= 1.6
+            && e.fill is map
+            && e.fill.kind in ['solid', 'stripes', 'dots', 'gingham', 'check', 'wave', 'pixels', 'doodle']
+            && (!('pixels' in e.fill) || (e.fill.pixels is list && e.fill.pixels.size() == 8))
+            && (!('strokes' in e.fill) || (e.fill.strokes is list && e.fill.strokes.size() <= 40));
+        }
+        function ownFile(path) {
+          return isString(path, 512) && path.matches('^' + uid + '/stickers/.+');
+        }
+        // Fields shared by create and update. Older stickers have no source, edge or seed.
+        function validSticker(d) {
+          return d.keys().hasOnly(['name', 'storagePath', 'imageUrl', 'sourcePath', 'sourceUrl', 'edge', 'seed', 'thumbnailUrl', 'thumbnailPath', 'width', 'height', 'createdAt'])
+            && isString(d.name, 60) && d.name.size() > 0
+            && ownFile(d.storagePath)
+            && isString(d.imageUrl, 2048)
+            && (!('sourcePath' in d) || ownFile(d.sourcePath))
+            && (!('sourceUrl' in d) || isString(d.sourceUrl, 2048))
+            && (!('edge' in d) || validEdge(d.edge))
+            && (!('seed' in d) || isString(d.seed, 64))
+            && (!('thumbnailUrl' in d) || isString(d.thumbnailUrl, 2048))
+            && (!('thumbnailPath' in d) || ownFile(d.thumbnailPath))
+            && d.width is int && d.width > 0
+            && d.height is int && d.height > 0;
+        }
         allow read: if isOwner(uid);
         allow create: if isOwner(uid)
-          && request.resource.data.keys().hasOnly(['name', 'storagePath', 'imageUrl', 'thumbnailUrl', 'thumbnailPath', 'width', 'height', 'createdAt'])
-          && isString(request.resource.data.name, 60)
-          && request.resource.data.name.size() > 0
-          && request.resource.data.storagePath.matches('^' + uid + '/stickers/.+')
-          && isString(request.resource.data.imageUrl, 2048)
-          && (!('thumbnailUrl' in request.resource.data) || isString(request.resource.data.thumbnailUrl, 2048))
-          && (!('thumbnailPath' in request.resource.data)
-              || (isString(request.resource.data.thumbnailPath, 512)
-                  && request.resource.data.thumbnailPath.matches('^' + uid + '/stickers/.+')))
-          && request.resource.data.width is int && request.resource.data.width > 0
-          && request.resource.data.height is int && request.resource.data.height > 0
+          && validSticker(request.resource.data)
           && request.resource.data.createdAt == request.time;
-        // Only renaming is allowed after creation.
+        // After creation: rename, or redo the edge (new image file, edge settings and size).
         allow update: if isOwner(uid)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
-          && isString(request.resource.data.name, 60)
-          && request.resource.data.name.size() > 0;
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'storagePath', 'imageUrl', 'edge', 'seed', 'width', 'height'])
+          && validSticker(request.resource.data);
         allow delete: if isOwner(uid);
       }
     }

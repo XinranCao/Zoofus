@@ -17,7 +17,7 @@ service firebase.storage {
 
     match /{uid}/stickers/{file=**} {
       allow read: if isOwner(uid);
-      allow create: if isOwner(uid)
+      allow create, update: if isOwner(uid)
         && request.resource.contentType.matches('image/(webp|png)')
         && request.resource.size < 2 * 1024 * 1024;
       allow delete: if isOwner(uid);

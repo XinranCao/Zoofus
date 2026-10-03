@@ -15,6 +15,7 @@ export { Icon, ICONS, type IconName } from "./Icon";
 export { Reel, Skeleton, Typing } from "./Loader";
 export { Masthead, type MastheadUser } from "./Masthead";
 export { Paper, type PaperProps } from "./Paper";
+export { DoodlePad, PatternEditor, PixelGrid } from "./PatternEditor";
 export { Divider, Scribble } from "./Scribble";
 export { Slider } from "./Slider";
 export { Sticker } from "./Sticker";
