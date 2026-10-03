@@ -10,6 +10,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -37,6 +38,7 @@ function downloadJson(data: unknown, filename: string) {
 export default function AccountPage() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -66,6 +68,7 @@ export default function AccountPage() {
     try {
       await reauthenticate(currentUser, password);
       await deleteAccount(currentUser);
+      queryClient.clear();
       navigate("/signup");
     } catch (err) {
       console.error("Account deletion failed", err);

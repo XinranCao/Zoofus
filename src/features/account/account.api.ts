@@ -7,11 +7,12 @@ import {
   type User,
 } from "firebase/auth";
 import { deleteDoc, doc } from "firebase/firestore";
-import { deleteObject, listAll, ref } from "firebase/storage";
+import { listAll, ref } from "firebase/storage";
 import { deletePage, listPages } from "@/features/pages/pages.api";
 import { fetchProfile } from "@/features/profile/profile.api";
 import { deleteSticker, listStickers } from "@/features/stickers/library/stickers.api";
 import { db, storage } from "@/lib/firebase";
+import { deleteFileIfExists } from "@/lib/storage";
 import { buildExport, type AccountExport } from "./account.export";
 
 export async function exportAccountData(uid: string): Promise<AccountExport> {
@@ -42,7 +43,7 @@ export async function reauthenticate(user: User, password?: string): Promise<voi
 /** Remove every file under a Storage folder, including orphans with no Firestore document. */
 async function deleteFolder(path: string) {
   const { items, prefixes } = await listAll(ref(storage, path));
-  await Promise.all(items.map((item) => deleteObject(item)));
+  await Promise.all(items.map((item) => deleteFileIfExists(item)));
   await Promise.all(prefixes.map((prefix) => deleteFolder(prefix.fullPath)));
 }
 

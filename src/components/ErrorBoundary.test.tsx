@@ -29,3 +29,30 @@ describe("ErrorBoundary", () => {
     expect(screen.getByRole("button", { name: "Back to home" })).toBeInTheDocument();
   });
 });
+
+describe("ErrorBoundary reset", () => {
+  beforeEach(() => vi.spyOn(console, "error").mockImplementation(() => {}));
+  afterEach(() => vi.restoreAllMocks());
+
+  it("recovers when the reset key changes (user navigates away)", () => {
+    let shouldThrow = true;
+    const Maybe = () => {
+      if (shouldThrow) throw new Error("boom");
+      return <p>recovered</p>;
+    };
+    const { rerender } = render(
+      <ErrorBoundary resetKey="/a">
+        <Maybe />
+      </ErrorBoundary>,
+    );
+    expect(screen.getByText("Something went wrong on this page.")).toBeInTheDocument();
+
+    shouldThrow = false;
+    rerender(
+      <ErrorBoundary resetKey="/b">
+        <Maybe />
+      </ErrorBoundary>,
+    );
+    expect(screen.getByText("recovered")).toBeInTheDocument();
+  });
+});

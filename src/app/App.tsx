@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { NavBar } from "@/components/layout/NavBar";
 import { VerifyEmailBanner } from "@/features/account/VerifyEmailBanner";
@@ -13,12 +13,13 @@ const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const StickerBookPage = lazy(() => import("@/features/stickers/library/StickerBookPage"));
 
 export default function App() {
+  const { pathname } = useLocation();
   return (
     <div id="app">
       <NavBar />
       <VerifyEmailBanner />
       <main>
-        <ErrorBoundary>
+        <ErrorBoundary resetKey={pathname}>
           <Suspense fallback={null}>
             <Routes>
               <Route path="/login" element={<LoginPage />} />

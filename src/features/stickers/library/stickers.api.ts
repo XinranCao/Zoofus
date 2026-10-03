@@ -10,8 +10,9 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
+import { deleteFileIfExists } from "@/lib/storage";
 import {
   MAX_STICKER_BYTES,
   MAX_STICKERS,
@@ -51,28 +52,39 @@ export async function saveSticker(uid: string, input: NewSticker): Promise<strin
 
   const id = crypto.randomUUID();
   const storagePath = `${uid}/stickers/${id}.png`;
-  const fileRef = ref(storage, storagePath);
-  await uploadBytes(fileRef, input.blob, { contentType: "image/png" });
-  const imageUrl = await getDownloadURL(fileRef);
+  const thumbnailPath = input.thumbnail ? `${uid}/stickers/${id}_thumb.png` : undefined;
 
-  let thumbnail: { thumbnailPath: string; thumbnailUrl: string } | undefined;
-  if (input.thumbnail) {
-    const thumbnailPath = `${uid}/stickers/${id}_thumb.png`;
-    const thumbRef = ref(storage, thumbnailPath);
-    await uploadBytes(thumbRef, input.thumbnail, { contentType: "image/png" });
-    thumbnail = { thumbnailPath, thumbnailUrl: await getDownloadURL(thumbRef) };
+  try {
+    const fileRef = ref(storage, storagePath);
+    await uploadBytes(fileRef, input.blob, { contentType: "image/png" });
+    const imageUrl = await getDownloadURL(fileRef);
+
+    let thumbnailUrl: string | undefined;
+    if (input.thumbnail && thumbnailPath) {
+      const thumbRef = ref(storage, thumbnailPath);
+      await uploadBytes(thumbRef, input.thumbnail, { contentType: "image/png" });
+      thumbnailUrl = await getDownloadURL(thumbRef);
+    }
+
+    await setDoc(doc(stickersRef(uid), id), {
+      name: input.name,
+      storagePath,
+      imageUrl,
+      ...(thumbnailPath && thumbnailUrl ? { thumbnailPath, thumbnailUrl } : {}),
+      width: input.width,
+      height: input.height,
+      createdAt: serverTimestamp(),
+    });
+    return id;
+  } catch (err) {
+    // Don't leave files behind that no sticker document points at.
+    await Promise.allSettled(
+      [storagePath, thumbnailPath]
+        .filter((p): p is string => Boolean(p))
+        .map((p) => deleteFileIfExists(ref(storage, p))),
+    );
+    throw err;
   }
-
-  await setDoc(doc(stickersRef(uid), id), {
-    name: input.name,
-    storagePath,
-    imageUrl,
-    ...thumbnail,
-    width: input.width,
-    height: input.height,
-    createdAt: serverTimestamp(),
-  });
-  return id;
 }
 
 export async function deleteSticker(
@@ -80,8 +92,9 @@ export async function deleteSticker(
   sticker: Pick<Sticker, "id" | "storagePath" | "thumbnailPath">,
 ) {
   await deleteDoc(doc(stickersRef(uid), sticker.id));
-  await deleteObject(ref(storage, sticker.storagePath));
-  if (sticker.thumbnailPath) await deleteObject(ref(storage, sticker.thumbnailPath));
+  await deleteFileIfExists(ref(storage, sticker.storagePath));
+  if (sticker.thumbnailPath)
+    await deleteFileIfExists(ref(storage, sticker.thumbnailPath));
 }
 
 export async function renameSticker(uid: string, id: string, name: string) {

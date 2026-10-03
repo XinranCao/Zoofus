@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/features/auth/useAuth";
+import { makeThumbnail } from "@/lib/image";
 import {
   deleteSticker,
   listStickers,
@@ -29,9 +30,14 @@ export function useSaveSticker() {
   const uid = useUid();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: NewSticker) => {
+    mutationFn: async ({
+      canvas,
+      ...input
+    }: Omit<NewSticker, "thumbnail"> & { canvas?: HTMLCanvasElement }) => {
       if (!uid) throw new Error("Not signed in");
-      return saveSticker(uid, input);
+      // Built inside the mutation so a failure surfaces as a normal save error.
+      const thumbnail = canvas ? await makeThumbnail(canvas) : undefined;
+      return saveSticker(uid, { ...input, thumbnail });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.all(uid ?? "") }),
   });

@@ -1,4 +1,5 @@
 import { useCallback, type KeyboardEvent } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { translateSelection } from "./domain/geometry";
 import { useEditor } from "./store/editorStore";
 
@@ -18,7 +19,17 @@ export function useEditorShortcuts() {
     setActive,
     undo,
     redo,
-  } = useEditor((s) => s);
+  } = useEditor(
+    useShallow((s) => ({
+      selections: s.selections,
+      activeId: s.activeId,
+      removeSelection: s.removeSelection,
+      updateSelection: s.updateSelection,
+      setActive: s.setActive,
+      undo: s.undo,
+      redo: s.redo,
+    })),
+  );
 
   return useCallback(
     (e: KeyboardEvent) => {

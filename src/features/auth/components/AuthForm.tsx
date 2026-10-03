@@ -10,10 +10,19 @@ interface Props {
   submitLabel: string;
   error?: string;
   onSubmit: (values: Credentials) => Promise<void> | void;
+  /** "new-password" on sign-up so password managers suggest a new one. */
+  passwordAutoComplete?: "current-password" | "new-password";
   children?: ReactNode;
 }
 
-export function AuthForm({ title, submitLabel, error, onSubmit, children }: Props) {
+export function AuthForm({
+  title,
+  submitLabel,
+  error,
+  onSubmit,
+  passwordAutoComplete = "current-password",
+  children,
+}: Props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const {
@@ -59,7 +68,7 @@ export function AuthForm({ title, submitLabel, error, onSubmit, children }: Prop
       <TextField
         label="Password"
         type="password"
-        autoComplete="current-password"
+        autoComplete={passwordAutoComplete}
         fullWidth
         error={Boolean(errors.password)}
         helperText={errors.password?.message}

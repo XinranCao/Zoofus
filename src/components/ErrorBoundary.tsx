@@ -6,8 +6,19 @@ interface State {
 }
 
 /** Catches render errors below it so one broken screen does not blank the whole app. */
-export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
+interface Props {
+  children: ReactNode;
+  /** When this value changes (e.g. the route), a shown error is cleared. */
+  resetKey?: string;
+}
+
+export class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null };
+
+  componentDidUpdate(prev: Props) {
+    if (this.state.error && prev.resetKey !== this.props.resetKey)
+      this.setState({ error: null });
+  }
 
   static getDerivedStateFromError(error: Error): State {
     return { error };

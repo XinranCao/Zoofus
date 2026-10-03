@@ -16,13 +16,10 @@ const app = initializeApp({
   measurementId: env.VITE_APP_MEASUREMENT_ID,
 });
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
-
 const useEmulators = env.VITE_USE_EMULATORS === "true";
 
-// App Check proves requests come from this app, not a script using the public API key.
+// App Check must be initialised before any other service is used, so it goes first.
+// It proves requests come from this app, not a script using the public API key.
 // Enabled when a site key is configured. See docs/app-check.md for the console setup.
 if (!useEmulators && env.VITE_APP_RECAPTCHA_SITE_KEY) {
   if (import.meta.env.DEV) {
@@ -36,6 +33,11 @@ if (!useEmulators && env.VITE_APP_RECAPTCHA_SITE_KEY) {
     isTokenAutoRefreshEnabled: true,
   });
 }
+
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
+
 if (useEmulators) {
   connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
   connectFirestoreEmulator(db, "127.0.0.1", 8080);

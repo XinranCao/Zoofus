@@ -3,7 +3,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import { Alert, Box, Button, Slider, Stack, TextField, Typography } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { ChromePicker } from "react-color";
-import { makeThumbnail } from "@/lib/image";
+import { useShallow } from "zustand/react/shallow";
 import { useSaveSticker } from "@/features/stickers/library/useStickers";
 import {
   MAX_STICKER_NAME,
@@ -26,14 +26,22 @@ function useCutout() {
     canvas: HTMLCanvasElement;
   } | null>(null);
 
-  const canvas = useMemo(() => {
-    if (!image) return null;
-    const mask = computeMaskPolygons(selections, fit, {
-      width: image.naturalWidth,
-      height: image.naturalHeight,
-    });
-    return isMaskEmpty(mask) ? null : renderCutout(image, mask, border);
-  }, [image, fit, selections, border]);
+  // The mask only depends on the selections, so border tweaks don't recompute the geometry.
+  const mask = useMemo(
+    () =>
+      image
+        ? computeMaskPolygons(selections, fit, {
+            width: image.naturalWidth,
+            height: image.naturalHeight,
+          })
+        : [],
+    [image, fit, selections],
+  );
+
+  const canvas = useMemo(
+    () => (image && !isMaskEmpty(mask) ? renderCutout(image, mask, border) : null),
+    [image, mask, border],
+  );
 
   useEffect(() => {
     if (!canvas) return;
@@ -59,7 +67,13 @@ export function ResultPanel() {
   const cutout = useCutout();
   const url = cutout?.url ?? null;
   const border = useEditor((s) => s.border);
-  const { setBorder, backToEdit, clear } = useEditor((s) => s);
+  const { setBorder, backToEdit, clear } = useEditor(
+    useShallow((s) => ({
+      setBorder: s.setBorder,
+      backToEdit: s.backToEdit,
+      clear: s.clear,
+    })),
+  );
   const [name, setName] = useState("My sticker");
   const save = useSaveSticker();
   const trimmed = name.trim();
@@ -111,16 +125,16 @@ export function ResultPanel() {
             variant="contained"
             startIcon={<SaveIcon />}
             disabled={!cutout || !trimmed || save.isPending}
-            onClick={async () => {
-              if (!cutout) return;
+            onClick={() =>
+              cutout &&
               save.mutate({
                 blob: cutout.blob,
-                thumbnail: await makeThumbnail(cutout.canvas),
+                canvas: cutout.canvas,
                 name: trimmed,
                 width: cutout.width,
                 height: cutout.height,
-              });
-            }}
+              })
+            }
           >
             Save
           </Button>

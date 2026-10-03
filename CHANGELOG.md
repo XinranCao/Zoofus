@@ -9,6 +9,7 @@
 
 ### Other
 
+- Review fixes: error screen now clears on navigation; account and sticker deletion no longer fail on missing files; failed saves clean up uploaded files; query cache cleared on sign-out; faster border slider; sign-up uses new-password autocomplete; App Check initialised first; test scripts use a pinned `npx firebase-tools`.
 - Testing: Testing Library component tests and a Playwright end-to-end flow on the emulators, both in CI.
 - Account page (download data, delete account), email verification banner, App Check wiring, per-account sticker limits, collage page data model, editor keyboard shortcuts and touch handling.
 - Local emulator environment (`npm run emulators`, `npm run dev:emulated`); `.env.example`; environments documented.

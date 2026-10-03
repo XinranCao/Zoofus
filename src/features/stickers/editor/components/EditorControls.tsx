@@ -15,6 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { ReactNode } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { createShape } from "../domain/geometry";
 import type { Tool } from "../domain/types";
 import { useEditor } from "../store/editorStore";
@@ -35,7 +36,18 @@ export function EditorControls() {
   const canUndo = useEditor((s) => s.past.length > 0);
   const canRedo = useEditor((s) => s.future.length > 0);
   const { setTool, setMode, addSelection, removeSelection, undo, redo, clear, confirm } =
-    useEditor((s) => s);
+    useEditor(
+      useShallow((s) => ({
+        setTool: s.setTool,
+        setMode: s.setMode,
+        addSelection: s.addSelection,
+        removeSelection: s.removeSelection,
+        undo: s.undo,
+        redo: s.redo,
+        clear: s.clear,
+        confirm: s.confirm,
+      })),
+    );
 
   return (
     <Stack spacing={2}>

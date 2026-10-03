@@ -6,7 +6,7 @@ Stack: React 19, Vite 7, MUI 7, Redux Toolkit, react-router 7, Konva/react-konva
 
 ## Setup
 
-1. Node 22 (see `.nvmrc`; Vite needs 20.19+), then `npm install`.
+1. Node 22 (see `.nvmrc`; Vite needs 20.19+) and Java 17+ (for the emulators), then `npm install`. The Firebase CLI is run through `npx`, so no global install is needed.
 2. Create a `.env` in the repo root (never commit it) with your Firebase web config:
    `VITE_APP_API_KEY`, `VITE_APP_AUTH_DOMAIN`, `VITE_APP_PROJECT_ID`, `VITE_APP_STORAGE_BUCKET`, `VITE_APP_MESSAGING_SENDER_ID`, `VITE_APP_APP_ID`, `VITE_APP_MEASUREMENT_ID`.
 

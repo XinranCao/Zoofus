@@ -9,12 +9,14 @@ import {
   signOut,
   type User,
 } from "firebase/auth";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { auth } from "@/lib/firebase";
 import { AuthContext, type AuthContextValue } from "./authContext";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(true);
   // `User` objects are mutated in place by reload(); this counter makes the context update.
   const [version, setVersion] = useState(0);
@@ -39,7 +41,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       login: (email, password) => signInWithEmailAndPassword(auth, email, password),
       loginWithGoogle: () => signInWithPopup(auth, new GoogleAuthProvider()),
-      logout: () => signOut(auth),
+      logout: async () => {
+        await signOut(auth);
+        queryClient.clear(); // drop the previous user's cached data
+      },
       resetPassword: (email) => sendPasswordResetEmail(auth, email),
       sendVerification: async () => {
         if (auth.currentUser) await sendEmailVerification(auth.currentUser);
@@ -50,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `version` forces a refresh after reload()
-    [currentUser, version],
+    [currentUser, version, queryClient],
   );
 
   return (
