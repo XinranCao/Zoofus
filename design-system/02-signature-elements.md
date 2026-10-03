@@ -171,7 +171,7 @@ The border is **baked into the bitmap** by `dieCut()`, and the UI shows that bit
 | Control | Options |
 | --- | --- |
 | Edge shape | `smooth` (±6% radius), `wobbly` (three-sine wobble, ±28%: the default), `torn` (layered noise, ragged zones, bites, plus a pale lip in `fiber`, or kraft when the fill is white) |
-| Width | `bw = clamp(4, 4.5% of max side, 28) × scale`, with scale 0–1.6. 0 means no edge |
+| Width | `bw = round(0.045 × L × scale)` where L is the cut-out's long side **at the resolution being rendered**, with scale 0–1.6. 0 means no edge. There is no px clamp: the edge is a proportion of the sticker, so every resolution looks the same |
 | Fill | any `PatternSpec`: a plain colour or a user pattern (§8) |
 
 ```ts
@@ -185,6 +185,8 @@ dieCut(src, { shape: "torn", border: bw, color: "#fbf6ee", fill: patternImage /*
 3. Torn only: stamp again at `r(a) + lip(a)` and paint that in the lip colour.
 4. Paint the mask with the colour, or with the pattern image via `source-in`. The pattern is rendered once as an SVG at output size: `patternSVG(spec, w, h, dpr)`.
 5. Draw the cut-out on top.
+
+**Resolution independence (screen = file).** Everything in `dieCut` scales with L: the border (`0.045 × L × scale`), the edge noise (it is defined per angle, so it doesn't depend on size), and the pattern fill. `PatternSpec.scale` is defined at a reference long side of **300px**, so render the pattern with `k = L / 300` (`patternSVG(spec, w, h, L / 300)`). The UI shows the PNG scaled down rather than re-rendering at a different size. Parity test: render at L = 300 and L = 1200, downscale the 1200 result to 300, and the mean per-pixel difference must stay below ~2%.
 
 **Export.** Run at source resolution and save as a transparent PNG with the border baked in. The saved record keeps `{ edge: { shape, scale, fill }, seed }`, so the user can re-edit the edge later.
 

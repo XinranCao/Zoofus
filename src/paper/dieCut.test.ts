@@ -4,7 +4,7 @@ import {
   dieCut,
   dieCutPad,
   edgeRadius,
-  stickerBorder,
+  edgeWidth,
   type CanvasSource,
 } from "./dieCut";
 
@@ -35,14 +35,16 @@ const src = { width: 100, height: 80 } as unknown as CanvasSource;
 const drawImageCalls = (c: FakeCanvas) =>
   c.calls.filter((x) => x.fn === "drawImage").length;
 
-describe("stickerBorder", () => {
-  it("is 4.5% of the size, clamped to 4..28 px, times the scale", () => {
-    expect(stickerBorder(50)).toBe(4);
-    expect(stickerBorder(100)).toBe(5);
-    expect(stickerBorder(400)).toBe(18);
-    expect(stickerBorder(2000)).toBe(28);
-    expect(stickerBorder(400, 0)).toBe(0);
-    expect(stickerBorder(400, 1.6)).toBe(29);
+describe("edgeWidth", () => {
+  it("is 4.5% of the long side times the scale, with no px clamp", () => {
+    expect(edgeWidth(100)).toBe(5);
+    expect(edgeWidth(400)).toBe(18);
+    expect(edgeWidth(2000)).toBe(90);
+    expect(edgeWidth(3000, 1.6)).toBe(216);
+    expect(edgeWidth(400, 0)).toBe(0);
+  });
+  it("scales linearly with resolution", () => {
+    expect(edgeWidth(1200) / edgeWidth(300)).toBeCloseTo(4, 0);
   });
 });
 

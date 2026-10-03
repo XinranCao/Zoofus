@@ -94,7 +94,12 @@ export function hex(c: string): string {
 let pid = 0;
 
 /** Inner SVG markup (defs + two rects). `k` scales the pattern (e.g. devicePixelRatio). */
-export function patternMarkup(spec: PatternSpec, k = 1, id?: string): string {
+export function patternMarkup(
+  spec: PatternSpec,
+  k = 1,
+  id?: string,
+  anchor?: readonly [number, number],
+): string {
   const pattern = id ?? "zp" + ++pid;
   const s = (spec.scale ?? 12) * k;
   const w = spec.weight ?? 0.5;
@@ -166,7 +171,7 @@ export function patternMarkup(spec: PatternSpec, k = 1, id?: string): string {
       tile = "";
   }
   const defs = tile
-    ? `<defs><pattern id="${pattern}" patternUnits="userSpaceOnUse" width="${f1(tw)}" height="${f1(th)}" patternTransform="rotate(${a})">${tile}</pattern></defs>`
+    ? `<defs><pattern id="${pattern}" patternUnits="userSpaceOnUse" width="${f1(tw)}" height="${f1(th)}" patternTransform="${anchor ? `translate(${f1(anchor[0])} ${f1(anchor[1])}) ` : ""}rotate(${a})">${tile}</pattern></defs>`
     : "";
   return (
     defs +
@@ -176,8 +181,14 @@ export function patternMarkup(spec: PatternSpec, k = 1, id?: string): string {
 }
 
 /** A standalone SVG document of `spec` at w × h, for use as a canvas image. */
-export function patternSVG(spec: PatternSpec, w: number, h: number, k = 1): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${patternMarkup(spec, k, "p")}</svg>`;
+export function patternSVG(
+  spec: PatternSpec,
+  w: number,
+  h: number,
+  k = 1,
+  anchor?: readonly [number, number],
+): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${patternMarkup(spec, k, "p", anchor)}</svg>`;
 }
 
 export const BLANK_PIXELS = [

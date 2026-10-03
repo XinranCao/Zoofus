@@ -4,6 +4,6 @@ Sticker is a die-cut sticker: the user's cut-out with a **user-chosen edge** (sh
 
 **Props.** `src` (or `art` in demos), `size` (display max side), `edge: { shape: 'smooth' | 'wobbly' | 'torn', scale: 0–1.6, fill: PatternSpec }`, `seed`, `rotate` (±range, 0 for detail views), `label` (alt text = the sticker's name). Legacy `borderColor` and `borderScale` still work.
 
-**Defaults.** Wobbly, scale 1 (`clamp(4, 4.5% of max side, 28)` px), solid `sheet-50`.
+**Defaults.** Wobbly, scale 1 (`0.045 × long side`, a proportion with no px clamp, so screen = file at any resolution), solid `sheet-50`. Pattern sizes are defined at a 300px long side.
 
 **States.** Hover: 0°, −2px, scale 1.02. Focus (when interactive): traced ring. Dragging (collage): scale 1.04.

@@ -29,19 +29,19 @@ export interface DieCutOptions {
   createCanvas?: (w: number, h: number) => Canvas2D;
 }
 
-/** Edge width for a sticker whose longest side is `size`, times the user's scale (0-1.6). */
-export function stickerBorder(size: number, scale = 1): number {
-  return Math.round(Math.min(28, Math.max(4, size * 0.045)) * scale);
-}
+/** Edge width as a fraction of the cut-out's long side. */
+export const EDGE_RATIO = 0.045;
+/** `PatternSpec.scale` is in px at this long side; patterns scale with `L / PATTERN_REF`. */
+export const PATTERN_REF = 300;
 
 /**
- * Edge width in px for a cut-out whose longest side is `longSide` px, times the user's scale
- * (0 = none, up to 1.6). Proportional to the image (4.5%), so the on-screen preview and the
- * larger exported file always have the same look. 0 only when the scale is 0.
+ * Edge width in px for a cut-out whose longest side is `longSide` px at the resolution being
+ * rendered, times the user's scale (0 = none, up to 1.6). A pure proportion, no px clamp, so the
+ * on-screen preview and the larger exported file always have the same look.
  */
 export function edgeWidth(longSide: number, scale = 1): number {
   if (scale <= 0) return 0;
-  return Math.max(2, Math.round(longSide * 0.045 * scale));
+  return Math.round(longSide * EDGE_RATIO * scale);
 }
 
 interface EdgeSample {

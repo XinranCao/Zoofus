@@ -2,6 +2,7 @@ import {
   dieCut,
   dieCutPad,
   edgeWidth,
+  PATTERN_REF,
   type CanvasSource,
   type EdgeShape,
 } from "./dieCut";
@@ -21,9 +22,6 @@ export const DEFAULT_EDGE: EdgeSpec = {
   fill: { kind: "solid", bg: "sheet-50" },
 };
 
-/** Pattern repeats are defined against a 300px sticker and scale with the actual size. */
-const PATTERN_REFERENCE = 300;
-
 /** Decode an image URL (including data: SVG) to an element ready for drawImage. */
 export function loadImage(
   src: string,
@@ -38,6 +36,12 @@ export function loadImage(
   });
 }
 
+/** Canvas and image factories, replaceable so the same code can run outside a browser (tests). */
+export interface RenderIO {
+  createCanvas?: (w: number, h: number) => HTMLCanvasElement | OffscreenCanvas;
+  loadImage?: (src: string) => Promise<CanvasImageSource>;
+}
+
 /**
  * Cut a sticker from a transparent, edge-less cut-out already at the wanted pixel size.
  * Used for the live preview (display size × devicePixelRatio) AND the exported file (source
@@ -47,19 +51,25 @@ export async function renderSticker(
   source: CanvasSource,
   edge: EdgeSpec,
   seed: string,
+  io: RenderIO = {},
 ): Promise<HTMLCanvasElement> {
   const long = Math.max(source.width, source.height);
   const border = edgeWidth(long, edge.scale);
   const pad = dieCutPad(border);
-  let fill: HTMLImageElement | null = null;
+  let fill: CanvasImageSource | null = null;
   if (border > 0 && edge.fill.kind !== "solid") {
     const svg = patternSVG(
       edge.fill,
       source.width + pad * 2,
       source.height + pad * 2,
-      long / PATTERN_REFERENCE,
+      long / PATTERN_REF,
+      // the print is anchored to the middle of the sticker, so the padding (which rounds
+      // differently at each size) never shifts it: the repeat sits in the same place at any size
+      [(source.width + pad * 2) / 2, (source.height + pad * 2) / 2],
     );
-    fill = await loadImage("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg));
+    fill = await (io.loadImage ?? loadImage)(
+      "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg),
+    );
   }
   return dieCut(source, {
     shape: edge.shape,
@@ -69,6 +79,7 @@ export async function renderSticker(
     // the torn lip is the paper's pale core: kraft on a white edge, white otherwise
     fiber: edge.fill.bg === "sheet-50" ? "#e8ddd0" : "#fbf6ee",
     seed,
+    createCanvas: io.createCanvas,
   }) as HTMLCanvasElement;
 }
 

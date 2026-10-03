@@ -469,7 +469,9 @@
      Users choose: edge shape (smooth | wobbly | torn), width, and fill
      (a colour or any PatternSpec they designed). No shadow, ever.
      ========================================================= */
-  function stickerBorder(size, scale) { return Math.round(Math.min(28, Math.max(4, size * 0.045)) * (scale == null ? 1 : scale)); }
+  // Edge width is a FRACTION of the sticker's long side (no px clamp), so a 300px preview and a 3000px export look identical.
+  var EDGE_RATIO = 0.045, PATTERN_REF = 300;   // PatternSpec.scale is in px at a 300px long side
+  function stickerBorder(size, scale) { return Math.round(size * EDGE_RATIO * (scale == null ? 1 : scale)); }
   var EDGE_SHAPES = [['smooth', 'Smooth'], ['wobbly', 'Wobbly'], ['torn', 'Torn']];
   function edgeRadius(shape, seed, bw) {
     var R = rng('die' + seed);
@@ -549,7 +551,7 @@
           cv.width = out.width; cv.height = out.height; cv.style.width = out.width / dpr + 'px'; cv.style.height = out.height / dpr + 'px';
           cv.getContext('2d').drawImage(out, 0, 0);
         }
-        if (fill.kind && fill.kind !== 'solid') loadImg('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(patternSVG(fill, src.width + pad * 2, src.height + pad * 2, dpr)), done);
+        if (fill.kind && fill.kind !== 'solid') loadImg('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(patternSVG(fill, src.width + pad * 2, src.height + pad * 2, Math.max(src.width, src.height) / PATTERN_REF)), done);
         else done(null);
       });
       return function () { alive = false; };
@@ -876,7 +878,7 @@
      ========================================================= */
   window.Zoofus = {
     // utilities
-    hash: hash, rng: rng, vnoise: vnoise, tornClip: tornClip, tornPair: tornPair, tornVars: tornVars, TEAR: TEAR, PALETTE: PALETTE, patternMarkup: patternMarkup, patternSVG: patternSVG, edgeRadius: edgeRadius, scribblePath: scribblePath, dieCut: dieCut, stickerBorder: stickerBorder, seededRot: seededRot, ART: ART,
+    hash: hash, rng: rng, EDGE_RATIO: EDGE_RATIO, PATTERN_REF: PATTERN_REF, vnoise: vnoise, tornClip: tornClip, tornPair: tornPair, tornVars: tornVars, TEAR: TEAR, PALETTE: PALETTE, patternMarkup: patternMarkup, patternSVG: patternSVG, edgeRadius: edgeRadius, scribblePath: scribblePath, dieCut: dieCut, stickerBorder: stickerBorder, seededRot: seededRot, ART: ART,
     // components
     Paper: Paper, Tape: Tape, Scribble: Scribble, Divider: Divider, Icon: Icon, Wordmark: Wordmark, Masthead: Masthead,
     Button: Button, Chip: Chip, ToggleGroup: ToggleGroup, TextField: TextField, Slider: Slider, ColorPicker: ColorPicker, Swatch: Swatch,
