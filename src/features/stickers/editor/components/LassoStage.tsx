@@ -14,7 +14,12 @@ import {
 } from "react-konva";
 import { useTranslation } from "react-i18next";
 import { PALETTE } from "@/paper/pattern";
-import { createFreehand } from "../domain/geometry";
+import {
+  createFreehand,
+  createShapeFromDrag,
+  selectionToPoints,
+} from "../domain/geometry";
+import type { ShapeKind } from "../domain/types";
 import { computeMaskPolygons, isMaskEmpty } from "../domain/mask";
 import { useEditor } from "../store/editorStore";
 import { useEditorImage } from "../useEditorImage";
@@ -54,6 +59,9 @@ export function LassoStage({ width, height }: { width: number; height: number })
   const nodes = useRef(new Map<string, Konva.Node>());
   const transformer = useRef<Konva.Transformer>(null);
   const [stroke, setStroke] = useState<number[] | null>(null);
+  /** A shape being dragged out: its start and current corner, in logical px. */
+  const [box, setBox] = useState<[number, number, number, number] | null>(null);
+  const liveBox = useRef<[number, number, number, number] | null>(null);
 
   const scale = Math.min(width / fit.width, height / fit.height);
   const stageW = Math.round(fit.width * scale);
@@ -79,20 +87,27 @@ export function LassoStage({ width, height }: { width: number; height: number })
   };
   const drawing = tool === "freehand";
   const onPointerDown = (e: KonvaEventObject<PointerEvent>) => {
-    if (!drawing || stroke) return;
+    if (stroke || box) return;
     const p = pointer(e);
-    if (p) {
+    if (!p) return;
+    if (drawing) {
       live.current = [p[0], p[1]];
       setStroke(live.current);
+    } else if (e.target === e.target.getStage()) {
+      // a shape tool: dragging on the bare photo draws the shape (a click on a shape selects it)
+      liveBox.current = [p[0], p[1], p[0], p[1]];
+      setBox(liveBox.current);
     }
   };
   const stageRef = useRef<Konva.Stage>(null);
   const live = useRef<number[] | null>(null);
-  const drawingNow = stroke !== null;
+  const drawingNow = stroke !== null || box !== null;
+  const toolRef = useRef(tool);
   const modeRef = useRef(mode);
   useEffect(() => {
     modeRef.current = mode;
-  }, [mode]);
+    toolRef.current = tool;
+  }, [mode, tool]);
 
   // While a stroke is under way the pointer is tracked on the window, so leaving the photo does not
   // break the line: outside points are clamped to the photo's border. Going out on one side and
@@ -109,13 +124,33 @@ export function LassoStage({ width, height }: { width: number; height: number })
     };
     const move = (e: PointerEvent) => {
       const p = toPoint(e);
+      if (!p) return;
+      const b = liveBox.current;
+      if (b) {
+        liveBox.current = [b[0], b[1], p[0], p[1]];
+        setBox(liveBox.current);
+        return;
+      }
       const pts = live.current;
-      if (!p || !pts) return;
+      if (!pts) return;
       if (p[0] === pts[pts.length - 2] && p[1] === pts[pts.length - 1]) return;
       live.current = [...pts, p[0], p[1]];
       setStroke(live.current);
     };
     const up = () => {
+      const b = liveBox.current;
+      if (b) {
+        liveBox.current = null;
+        setBox(null);
+        const shape = createShapeFromDrag(
+          toolRef.current as ShapeKind,
+          modeRef.current,
+          crypto.randomUUID(),
+          ...b,
+        );
+        if (shape) addSelection(shape);
+        return;
+      }
       const pts = live.current;
       live.current = null;
       if (pts && pts.length >= 4) {
@@ -138,6 +173,9 @@ export function LassoStage({ width, height }: { width: number; height: number })
     };
   }, [drawingNow, scale, fit.width, fit.height, addSelection]);
 
+  const draft =
+    box && tool !== "freehand" ? createShapeFromDrag(tool, mode, "draft", ...box) : null;
+  const draftPoints = draft ? selectionToPoints(draft) : null;
   const active = selections.find((s) => s.id === activeId);
   const startOf = stroke ?? (active?.kind === "freehand" ? active.points : null);
   const deselect = mode === "deselect";
@@ -150,7 +188,7 @@ export function LassoStage({ width, height }: { width: number; height: number })
       onKeyDown={onKeyDown}
       style={{
         touchAction: "none",
-        cursor: drawing ? (deselect ? MINUS : PLUS) : "default",
+        cursor: deselect ? MINUS : PLUS,
         width: stageW,
         height: stageH,
       }}
@@ -207,6 +245,35 @@ export function LassoStage({ width, height }: { width: number; height: number })
               }}
             />
           ))}
+          {draftPoints && (
+            <>
+              <Line
+                points={draftPoints}
+                closed
+                stroke="rgba(65, 71, 14, 0.28)"
+                strokeWidth={5}
+                strokeScaleEnabled={false}
+                listening={false}
+              />
+              <Line
+                points={draftPoints}
+                closed
+                stroke={SHEET}
+                strokeWidth={2}
+                strokeScaleEnabled={false}
+                listening={false}
+              />
+              <Line
+                points={draftPoints}
+                closed
+                stroke={deselect ? PLUM : LODEN}
+                strokeWidth={2}
+                dash={deselect ? [3, 5] : [6, 6]}
+                strokeScaleEnabled={false}
+                listening={false}
+              />
+            </>
+          )}
           {stroke && stroke.length > 2 && (
             <>
               <Line

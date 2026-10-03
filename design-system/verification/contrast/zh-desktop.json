@@ -1,5 +1,5 @@
 {
-  "checked": 361,
+  "checked": 365,
   "lowest": [
     {
       "screen": "zh/desktop/07-home-empty",
@@ -123,7 +123,7 @@
     },
     {
       "screen": "zh/desktop/21-account",
-      "text": "ds-zh-desktop-1791052332320@example.com",
+      "text": "ds-zh-desktop-1791055214789@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",

@@ -1,3 +1,4 @@
+import { dragOnPhoto } from "./support/draw";
 import { expect, test, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { patternPng } from "./png";
@@ -33,7 +34,7 @@ async function openLasso(page: Page, photo: Buffer) {
   });
   const maker = page.getByRole("dialog", { name: "Draw around it" });
   await maker.getByRole("radio", { name: /Rectangle/ }).click();
-  await maker.getByRole("button", { name: "Add shape" }).click();
+  await dragOnPhoto(page);
   return maker;
 }
 

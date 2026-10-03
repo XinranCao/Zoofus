@@ -1,3 +1,4 @@
+import { dragOnPhoto } from "./support/draw";
 import { expect, test } from "@playwright/test";
 import { solidPng } from "./png";
 
@@ -45,7 +46,7 @@ test("deleting a sticker removes its image and source from Storage", async ({ pa
     });
   const maker = page.getByRole("dialog", { name: "Draw around it" });
   await maker.getByRole("radio", { name: /Rectangle/ }).click();
-  await maker.getByRole("button", { name: "Add shape" }).click();
+  await dragOnPhoto(page);
   await maker.getByRole("button", { name: "Cut it out" }).click();
   await page.getByRole("button", { name: "Save to book" }).click();
   await expect(page.getByText("Saved to your book.", { exact: true })).toBeVisible();

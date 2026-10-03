@@ -1,6 +1,6 @@
 import { useCallback, type KeyboardEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { translateSelection } from "./domain/geometry";
+import { createShape, translateSelection } from "./domain/geometry";
 import { useEditor } from "./store/editorStore";
 
 const STEP = 2;
@@ -8,22 +8,35 @@ const BIG_STEP = 20;
 
 /**
  * Keyboard controls for the canvas: arrows move the active selection (Shift = bigger steps),
- * Delete removes it, Enter cuts it out, Ctrl/Cmd+Z undoes, Ctrl/Cmd+Shift+Z or Ctrl+Y redoes.
+ * Delete removes it, Space adds a shape with a shape tool, Enter cuts it out, Ctrl/Cmd+Z undoes, Ctrl/Cmd+Shift+Z or Ctrl+Y redoes.
  * (Escape is left to the dialog: it closes the maker, with a confirmation if there is unsaved work.)
  */
 export function useEditorShortcuts() {
-  const { selections, activeId, removeSelection, updateSelection, undo, redo, confirm } =
-    useEditor(
-      useShallow((s) => ({
-        selections: s.selections,
-        activeId: s.activeId,
-        removeSelection: s.removeSelection,
-        updateSelection: s.updateSelection,
-        undo: s.undo,
-        redo: s.redo,
-        confirm: s.confirm,
-      })),
-    );
+  const {
+    selections,
+    activeId,
+    tool,
+    mode,
+    addSelection,
+    removeSelection,
+    updateSelection,
+    undo,
+    redo,
+    confirm,
+  } = useEditor(
+    useShallow((s) => ({
+      selections: s.selections,
+      activeId: s.activeId,
+      tool: s.tool,
+      mode: s.mode,
+      addSelection: s.addSelection,
+      removeSelection: s.removeSelection,
+      updateSelection: s.updateSelection,
+      undo: s.undo,
+      redo: s.redo,
+      confirm: s.confirm,
+    })),
+  );
 
   return useCallback(
     (e: KeyboardEvent) => {
@@ -37,6 +50,12 @@ export function useEditorShortcuts() {
       if (mod && key === "y") {
         e.preventDefault();
         return redo();
+      }
+
+      // the keyboard way to add a shape: Space puts one in the middle (a shape tool must be chosen)
+      if (key === " " && tool !== "freehand") {
+        e.preventDefault();
+        return addSelection(createShape(tool, mode, crypto.randomUUID()));
       }
 
       if (key === "enter" && selections.some((s) => s.mode === "select")) {
@@ -66,6 +85,17 @@ export function useEditorShortcuts() {
         updateSelection(active.id, moved);
       }
     },
-    [selections, activeId, removeSelection, updateSelection, undo, redo, confirm],
+    [
+      selections,
+      activeId,
+      tool,
+      mode,
+      addSelection,
+      removeSelection,
+      updateSelection,
+      undo,
+      redo,
+      confirm,
+    ],
   );
 }

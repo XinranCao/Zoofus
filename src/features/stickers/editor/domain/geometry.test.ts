@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   createFreehand,
   createShape,
+  createShapeFromDrag,
   joinOpenPathsToClosedRings,
   selectionToPoints,
   translateSelection,
@@ -91,5 +92,35 @@ describe("translateSelection", () => {
       width: 5,
       kind: "rectangle",
     });
+  });
+});
+
+describe("createShapeFromDrag", () => {
+  it("makes a rectangle of the dragged box, from any corner", () => {
+    const a = createShapeFromDrag("rectangle", "select", "r", 10, 20, 110, 80);
+    const b = createShapeFromDrag("rectangle", "select", "r", 110, 80, 10, 20);
+    expect(a).toMatchObject({ kind: "rectangle", x: 10, y: 20, width: 100, height: 60 });
+    expect(b).toEqual(a);
+  });
+
+  it("ignores a click or a tiny drag", () => {
+    expect(createShapeFromDrag("rectangle", "select", "r", 10, 10, 10, 10)).toBeNull();
+    expect(createShapeFromDrag("star", "select", "s", 10, 10, 15, 200)).toBeNull();
+  });
+
+  it.each(["triangle", "star"] as const)("fits a %s inside the dragged box", (kind) => {
+    const sel = createShapeFromDrag(kind, "deselect", "x", 100, 100, 300, 260)!;
+    expect(sel.mode).toBe("deselect");
+    const pts = selectionToPoints(sel);
+    const xs = pts.filter((_, i) => i % 2 === 0);
+    const ys = pts.filter((_, i) => i % 2 === 1);
+    // inside the box (a hair of tolerance), and filling it along its limiting side
+    expect(Math.min(...xs)).toBeGreaterThanOrEqual(99.5);
+    expect(Math.max(...xs)).toBeLessThanOrEqual(300.5);
+    expect(Math.min(...ys)).toBeGreaterThanOrEqual(99.5);
+    expect(Math.max(...ys)).toBeLessThanOrEqual(260.5);
+    const fillsW = Math.max(...xs) - Math.min(...xs) > 195;
+    const fillsH = Math.max(...ys) - Math.min(...ys) > 155;
+    expect(fillsW || fillsH).toBe(true);
   });
 });

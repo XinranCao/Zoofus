@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/Button";
 import { Divider } from "@/components/ui/Scribble";
 import { ToggleGroup } from "@/components/ui/ToggleGroup";
 import { Tooltip } from "@/components/ui/Tooltip";
-import { createShape } from "../domain/geometry";
 import type { Tool } from "../domain/types";
 import { useEditor } from "../store/editorStore";
 
@@ -22,7 +21,6 @@ export function MakerTools({ disabled }: { disabled?: boolean }) {
   const hasSelections = useEditor((s) => s.selections.length > 0);
   const setTool = useEditor((s) => s.setTool);
   const setMode = useEditor((s) => s.setMode);
-  const addSelection = useEditor((s) => s.addSelection);
   const removeSelection = useEditor((s) => s.removeSelection);
   const undo = useEditor((s) => s.undo);
   const redo = useEditor((s) => s.redo);
@@ -63,20 +61,9 @@ export function MakerTools({ disabled }: { disabled?: boolean }) {
             { value: "star", label: t("maker.shapes.star"), icon: "star" },
           ]}
         />
-        {tool !== "freehand" && (
-          <div style={{ marginTop: 10 }}>
-            <Button
-              variant="secondary"
-              size="sm"
-              icon="plus"
-              seed="addshape"
-              disabled={disabled}
-              onClick={() => addSelection(createShape(tool, mode, crypto.randomUUID()))}
-            >
-              {t("maker.addShape")}
-            </Button>
-          </div>
-        )}
+        <p className="zf-muted" style={{ margin: "10px 0 0", fontSize: 13 }}>
+          {t(tool === "freehand" ? "maker.hint.freehand" : "maker.hint.shape")}
+        </p>
       </div>
       <Divider seed="tools" />
       <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>

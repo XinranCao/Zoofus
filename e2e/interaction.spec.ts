@@ -1,3 +1,4 @@
+import { dragOnPhoto } from "./support/draw";
 import { expect, test, type Page } from "@playwright/test";
 import { patternPng, solidPng } from "./png";
 
@@ -227,9 +228,13 @@ async function scanTargets(page: Page, where: string, small: string[]) {
     for (const el of Array.from(document.querySelectorAll<HTMLElement>(sel))) {
       let r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) continue;
-      if (r.bottom < 0 || r.top > innerHeight) continue;
-      // a control cut off by the viewport edge is measured after scrolling it into view
-      if (r.bottom + 30 > innerHeight || r.top - 30 < 0) {
+      // a control cut off by the viewport edge, or scrolled out of its dialog's middle, is
+      // measured after scrolling it into view
+      const scroller = el.closest(".zf-dialog__scroll");
+      const sr = scroller?.getBoundingClientRect();
+      const hiddenInDialog = !!sr && (r.top < sr.top || r.bottom > sr.bottom);
+      if (!scroller && (r.bottom < 0 || r.top > innerHeight)) continue;
+      if (hiddenInDialog || r.bottom + 30 > innerHeight || r.top - 30 < 0) {
         el.scrollIntoView({ block: "center", behavior: "instant" });
         r = el.getBoundingClientRect();
       }
@@ -300,7 +305,7 @@ test.describe("touch", () => {
     const small: string[] = [];
     const maker = await openMaker(page);
     await maker.getByRole("radio", { name: /Rectangle/ }).click();
-    await maker.getByRole("button", { name: "Add shape" }).click();
+    await dragOnPhoto(page);
     await scanTargets(page, "lasso", small);
     await maker.getByRole("button", { name: "Cut it out" }).click();
     await expect(page.getByRole("dialog", { name: "Your sticker" })).toBeVisible();

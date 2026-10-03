@@ -1,3 +1,4 @@
+import { dragOnPhoto } from "./support/draw";
 import { expect, test } from "@playwright/test";
 import { solidPng } from "./png";
 
@@ -30,7 +31,7 @@ test("sign up, cut and save a sticker, then delete the account", async ({ page }
 
   // Add a rectangle selection and cut it out
   await maker.getByRole("radio", { name: /Rectangle/ }).click();
-  await maker.getByRole("button", { name: "Add shape" }).click();
+  await dragOnPhoto(page);
   await maker.getByRole("button", { name: "Cut it out" }).click();
 
   // Step 2: the edge studio

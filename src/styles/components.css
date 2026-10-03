@@ -549,14 +549,44 @@
     position: fixed;
     inset: 0;
     z-index: 50;
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 16px;
-    overflow-y: auto;
+    overflow: hidden; /* never a second scrollbar: the dialog's own middle scrolls */
     pointer-events: none;
   }
   .zf-dialog-pos > * {
     pointer-events: auto;
+  }
+  /* The dialog is as tall as its content, up to the screen; then the middle scrolls. */
+  .zf-dialog-box {
+    display: flex !important;
+    flex-direction: column;
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+    min-height: 0;
+  }
+  .zf-dialog-box > .zf-dialog__face {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .zf-dialog__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* room so focus rings and the traced outline are not cut by the scroll box */
+    margin: 0 -6px;
+    padding: 6px;
+    scrollbar-width: thin;
+  }
+  .zf-dialog__actions {
+    flex: 0 0 auto;
+    margin-top: 14px;
   }
   .zf-dialog__face {
     padding: 28px 28px 24px;
@@ -937,7 +967,11 @@
     }
     .zf-sheet-pos {
       padding: 12px 0 0 !important;
-      align-items: start !important;
+      align-items: flex-start !important;
+    }
+    .zf-sheet.zf-dialog-box {
+      max-height: calc(100vh - 12px);
+      max-height: calc(100dvh - 12px);
     }
     .zf-sheet .zf-dialog__face {
       padding: 26px 26px 24px;

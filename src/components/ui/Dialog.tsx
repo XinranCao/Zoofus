@@ -29,7 +29,8 @@ export interface DialogProps {
 }
 
 /**
- * A flat modal sheet torn from a magazine, taped over a loden scrim. Radix Dialog supplies the
+ * A flat modal sheet torn from a magazine, taped over a loden scrim. It never grows past the
+ * screen: the title and the actions stay put and only the middle scrolls. Radix Dialog supplies the
  * focus trap, Esc, aria-labelledby and focus return; the torn Paper is the content element.
  */
 export function Dialog({
@@ -67,7 +68,7 @@ export function Dialog({
               rotate={0.4}
               w={width}
               h={320}
-              className={cn("zf-dialog-in", sheet && "zf-sheet")}
+              className={cn("zf-dialog-in zf-dialog-box", sheet && "zf-sheet")}
               style={{ width, maxWidth: "100%" }}
               faceClassName="zf-dialog__face"
               tape={
@@ -96,7 +97,8 @@ export function Dialog({
                 </div>
               )}
               <RDialog.Title className="zf-dialog__title">{title}</RDialog.Title>
-              {children}
+              {/* the one scrolling part: title and actions stay in view, the page behind stays put */}
+              <div className="zf-dialog__scroll">{children}</div>
               {actions && <div className="zf-dialog__actions">{actions}</div>}
             </Paper>
           </RDialog.Content>

@@ -33,6 +33,62 @@ export function createShape(
   }
 }
 
+/** Smallest side, in logical px, that a dragged-out shape must have to count (a click is not a shape). */
+export const MIN_DRAG = 8;
+
+/**
+ * A shape that fits the box dragged from (x0, y0) to (x1, y1), whichever corner it started at.
+ * The regular shapes keep their proportions and sit in the middle of the box; null when the drag
+ * was too small to mean anything.
+ */
+export function createShapeFromDrag(
+  kind: ShapeKind,
+  mode: SelectionMode,
+  id: string,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+): ShapeSelection | null {
+  const x = Math.min(x0, x1);
+  const y = Math.min(y0, y1);
+  const w = Math.abs(x1 - x0);
+  const h = Math.abs(y1 - y0);
+  if (w < MIN_DRAG || h < MIN_DRAG) return null;
+  switch (kind) {
+    case "rectangle":
+      return { id, mode, kind, x, y, width: w, height: h, rotation: 0 };
+    case "triangle": {
+      // circumradius r: the box is 1.732 r wide and 1.5 r tall, the apex r above the centre
+      const r = Math.min(w / 1.732, h / 1.5);
+      return {
+        id,
+        mode,
+        kind,
+        x: x + w / 2,
+        y: y + h / 2 + r * 0.25,
+        radius: r,
+        rotation: 0,
+      };
+    }
+    case "star": {
+      // outer radius R: the box is 1.902 R wide and 1.809 R tall, the top point R above the centre
+      const R = Math.min(w / 1.902, h / 1.809);
+      return {
+        id,
+        mode,
+        kind,
+        x: x + w / 2,
+        y: y + (h - 1.809 * R) / 2 + R,
+        numPoints: 5,
+        innerRadius: R * 0.5,
+        outerRadius: R,
+        rotation: 0,
+      };
+    }
+  }
+}
+
 export function createFreehand(
   points: number[],
   mode: SelectionMode,

@@ -1,3 +1,4 @@
+import { dragOnPhoto } from "./support/draw";
 import { expect, test, type Page } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import {
@@ -142,9 +143,7 @@ for (const variant of VARIANTS) {
       await maker()
         .getByRole("radio", { name: t("maker.shapes.rectangle") })
         .click();
-      await maker()
-        .getByRole("button", { name: t("maker.addShape") })
-        .click();
+      await dragOnPhoto(page);
       await shot("13-maker-lasso");
       await maker()
         .getByRole("radio", { name: t("maker.deselect"), exact: true })

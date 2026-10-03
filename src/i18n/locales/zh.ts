@@ -157,7 +157,10 @@ export const zh: Messages = {
     deselect: "去掉",
     shape: "形状",
     shapes: { freehand: "手绘", triangle: "三角形", rectangle: "矩形", star: "星形" },
-    addShape: "添加形状",
+    hint: {
+      freehand: "沿着想留下的部分画一圈,然后松手。",
+      shape: "在照片上拖动来画出形状。键盘:先聚焦照片,再按空格。",
+    },
     canvas: "带选区的照片。沿着想留下的部分画一圈。方向键移动选中的轮廓,Delete 删除。",
     cutIt: "剪下来",
     leave: {

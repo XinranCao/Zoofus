@@ -160,7 +160,11 @@ export const en = {
       rectangle: "Rectangle",
       star: "Star",
     },
-    addShape: "Add shape",
+    hint: {
+      freehand: "Draw around what you want to keep, then let go.",
+      shape:
+        "Drag on the photo to draw the shape. Keyboard: focus the photo and press Space.",
+    },
     canvas:
       "Photo with selection. Draw around the part you want to keep. Arrow keys move the selected outline, Delete removes it.",
     cutIt: "Cut it out",

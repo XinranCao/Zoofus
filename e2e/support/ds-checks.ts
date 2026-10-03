@@ -432,8 +432,12 @@ export async function tornProblems(page: Page, screen: string): Promise<Problem[
           if (parent.closest(".zf-face") !== face) continue;
           const range = document.createRange();
           range.selectNodeContents(node);
+          // text scrolled out of a dialog's scrolling middle is not on screen: it is not "cut" by a tear
+          const scroller = parent.closest(".zf-dialog__scroll");
+          const sbox = scroller?.getBoundingClientRect();
           for (const r of Array.from(range.getClientRects())) {
             if (r.width < 1 || r.height < 1) continue;
+            if (sbox && (r.top < sbox.top - 1 || r.bottom > sbox.bottom + 1)) continue;
             // glyph ink sits inside the line box (ascender / descender room): trim 18% top and bottom
             const trim = r.height * 0.18;
             const top = r.top + trim - box.top;
