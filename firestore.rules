@@ -13,15 +13,35 @@ service cloud.firestore {
     function isString(value, maxLen) {
       return value is string && value.size() <= maxLen;
     }
+    // The 16 colours users may print with (USER_COLORS in src/paper/pattern.ts).
+    function userColour(c) {
+      return c in ['sheet-50', 'cream-100', 'peach-100', 'blush-100', 'pink-200', 'celery-200', 'lime-300', 'mustard-300',
+                   'apricot-300', 'rose-400', 'olive-500', 'tangerine-400', 'brick-600', 'plum-900', 'moss-700', 'cocoa-800'];
+    }
+    function pixelRow(r) {
+      return r is string && r.matches('^[01]{8}$');
+    }
     // A user-designed print (tape prints and sticker-edge fills). Keep in sync with
-    // src/paper/patternSchema.ts: rules cannot loop, so per-cell content is checked by the client.
+    // src/paper/patternSchema.ts. Rules cannot loop, so the 8 pixel rows are checked one by one
+    // and doodle strokes (at most 60 paths of path data) are checked for count here and for
+    // content by the client; every stroke is validated again when it is drawn (isSafeStroke).
     function validPattern(p) {
       return p is map
+        && p.keys().hasOnly(['kind', 'bg', 'ink', 'scale', 'angle', 'weight', 'pixels', 'strokes'])
         && p.kind in ['solid', 'stripes', 'dots', 'gingham', 'check', 'wave', 'pixels', 'doodle']
-        && isString(p.bg, 32)
-        && (!('ink' in p) || isString(p.ink, 32))
-        && (!('pixels' in p) || (p.pixels is list && p.pixels.size() == 8))
-        && (!('strokes' in p) || (p.strokes is list && p.strokes.size() <= 40));
+        && userColour(p.bg)
+        && (!('ink' in p) || userColour(p.ink))
+        && (!('scale' in p) || (p.scale is number && p.scale >= 6 && p.scale <= 28))
+        && (!('angle' in p) || (p.angle is number && p.angle >= 0 && p.angle <= 180))
+        && (!('weight' in p) || (p.weight is number && p.weight >= 0.1 && p.weight <= 0.9))
+        && (!('pixels' in p) || (p.pixels is list && p.pixels.size() == 8
+            && pixelRow(p.pixels[0]) && pixelRow(p.pixels[1]) && pixelRow(p.pixels[2]) && pixelRow(p.pixels[3])
+            && pixelRow(p.pixels[4]) && pixelRow(p.pixels[5]) && pixelRow(p.pixels[6]) && pixelRow(p.pixels[7])))
+        && (!('strokes' in p) || (p.strokes is list && p.strokes.size() <= 60
+            && (p.strokes.size() < 1 || isPath(p.strokes[0]))));
+    }
+    function isPath(d) {
+      return d is string && d.size() <= 2000 && d.matches('^[MLQCSTZmlqcstz0-9 .,-]+$');
     }
 
     // users/{uid}: the owner's profile

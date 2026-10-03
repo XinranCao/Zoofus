@@ -86,8 +86,30 @@ describe("stickers", () => {
       }),
     );
     await assertFails(
-      uploadBytes(ref(storage, "alice/stickers/e.png"), bytes(3 * 1024 * 1024), png),
+      uploadBytes(ref(storage, "alice/stickers/f.png"), bytes(11 * 1024 * 1024), png),
     );
+    await assertFails(
+      uploadBytes(ref(storage, "alice/stickers/g.webp"), bytes(3 * 1024 * 1024), {
+        contentType: "image/webp",
+      }),
+    );
+    await assertFails(
+      uploadBytes(ref(storage, "alice/stickers/h.gif"), bytes(10), {
+        contentType: "image/gif",
+      }),
+    );
+  });
+
+  it("accepts a PNG up to 10 MB", async () => {
+    const storage = env.authenticatedContext("alice").storage();
+    await assertSucceeds(
+      uploadBytes(ref(storage, "alice/stickers/big.png"), bytes(9 * 1024 * 1024), png),
+    );
+  });
+
+  it("denies uploads into another user's sticker folder", async () => {
+    const storage = env.authenticatedContext("bob").storage();
+    await assertFails(uploadBytes(ref(storage, "alice/stickers/x.png"), bytes(10), png));
   });
 });
 

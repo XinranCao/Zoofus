@@ -99,3 +99,54 @@ describe("palette", () => {
     }
   });
 });
+
+describe("hostile input", () => {
+  const hostile = [
+    '"/><script>alert(1)</script>',
+    "url(javascript:alert(1))",
+    'M1 1"/><image href=x onerror=alert(1)',
+    "javascript:alert(1)",
+  ];
+
+  it("drops doodle strokes that are not plain path data", () => {
+    const svg = patternSVG(
+      {
+        kind: "doodle",
+        bg: "cream-100",
+        ink: "cocoa-800",
+        strokes: [...hostile, "M1 1 L2 2"],
+      },
+      100,
+      100,
+    );
+    expect(svg).not.toMatch(/script|javascript|onerror|<image/i);
+    expect(svg.match(/<path /g)).toHaveLength(1);
+  });
+
+  it("falls back to a palette colour for unknown colour strings", () => {
+    for (const h of hostile) {
+      expect(hex(h)).toBe(PALETTE["sheet-50"]);
+      const svg = patternSVG({ kind: "dots", bg: h as never, ink: h as never }, 50, 50);
+      expect(svg).not.toMatch(/script|javascript|onerror/i);
+    }
+  });
+
+  it("keeps palette names and plain hex colours", () => {
+    expect(hex("brick-600")).toBe(PALETTE["brick-600"]);
+    expect(hex("#abc123")).toBe("#abc123");
+  });
+
+  it("rejects hostile values in the schema", async () => {
+    const { patternSpecSchema } = await import("./patternSchema");
+    expect(
+      patternSpecSchema.safeParse({ kind: "doodle", bg: "cream-100", strokes: hostile })
+        .success,
+    ).toBe(false);
+    expect(patternSpecSchema.safeParse({ kind: "dots", bg: "url(x)" }).success).toBe(
+      false,
+    );
+    expect(
+      patternSpecSchema.safeParse({ kind: "dots", bg: "chartreuse-400" }).success,
+    ).toBe(false);
+  });
+});

@@ -5,7 +5,7 @@ import type { PatternSpec } from "@/paper/pattern";
 import { TAPE_PRESETS } from "@/paper/pattern";
 
 /** Limits shared with firestore.rules. */
-export const MAX_TAPES = 50;
+export const MAX_TAPES = 200;
 export const MAX_TAPE_NAME = 40;
 export const TAPE_LIMITS = {
   length: { min: 40, max: 220, default: 130 },

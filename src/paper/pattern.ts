@@ -88,8 +88,19 @@ export interface PatternSpec {
 }
 
 export function hex(c: string): string {
-  return (PALETTE as Record<string, string>)[c] ?? c;
+  const known = (PALETTE as Record<string, string>)[c];
+  if (known) return known;
+  // only a plain hex colour may pass through; any other string (markup, url(), ...) falls back
+  return /^#[0-9a-f]{3,8}$/i.test(c) ? c : PALETTE["sheet-50"];
 }
+
+/** Limits on a doodle; firestore.rules caps the count, the rest is checked by the client and here. */
+export const MAX_DOODLE_STROKES = 60;
+export const MAX_STROKE_LENGTH = 2000;
+/** A stroke is SVG path data and nothing else: commands, numbers and separators. No markup. */
+export const STROKE_PATTERN = /^[MLQCSTZmlqcstz0-9 .,-]+$/;
+export const isSafeStroke = (d: unknown): d is string =>
+  typeof d === "string" && d.length <= MAX_STROKE_LENGTH && STROKE_PATTERN.test(d);
 
 let pid = 0;
 
@@ -163,7 +174,11 @@ export function patternMarkup(
       tile =
         `<g transform="scale(${f1(sc * 100) / 100})" fill="none" stroke="${ink}" ` +
         `stroke-width="${f1(1.2 + w * 3)}" stroke-linecap="round" stroke-linejoin="round">` +
-        (spec.strokes ?? []).map((d) => `<path d="${d}"/>`).join("") +
+        (spec.strokes ?? [])
+          .filter(isSafeStroke)
+          .slice(0, MAX_DOODLE_STROKES)
+          .map((d) => `<path d="${d}"/>`)
+          .join("") +
         "</g>";
       break;
     }
@@ -214,7 +229,7 @@ export const HEART_PIXELS = [
 export const DOODLE_STROKES = [
   "M8 30 C14 18 22 18 26 28 S38 38 42 24",
   "M10 10 l4 4 M14 10 l-4 4",
-  "M34 40 a3 3 0 1 0 0.1 0",
+  "M34 40 C34 36 40 36 40 40 S34 44 34 40",
 ];
 
 /** UI tape presets (solid masking, stripe, dots, apricot, gingham). */

@@ -4,6 +4,8 @@ import {
   BLANK_PIXELS,
   DOODLE_STROKES,
   HEART_PIXELS,
+  MAX_DOODLE_STROKES,
+  MAX_STROKE_LENGTH,
   USER_COLORS,
   hex,
   type PatternKind,
@@ -145,6 +147,7 @@ export function DoodlePad({
   };
   const down = (e: React.PointerEvent) => {
     e.preventDefault();
+    if (value.length >= MAX_DOODLE_STROKES) return;
     ref.current?.setPointerCapture(e.pointerId);
     const [x, y] = point(e);
     drawing.current = `M${x} ${y}`;
@@ -153,8 +156,10 @@ export function DoodlePad({
   const move = (e: React.PointerEvent) => {
     if (!drawing.current) return;
     const [x, y] = point(e);
-    drawing.current += ` L${x} ${y}`;
-    setLive(drawing.current);
+    const next = `${drawing.current} L${x} ${y}`;
+    if (next.length > MAX_STROKE_LENGTH) return; // a stroke has a length limit; stop growing it
+    drawing.current = next;
+    setLive(next);
   };
   const up = () => {
     if (!drawing.current) return;

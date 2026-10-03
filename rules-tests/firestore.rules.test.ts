@@ -321,10 +321,105 @@ describe("users/{uid}/tapes/{id}", () => {
     await assertFails(
       setDoc(ref, {
         ...tape(),
-        pattern: { kind: "doodle", bg: "cream-100", strokes: new Array(41).fill("M1 1") },
+        pattern: { kind: "doodle", bg: "cream-100", strokes: new Array(61).fill("M1 1") },
       }),
     );
     await assertFails(setDoc(ref, { ...tape(), extra: 1 }));
+  });
+
+  describe("limits on a user-designed print", () => {
+    const withPattern = (pattern: object) => ({ ...tape(), pattern });
+    const ok = { kind: "dots", bg: "pink-200", ink: "sheet-50", scale: 9, weight: 0.35 };
+    const refFor = (id = "t1") =>
+      doc(env.authenticatedContext("alice").firestore(), `users/alice/tapes/${id}`);
+
+    it("accepts every limit at its edge", async () => {
+      await assertSucceeds(
+        setDoc(refFor("e1"), withPattern({ ...ok, scale: 6, angle: 0, weight: 0.1 })),
+      );
+      await assertSucceeds(
+        setDoc(refFor("e2"), withPattern({ ...ok, scale: 28, angle: 180, weight: 0.9 })),
+      );
+      await assertSucceeds(setDoc(refFor("e3"), { ...tape(), name: "x".repeat(40) }));
+      await assertSucceeds(
+        setDoc(
+          refFor("e4"),
+          withPattern({
+            kind: "pixels",
+            bg: "cream-100",
+            pixels: [
+              "10101010",
+              "01010101",
+              "11111111",
+              "00000000",
+              "10101010",
+              "01010101",
+              "11111111",
+              "00000000",
+            ],
+          }),
+        ),
+      );
+      await assertSucceeds(
+        setDoc(
+          refFor("e5"),
+          withPattern({
+            kind: "doodle",
+            bg: "cream-100",
+            strokes: new Array(60).fill("M1 1 L2 2"),
+          }),
+        ),
+      );
+    });
+
+    it("rejects colours outside the 16 user colours", async () => {
+      await assertFails(setDoc(refFor(), withPattern({ ...ok, bg: "chartreuse-400" })));
+      await assertFails(setDoc(refFor(), withPattern({ ...ok, ink: "#000000" })));
+      await assertFails(setDoc(refFor(), withPattern({ ...ok, bg: "red" })));
+    });
+
+    it("rejects out-of-range scale, angle and weight", async () => {
+      await assertFails(setDoc(refFor(), withPattern({ ...ok, scale: 5 })));
+      await assertFails(setDoc(refFor(), withPattern({ ...ok, scale: 29 })));
+      await assertFails(setDoc(refFor(), withPattern({ ...ok, angle: -1 })));
+      await assertFails(setDoc(refFor(), withPattern({ ...ok, angle: 181 })));
+      await assertFails(setDoc(refFor(), withPattern({ ...ok, weight: 0.05 })));
+      await assertFails(setDoc(refFor(), withPattern({ ...ok, weight: 0.95 })));
+    });
+
+    it("rejects pixels that are not exactly 8 rows of 8 zeros and ones", async () => {
+      const rows = (r: string[]) =>
+        withPattern({ kind: "pixels", bg: "cream-100", pixels: r });
+      const good = new Array(8).fill("00000000");
+      await assertFails(setDoc(refFor(), rows(good.slice(0, 7))));
+      await assertFails(setDoc(refFor(), rows([...good, "00000000"])));
+      await assertFails(setDoc(refFor(), rows([...good.slice(0, 7), "0000000"])));
+      await assertFails(setDoc(refFor(), rows([...good.slice(0, 7), "0000000x"])));
+      await assertFails(setDoc(refFor(), rows(["2" + "0000000", ...good.slice(1)])));
+    });
+
+    it("rejects strokes with markup, or too many", async () => {
+      const strokes = (s: unknown[]) =>
+        withPattern({ kind: "doodle", bg: "cream-100", strokes: s });
+      await assertFails(setDoc(refFor(), strokes(['M1 1"/><script>'])));
+      await assertFails(setDoc(refFor(), strokes(["url(javascript:alert(1))"])));
+      await assertFails(setDoc(refFor(), strokes(["M1 1 ".repeat(500)])));
+      await assertFails(setDoc(refFor(), strokes(new Array(61).fill("M1 1"))));
+      await assertFails(setDoc(refFor(), strokes([42])));
+    });
+
+    it("applies the same print limits to a sticker edge", async () => {
+      const edge = (fill: object) => ({ shape: "torn", scale: 1, fill });
+      const db = env.authenticatedContext("alice").firestore();
+      const bad = (fill: object) =>
+        setDoc(doc(db, "users/alice/stickers/lim"), {
+          ...sticker("alice"),
+          edge: edge(fill),
+        });
+      await assertFails(bad({ ...ok, bg: "chartreuse-400" }));
+      await assertFails(bad({ ...ok, scale: 30 }));
+      await assertFails(bad({ kind: "doodle", bg: "cream-100", strokes: ["<svg/>"] }));
+    });
   });
 
   it("allows only renaming after creation", async () => {

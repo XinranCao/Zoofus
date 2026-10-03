@@ -55,7 +55,7 @@ describe("patternSpecSchema", () => {
   });
 
   it("caps the number and length of doodle strokes", () => {
-    const many = Array.from({ length: 41 }, () => "M1 1 L2 2");
+    const many = Array.from({ length: 61 }, () => "M1 1 L2 2");
     expect(
       patternSpecSchema.safeParse({ kind: "doodle", bg: "cream-100", strokes: many })
         .success,
@@ -64,7 +64,7 @@ describe("patternSpecSchema", () => {
       patternSpecSchema.safeParse({
         kind: "doodle",
         bg: "cream-100",
-        strokes: ["M" + "1".repeat(4001)],
+        strokes: ["M" + "1".repeat(2001)],
       }).success,
     ).toBe(false);
   });
