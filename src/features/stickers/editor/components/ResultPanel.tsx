@@ -5,7 +5,10 @@ import { useEffect, useMemo, useState } from "react";
 import { ChromePicker } from "react-color";
 import { makeThumbnail } from "@/lib/image";
 import { useSaveSticker } from "@/features/stickers/library/useStickers";
-import { MAX_STICKER_NAME } from "@/features/stickers/library/sticker.schema";
+import {
+  MAX_STICKER_NAME,
+  StickerLimitError,
+} from "@/features/stickers/library/sticker.schema";
 import { computeMaskPolygons, isMaskEmpty } from "../domain/mask";
 import { renderCutout } from "../domain/render";
 import { useEditor } from "../store/editorStore";
@@ -119,7 +122,11 @@ export function ResultPanel() {
         </Stack>
         {save.isSuccess && <Alert severity="success">Saved to My Stickers.</Alert>}
         {save.isError && (
-          <Alert severity="error">Could not save the sticker. Try again.</Alert>
+          <Alert severity="error">
+            {save.error instanceof StickerLimitError
+              ? save.error.message
+              : "Could not save the sticker. Try again."}
+          </Alert>
         )}
         <Button variant="outlined" onClick={backToEdit}>
           Back to Editing

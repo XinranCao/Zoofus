@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
 import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
 import { connectStorageEmulator, getStorage } from "firebase/storage";
@@ -20,6 +21,21 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 const useEmulators = env.VITE_USE_EMULATORS === "true";
+
+// App Check proves requests come from this app, not a script using the public API key.
+// Enabled when a site key is configured. See docs/app-check.md for the console setup.
+if (!useEmulators && env.VITE_APP_RECAPTCHA_SITE_KEY) {
+  if (import.meta.env.DEV) {
+    // Local dev against the real backend: log a debug token to register in the console.
+    (
+      self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: boolean }
+    ).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  }
+  initializeAppCheck(app, {
+    provider: new ReCaptchaEnterpriseProvider(env.VITE_APP_RECAPTCHA_SITE_KEY),
+    isTokenAutoRefreshEnabled: true,
+  });
+}
 if (useEmulators) {
   connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
   connectFirestoreEmulator(db, "127.0.0.1", 8080);

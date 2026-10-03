@@ -1,0 +1,16 @@
+# Firebase App Check setup (one-time, in the consoles)
+
+App Check makes Firestore, Storage and Auth reject requests that do not come from the real app. The code is already wired: it activates when `VITE_APP_RECAPTCHA_SITE_KEY` is set.
+
+1. Google Cloud console, project `zoofus-48264`: enable **reCAPTCHA Enterprise**, create a **website key** for `zoofus-48264.web.app`, `zoofus-48264.firebaseapp.com` and `localhost`.
+2. Firebase console, App Check: register the web app with **reCAPTCHA Enterprise** and that site key.
+3. Add the key as the GitHub Actions secret `VITE_APP_RECAPTCHA_SITE_KEY` (and to your local `.env`), then add it to the `env:` block of the build steps in `release.yml` and `firebase-hosting-pull-request.yml`.
+4. Local dev against the real backend: run `npm run dev`, copy the **debug token** printed in the browser console, and add it under App Check > Apps > Manage debug tokens.
+5. Watch the App Check metrics for a few days (unenforced), confirm verified requests, then **Enforce** for Firestore, Storage and Authentication.
+
+The local emulators ignore App Check.
+
+## Also worth setting
+
+- A **budget alert** in Google Cloud Billing, so abuse shows up as an email.
+- Auth: restrict sign-up to the providers you use (Email/Password, Google).

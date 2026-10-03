@@ -2,6 +2,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getCountFromServer,
   getDocs,
   orderBy,
   query,
@@ -11,7 +12,13 @@ import {
 } from "firebase/firestore";
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
-import { stickerDocSchema, type Sticker } from "./sticker.schema";
+import {
+  MAX_STICKER_BYTES,
+  MAX_STICKERS,
+  StickerLimitError,
+  stickerDocSchema,
+  type Sticker,
+} from "./sticker.schema";
 
 const stickersRef = (uid: string) => collection(db, "users", uid, "stickers");
 
@@ -30,6 +37,18 @@ export interface NewSticker {
 
 /** Uploads the PNG to Storage, then writes the metadata document. */
 export async function saveSticker(uid: string, input: NewSticker): Promise<string> {
+  if (input.blob.size > MAX_STICKER_BYTES) {
+    throw new StickerLimitError(
+      "This sticker is too large to save. Try a smaller photo.",
+    );
+  }
+  const { count } = (await getCountFromServer(stickersRef(uid))).data();
+  if (count >= MAX_STICKERS) {
+    throw new StickerLimitError(
+      `You can keep up to ${MAX_STICKERS} stickers. Delete some first.`,
+    );
+  }
+
   const id = crypto.randomUUID();
   const storagePath = `${uid}/stickers/${id}.png`;
   const fileRef = ref(storage, storagePath);
