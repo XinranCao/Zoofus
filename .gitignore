@@ -32,3 +32,6 @@ hosting.*.cache
 
 # vscode
 .vscode
+# Claude Code local-only files (CLAUDE.md and .github/workflows/claude.yml are tracked)
+.claude/
+CLAUDE_SETUP_TASK.md
