@@ -37,10 +37,12 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run typecheck && npm run lint && npm test && npm run build"
+    "check": "npm run typecheck && npm run lint && npm test && npm run build",
+    "test:rules": "firebase emulators:exec --only firestore,storage --project demo-zoofus \"vitest run --config vitest.rules.config.ts\""
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@firebase/rules-unit-testing": "^5.0.2",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/user-event": "^14.6.7",
     "@types/node": "^26.6.4",

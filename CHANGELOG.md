@@ -4,10 +4,13 @@
 
 ### Features
 
+- Sticker book: save a cut-out to your account (Firestore + Storage), list and delete it on the new My Stickers page.
 - Real undo and redo in the sticker editor (the old "Redo" only reset everything), plus Clear.
 
 ### Other
 
+- Firestore and Storage security rules (owner-only, validated fields, size and type limits) with emulator tests and a CI job. Not deployed yet.
+- Error boundary and a 404 page.
 - Migrated to TypeScript (strict) with ESLint, Prettier, typecheck and lint in CI.
 - Feature-based structure with an `@/` alias; Redux replaced by TanStack Query (server data) and Zustand (editor state).
 - Rebuilt the sticker editor around a unified selection model with a pure, unit-tested mask engine.

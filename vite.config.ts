@@ -1,6 +1,6 @@
 import { fileURLToPath, URL } from "node:url";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 // NOTE: keep rollup pinned (see package.json overrides): 4.64.0 hangs `vite build`.
 export default defineConfig({
@@ -29,5 +29,7 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "./src/setupTests.ts",
     globals: true,
+    // Security rules tests need the emulators: run them with `npm run test:rules`.
+    exclude: [...configDefaults.exclude, "rules-tests/**"],
   },
 });

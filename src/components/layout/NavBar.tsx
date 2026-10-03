@@ -42,11 +42,18 @@ export function NavBar() {
   const links = (
     <ul ref={menuRef} className={`${styles.navLinks} ${menuOpen ? styles.open : ""}`}>
       {currentUser ? (
-        <li>
-          <button className={styles.signOut} onClick={handleLogout}>
-            Sign Out
-          </button>
-        </li>
+        <>
+          <li>
+            <Link to="/stickers" onClick={() => setMenuOpen(false)}>
+              My Stickers
+            </Link>
+          </li>
+          <li>
+            <button className={styles.signOut} onClick={handleLogout}>
+              Sign Out
+            </button>
+          </li>
+        </>
       ) : (
         <>
           <li>

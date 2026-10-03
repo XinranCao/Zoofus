@@ -12,6 +12,7 @@ Local runs need a `.env` with `VITE_APP_*` Firebase keys. Never read, print or c
 - `npm run dev` – Vite dev server; `npm run build` – production build into `dist/`; `npm run preview`
 - `npm run typecheck` (tsc, strict), `npm run lint` (ESLint), `npm run format` / `format:check` (Prettier)
 - `npm test` – Vitest (jsdom) single run; `npm run test:watch`. Tests live next to code as `*.test.ts(x)`.
+- `npm run test:rules` – Firestore/Storage security rules tests against the local emulators (needs Java 17+; CI job `security-rules`)
 - `npm run check` – typecheck + lint + tests + build (run before every push)
 - `npm run deploy` – manual build + `firebase deploy` (normally releases deploy from CI on a tag)
 - CI (`.github/workflows/ci.yml`) runs typecheck, lint, format check, tests and build on pushes and PRs to `dev`/`main`.
@@ -29,6 +30,9 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
   - `domain/` pure, tested logic: `types.ts` (unified `Selection` model), `geometry.ts` (selection → polygon, ring joining), `mask.ts` (polygon-clipping: select union minus deselect, clipped to image), `render.ts` (canvas cut-out + border)
   - `store/editorStore.ts` – Zustand store per editor instance with undo/redo history (`EditorStoreProvider`, `useEditor`)
   - `components/` Konva canvas, shapes, controls, result panel; `StickerEditor.tsx` is the entry
+  - `library/` saved stickers: `sticker.schema.ts`, `stickers.api.ts` (Firestore `users/{uid}/stickers/{id}` + Storage `{uid}/stickers/{id}.png`), `useStickers.ts`, `StickerBookPage.tsx`
+- `firestore.rules`, `storage.rules`, `rules-tests/` – owner-only security rules and their emulator tests. **Deploying rules changes production: ask the user first** (`firebase deploy --only firestore:rules,storage`).
+- `src/components/ErrorBoundary.tsx`, `src/pages/NotFoundPage.tsx` – error and 404 handling
 - `src/pages/HomePage.tsx` – opens the editor in a dialog
 - `docs/ui-style-brief.md` – brief for the UI redesign (Tailwind + Radix, hand-torn scrapbook style)
 

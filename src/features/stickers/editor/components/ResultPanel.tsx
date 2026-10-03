@@ -1,19 +1,22 @@
 import DownloadIcon from "@mui/icons-material/Download";
-import { Box, Button, Slider, Stack, TextField, Typography } from "@mui/material";
+import SaveIcon from "@mui/icons-material/Save";
+import { Alert, Box, Button, Slider, Stack, TextField, Typography } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { ChromePicker } from "react-color";
+import { useSaveSticker } from "@/features/stickers/library/useStickers";
+import { MAX_STICKER_NAME } from "@/features/stickers/library/sticker.schema";
 import { computeMaskPolygons, isMaskEmpty } from "../domain/mask";
 import { renderCutout } from "../domain/render";
 import { useEditor } from "../store/editorStore";
 import { useEditorImage } from "../useEditorImage";
 import { ImagePicker } from "./ImagePicker";
 
-/** Renders the cut-out to a transparent PNG and keeps a blob URL for preview + download. */
-function useCutoutUrl() {
+/** Renders the cut-out to a transparent PNG; exposes the blob and a URL for preview + download. */
+function useCutout() {
   const { image, fit } = useEditorImage();
   const selections = useEditor((s) => s.selections);
   const border = useEditor((s) => s.border);
-  const [url, setUrl] = useState<string | null>(null);
+  const [result, setResult] = useState<{ url: string; blob: Blob } | null>(null);
 
   const canvas = useMemo(() => {
     if (!image) return null;
@@ -31,7 +34,7 @@ function useCutoutUrl() {
     canvas.toBlob((blob) => {
       if (!blob || cancelled) return;
       objectUrl = URL.createObjectURL(blob);
-      setUrl(objectUrl);
+      setResult({ url: objectUrl, blob });
     }, "image/png");
     return () => {
       cancelled = true;
@@ -39,13 +42,18 @@ function useCutoutUrl() {
     };
   }, [canvas]);
 
-  return canvas ? url : null;
+  if (!canvas || !result) return null;
+  return { ...result, width: canvas.width, height: canvas.height };
 }
 
 export function ResultPanel() {
-  const url = useCutoutUrl();
+  const cutout = useCutout();
+  const url = cutout?.url ?? null;
   const border = useEditor((s) => s.border);
   const { setBorder, backToEdit, clear } = useEditor((s) => s);
+  const [name, setName] = useState("My sticker");
+  const save = useSaveSticker();
+  const trimmed = name.trim();
 
   return (
     <Stack direction={{ xs: "column", md: "row" }} spacing={4} alignItems="center">
@@ -81,6 +89,36 @@ export function ResultPanel() {
         >
           Download PNG
         </Button>
+        <Stack direction="row" spacing={1}>
+          <TextField
+            size="small"
+            label="Sticker name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            slotProps={{ htmlInput: { maxLength: MAX_STICKER_NAME } }}
+            sx={{ flex: 1 }}
+          />
+          <Button
+            variant="contained"
+            startIcon={<SaveIcon />}
+            disabled={!cutout || !trimmed || save.isPending}
+            onClick={() =>
+              cutout &&
+              save.mutate({
+                blob: cutout.blob,
+                name: trimmed,
+                width: cutout.width,
+                height: cutout.height,
+              })
+            }
+          >
+            Save
+          </Button>
+        </Stack>
+        {save.isSuccess && <Alert severity="success">Saved to My Stickers.</Alert>}
+        {save.isError && (
+          <Alert severity="error">Could not save the sticker. Try again.</Alert>
+        )}
         <Button variant="outlined" onClick={backToEdit}>
           Back to Editing
         </Button>
