@@ -33,7 +33,7 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
   - `store/editorStore.ts` – Zustand store per editor instance with undo/redo history (`EditorStoreProvider`, `useEditor`)
   - `components/` Konva canvas, shapes, controls, result panel; `StickerEditor.tsx` is the entry
   - `library/` saved stickers: `sticker.schema.ts`, `stickers.api.ts` (Firestore `users/{uid}/stickers/{id}` + Storage `{uid}/stickers/{id}.png`), `useStickers.ts`, `StickerBookPage.tsx`, `StickerPreviewDialog.tsx` (zoom/pan preview via `react-zoom-pan-pinch`)
-- `firestore.rules`, `storage.rules`, `rules-tests/` – owner-only security rules and their emulator tests. **Deploying rules changes production: ask the user first** (`firebase deploy --only firestore:rules,storage`).
+- `firestore.rules`, `storage.rules`, `rules-tests/` – owner-only security rules and their emulator tests. Deploying rules changes production. They go out with a release, first, with `npx firebase-tools@14 deploy --only firestore:rules,storage --project zoofus-48264` (the owner has pre-approved this for releases; outside a release, ask).
 - `e2e/` – Playwright tests; `src/**/*.test.tsx` – Testing Library component tests
 - `src/features/pages/` – collage page data model (schema, pure ops, API, hooks; no UI yet). `src/features/account/` – account page (export/delete), email verification banner
 - `docs/app-check.md` – one-time App Check console setup
@@ -47,6 +47,8 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
 
 ## Conventions
 
+- Shapes in the sticker maker are drawn by dragging on the photo (no "Add shape" button); Space adds a default one from the keyboard. Saved data is read leniently (`patternSpecSchema` drops what it can't use; the stickers and tapes lists skip unreadable documents), so an older document can never make a list fail.
+- A dialog never grows past the screen: `Dialog` pins the title and the actions and scrolls only `.zf-dialog__scroll` (one scrolling part; the page behind does not scroll). Put long content in the dialog's children, never in its own scroller.
 - Server data (Firebase) goes through TanStack Query hooks; Redux and MUI are gone. Editor state lives in the Zustand store, never in components.
 - Keep geometry and mask logic in `domain/` as pure functions with unit tests; Konva/React code only renders and forwards events.
 - Validate external data with zod schemas (env, Firestore docs, forms via react-hook-form + zod).
@@ -95,12 +97,12 @@ Stored images are compressed on save by `encodeWithin` + `COMPRESSION` in `src/l
 
 ## Known issues / backlog
 
-- **Cloud Storage needs the Blaze plan.** On the free Spark plan every upload (stickers, profile photos) fails with HTTP 402. The emulators do not enforce this, so tests pass regardless. Upgrade the project to Blaze (pay-as-you-go; the Always Free quota covers small use) and set a budget alert, see `docs/security-setup.md`.
+- Cloud Storage needs the Blaze plan (free Spark plan uploads fail with HTTP 402). Done: the project is on Blaze with a budget alert; see `docs/security-setup.md`. The emulators do not enforce plans, so tests pass regardless.
 
 - Do not upgrade `rollup` past 4.59.0 without checking: 4.64.0 made `vite build` hang (pinned via `overrides`). `@grpc/grpc-js` is overridden to ^1.14.5 to clear audit findings. `npm audit` is clean.
 - Workflows that build the app need the repo secrets `VITE_APP_*` plus `FIREBASE_SERVICE_ACCOUNT_ZOOFUS_48264`.
-- Redesign (#16) and i18n (#15) are implemented on `dev`, unreleased. Round 2 added limits on user designs to the rules. Follow `RELEASE_CHECKLIST.md` (rules first, smoke test, rollback) when releasing; deploying rules changes production, so ask the user first.
-- App Check needs the one-time console setup in `docs/app-check.md`; until then it is inactive.
+- The redesign (#16) and i18n (#15) shipped in v0.4.0. The design system lives in `design-system/` (reference, not imported); `RELEASE_CHECKLIST.md` is the release runbook.
+- App Check, the budget alert and the Auth restrictions are set up and enforced in the consoles (`docs/app-check.md`, `docs/security-setup.md`). Local dev against the real backend needs the debug token in `.env.development.local`.
 - Not done yet: pinch-zoom on the canvas, HEIC support (non-Safari browsers), error monitoring (skipped by decision), thumbnails for pre-existing stickers.
 - PR previews use the production backend; do not test destructive flows there.
 - Freehand strokes can be moved with the arrow keys but have no resize handles (only shapes have a transformer).

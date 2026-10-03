@@ -188,6 +188,17 @@ All recorded as **Decided** in `04-open-questions.md`.
 ## Left for the owner
 
 - Run the deploy in `RELEASE_CHECKLIST.md` when ready (rules first, then the tag-triggered hosting deploy).
-- Decide whether to keep Google's custom button or switch to the official Identity Services button (the guidelines prefer it).
-- App Check enforcement, the budget alert and the Auth restrictions (console steps from before).
 - Optional: a `scripts/migrate-legacy-stickers.ts` count of legacy stickers (not needed for the release).
+
+---
+
+# After round 2 (release v0.4.0)
+
+Decisions and fixes made after testing round 2 on the real backend:
+
+- **Sticker book failed to load** ("We couldn't load your stickers"). Cause: round 2 made the stored-print schema strict (stroke pattern, 16 colours), and stickers saved by round 1 carry the default doodle, which contains an arc command (`a`). One unreadable document made the whole list fail. Reads are now lenient: `patternSpecSchema` drops a bad stroke or falls back on a bad colour, and `listStickers` / `listTapes` skip a document they cannot read (a sticker whose edge cannot be read is shown as a plain one). `e2e/legacy-data.spec.ts` reproduces it by writing round-1-style documents to the emulators; it fails on the old code and passes now.
+- **Rules deployed** (`firestore:rules`, `storage`) on 2026-10-03, before the app.
+- **Google button:** the custom button stays (decision).
+- **App Check enforcement, budget alert, Auth restrictions:** completed by the owner; docs marked done.
+- **Dialogs and double scrolling.** Cause: the dialog positioner was a second scroll container with the dialog centred inside it (so the top of a tall dialog could not be reached), and Radix's scroll lock blocks scrolling outside the dialog's content. A dialog is now at most as tall as the screen; its title and actions are pinned and only `.zf-dialog__scroll` scrolls; the page behind never does. `e2e/dialog-scroll.spec.ts` checks it at 1280 × 420, 390 × 600 and 640 × 320.
+- **Shapes are drawn by dragging on the photo.** The "Add shape" button and its text are gone. With a shape tool chosen, dragging on the bare photo draws a rectangle, triangle or star that fits the dragged box from any corner (a click or a tiny drag draws nothing); dragging a drawn shape moves it. The mode (Select / Deselect) decides what it does, as before. Keyboard users press Space on the photo to put a default shape in the middle. `e2e/shapes.spec.ts`.

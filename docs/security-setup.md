@@ -1,5 +1,7 @@
 # Security setup checklist (one-time, in the consoles)
 
+> **Status:** done. The Blaze plan, the budget alert, the Auth restrictions, the API key restriction and App Check enforcement are all in place (owner, October 2026). The steps below stay as the record.
+
 Done in code: owner-only Firestore/Storage rules, App Check wiring, per-account sticker limits.
 These items live in the consoles and need an owner account.
 

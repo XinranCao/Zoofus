@@ -1,5 +1,7 @@
 # Zoofus UI style brief (for the design pass)
 
+> **Superseded.** The UI was built from the design system in `design-system/` (v0.4.0). This brief is kept for history.
+
 ## Product
 
 Zoofus is a web app where you upload a photo, lasso (freehand or shapes) the part you want, and cut it out as a **sticker**. The stickers go into a personal sticker book and later onto collage / journal pages. Bilingual users (English and Chinese). The UI itself should feel like the stickers: a hand-made scrapbook.
