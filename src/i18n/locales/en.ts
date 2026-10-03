@@ -205,6 +205,7 @@ export const en = {
     deleted: "Deleted",
     deletedBody: "“{{name}}” is gone.",
     undo: "Undo",
+    legacyNote: "Made before edge editing — cut it again to change the edge.",
     editEdge: "Edit edge",
     editEdgeTitle: "Edit the edge",
     editEdgeSave: "Save edge",

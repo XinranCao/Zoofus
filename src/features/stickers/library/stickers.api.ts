@@ -20,6 +20,7 @@ import {
   MAX_STICKERS,
   StickerLimitError,
   stickerDocSchema,
+  stickerKind,
   type Sticker,
 } from "./sticker.schema";
 
@@ -30,9 +31,10 @@ const stickersRef = (uid: string) => collection(db, "users", uid, "stickers");
 
 export async function listStickers(uid: string): Promise<Sticker[]> {
   const snap = await getDocs(query(stickersRef(uid), orderBy("createdAt", "desc")));
-  return snap.docs.map(
-    (d) => ({ id: d.id, ...stickerDocSchema.parse(d.data()) }) as Sticker,
-  );
+  return snap.docs.map((d) => {
+    const data = stickerDocSchema.parse(d.data());
+    return { id: d.id, ...data, kind: stickerKind(data) } as Sticker;
+  });
 }
 
 export interface NewSticker {

@@ -109,7 +109,7 @@ export function StickerDetailDialog({
             <Button variant="secondary" icon="pencil" seed="drn" onClick={onRename}>
               {t("common.rename")}
             </Button>
-            {sticker.sourceUrl && (
+            {sticker.kind === "editable" && (
               <Button variant="quiet" seed="dee" onClick={onEditEdge}>
                 {t("book.editEdge")}
               </Button>
@@ -163,6 +163,11 @@ export function StickerDetailDialog({
             </TransformComponent>
           </div>
           <ZoomControls />
+          {sticker.kind === "legacy" && (
+            <p className="zf-muted" style={{ margin: "10px 0 0" }}>
+              {t("book.legacyNote")}
+            </p>
+          )}
         </TransformWrapper>
       )}
     </Dialog>

@@ -21,10 +21,21 @@ export const stickerDocSchema = z.object({
   createdAt: z.instanceof(Timestamp).transform((t) => t.toDate()),
 });
 
+/**
+ * `editable` stickers keep their edge-less cut-out, so the edge can be redone. `legacy` stickers
+ * (saved before the edge editor) have the border baked into one image and nothing else: they
+ * display, download and rename like any other, but cannot change their edge.
+ */
+export type StickerKind = "editable" | "legacy";
+
 export type Sticker = Omit<z.output<typeof stickerDocSchema>, "edge"> & {
   id: string;
   edge?: EdgeSpec;
+  kind: StickerKind;
 };
+
+export const stickerKind = (doc: { sourceUrl?: string; sourcePath?: string }): StickerKind =>
+  doc.sourceUrl && doc.sourcePath ? "editable" : "legacy";
 
 export const MAX_STICKER_NAME = 60;
 

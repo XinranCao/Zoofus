@@ -201,6 +201,7 @@ export const zh: Messages = {
     deleted: "已删除",
     deletedBody: "“{{name}}”不见了。",
     undo: "撤销",
+    legacyNote: "这张贴纸在边缘编辑上线前制作——想改边缘，请重新裁一次。",
     editEdge: "改边缘",
     editEdgeTitle: "修改边缘",
     editEdgeSave: "保存边缘",
