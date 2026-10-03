@@ -87,6 +87,8 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
 
 ## Known issues / backlog
 
+- **Cloud Storage needs the Blaze plan.** On the free Spark plan every upload (stickers, profile photos) fails with HTTP 402. The emulators do not enforce this, so tests pass regardless. Upgrade the project to Blaze (pay-as-you-go; the Always Free quota covers small use) and set a budget alert, see `docs/security-setup.md`.
+
 - Do not upgrade `rollup` past 4.59.0 without checking: 4.64.0 made `vite build` hang (pinned via `overrides`). `@grpc/grpc-js` is overridden to ^1.14.5 to clear audit findings. `npm audit` is clean.
 - Workflows that build the app need the repo secrets `VITE_APP_*` plus `FIREBASE_SERVICE_ACCOUNT_ZOOFUS_48264`.
 - v0.4.0 milestone: UI redesign (#16, needs `docs/ui-style-brief.md` design guide) and i18n (#15).

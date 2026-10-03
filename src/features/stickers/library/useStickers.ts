@@ -40,6 +40,9 @@ export function useSaveSticker() {
       return saveSticker(uid, { ...input, thumbnail });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.all(uid ?? "") }),
+    // The UI shows a generic message; keep the real cause (e.g. HTTP 402 when the project is on
+    // the free Spark plan, which Cloud Storage no longer supports) visible in the console.
+    onError: (err) => console.error("Saving the sticker failed", err),
   });
 }
 
