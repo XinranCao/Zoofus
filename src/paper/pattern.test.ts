@@ -1,0 +1,101 @@
+import { describe, expect, it } from "vitest";
+import {
+  BLANK_PIXELS,
+  DOODLE_STROKES,
+  HEART_PIXELS,
+  PALETTE,
+  PATTERN_KINDS,
+  TAPE_PRESETS,
+  USER_COLORS,
+  hex,
+  patternMarkup,
+  patternSVG,
+  type PatternSpec,
+} from "./pattern";
+
+const base: PatternSpec = {
+  kind: "stripes",
+  bg: "mustard-300",
+  ink: "sheet-50",
+  scale: 12,
+  angle: 45,
+  weight: 0.4,
+  pixels: HEART_PIXELS,
+  strokes: DOODLE_STROKES,
+};
+
+const parse = (svg: string) => new DOMParser().parseFromString(svg, "image/svg+xml");
+
+describe("patternSVG", () => {
+  it.each(PATTERN_KINDS)("returns valid SVG markup for %s", (kind) => {
+    const doc = parse(patternSVG({ ...base, kind }, 120, 80, 1));
+    expect(doc.querySelector("parsererror")).toBeNull();
+    expect(doc.documentElement.tagName).toBe("svg");
+    expect(doc.documentElement.getAttribute("width")).toBe("120");
+  });
+
+  it("paints the paper colour first", () => {
+    const doc = parse(patternSVG({ ...base, kind: "solid" }, 10, 10));
+    expect(doc.querySelector("rect")?.getAttribute("fill")).toBe(PALETTE["mustard-300"]);
+    expect(doc.querySelector("pattern")).toBeNull();
+  });
+
+  it("renders only filled pixel cells for the pixels kind", () => {
+    const doc = parse(
+      patternSVG({ ...base, kind: "pixels", pixels: HEART_PIXELS }, 50, 50),
+    );
+    const cells = HEART_PIXELS.join("").split("1").length - 1;
+    expect(doc.querySelectorAll("pattern rect")).toHaveLength(cells);
+    const blank = parse(
+      patternSVG({ ...base, kind: "pixels", pixels: BLANK_PIXELS }, 50, 50),
+    );
+    expect(blank.querySelectorAll("pattern rect")).toHaveLength(0);
+  });
+
+  it("draws every doodle stroke", () => {
+    const doc = parse(patternSVG({ ...base, kind: "doodle" }, 50, 50));
+    expect(doc.querySelectorAll("pattern path")).toHaveLength(DOODLE_STROKES.length);
+  });
+
+  it("scales the repeat with k (devicePixelRatio)", () => {
+    const one = patternMarkup({ ...base, kind: "dots" }, 1, "a");
+    const two = patternMarkup({ ...base, kind: "dots" }, 2, "a");
+    expect(one).not.toBe(two);
+  });
+});
+
+describe("patternMarkup ids", () => {
+  it("gives every call a unique pattern id", () => {
+    const ids = new Set(
+      Array.from({ length: 20 }, () => /id="([^"]+)"/.exec(patternMarkup(base))![1]),
+    );
+    expect(ids.size).toBe(20);
+  });
+
+  it("uses a given id for both the pattern and its reference", () => {
+    const m = patternMarkup(base, 1, "mine");
+    expect(m).toContain('id="mine"');
+    expect(m).toContain("url(#mine)");
+  });
+});
+
+describe("palette", () => {
+  it("offers exactly 16 user colours, all in the palette, none fluorescent", () => {
+    expect(USER_COLORS).toHaveLength(16);
+    for (const c of USER_COLORS) expect(PALETTE).toHaveProperty(c);
+    for (const banned of ["orange-500", "chartreuse-400", "hotpink-300", "magenta-500"]) {
+      expect(USER_COLORS as readonly string[]).not.toContain(banned);
+    }
+  });
+
+  it("resolves tokens to hex and passes other colours through", () => {
+    expect(hex("sheet-50")).toBe("#fbf6ee");
+    expect(hex("#123456")).toBe("#123456");
+  });
+
+  it("has valid tape presets", () => {
+    for (const spec of Object.values(TAPE_PRESETS)) {
+      expect(parse(patternSVG(spec, 10, 10)).querySelector("parsererror")).toBeNull();
+    }
+  });
+});
