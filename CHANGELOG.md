@@ -1,5 +1,32 @@
 # Changelog
 
+## v0.4.0 – 2026-10-03
+
+The redesign and the Chinese interface.
+
+### Features
+
+- New look on the Zoofus design system (Tailwind v4 and Radix; the MUI interface is gone): torn-paper pieces, tape, typewriter type, on a notebook ground. Every screen is restyled for phone and desktop, in English and Chinese (中文).
+- Sticker edge studio: choose the edge (smooth, wobbly or torn), its width and a print (stripes, dots, gingham, check, wave, pixels, doodle, or a plain colour) from 16 colours. "Edit edge" on any new sticker in the book redoes it. The downloaded PNG now matches the on-screen preview at any size.
+- Tape studio at /tape: turn, size and print a tape and keep it on "My tape roll"; the four starter tapes stay on the roll.
+- Shapes are drawn by dragging on the photo; there is no "Add shape" button. Space adds one from the keyboard.
+- A freehand selection that leaves the photo and comes back elsewhere includes the corner it goes round.
+- Paint pixels by dragging across the grid.
+- A language switch (EN · 中文) in the account menu, and a "Continue with Google" button that follows Google's branding.
+- Dialogs never grow past the screen: the title and the buttons stay in view and only the middle scrolls, with no second scrollbar behind.
+
+### Fixes
+
+- The sticker book could say "We couldn't load your stickers" for stickers saved with a print by a development build. Saved data is now read leniently: one unreadable sticker or tape can no longer hide the rest.
+- No layout shift while stickers load; buttons and fields are at least 44 px to tap on a phone.
+- Deleting a sticker removes both its stored images.
+
+### Other
+
+- Faster start: the sticker maker (113 KB), the Chinese fonts and Analytics are loaded only when needed. Lighthouse (mobile, signed in): Performance 96–99, Accessibility 100.
+- Security rules now bound user-designed prints (colours, sizes, strokes) and PNG uploads (10 MB). They were deployed before this release.
+- Tests: 255 unit, 37 security-rules and 48 end-to-end tests, including accessibility, contrast, torn-edge, Chinese-font, reduced-motion, touch-target, dialog-scroll and screen-versus-file checks.
+
 ## v0.3.1 – 2026-10-03
 
 Image handling and the sticker gallery.

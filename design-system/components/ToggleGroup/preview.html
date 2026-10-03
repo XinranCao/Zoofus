@@ -1,0 +1,14 @@
+<!-- @dsCard group="Selection" height=170 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ToggleGroup — preview</title>
+<style>html,body{margin:0} body{min-height:100vh} .row{display:flex;flex-wrap:wrap;gap:22px;align-items:center} .col{display:grid;gap:10px;justify-items:start} .cap{font-family:var(--font-display);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted)}</style></head>
+<body class="zf-ground zf-root">
+<div id="root" style="padding:28px"></div>
+<script>
+var Z = window.Zoofus, h = React.createElement, F = React.Fragment;
+function L(label, el) { return h('div', { className: 'col' }, h('span', { className: 'cap' }, label), el); }
+ReactDOM.createRoot(document.getElementById('root')).render(h('div',{style:{display:'grid',gap:22}}, L('mode', h(Z.ToggleGroup,{label:'Mode',value:'select',options:[{value:'select',label:'Select',icon:'plus'},{value:'deselect',label:'Deselect',icon:'minus'}]})), L('shape', h(Z.ToggleGroup,{label:'Shape',value:'star',options:[{value:'free',label:'Freehand',icon:'lasso'},{value:'triangle',label:'Triangle',icon:'tri'},{value:'rect',label:'Rectangle',icon:'rect'},{value:'star',label:'Star',icon:'star'}]}))));
+</script>
+</body>
+</html>

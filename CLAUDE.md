@@ -3,7 +3,7 @@
 ## Project summary
 
 Zoofus is a React + Firebase web app. Users sign up / log in (email+password or Google), then use the **Image Lasso** tool on the Home page: upload an image, select regions with freehand lasso or rectangle/triangle/star shapes (select vs deselect), and preview the masked cut-out with an adjustable border.
-Stack: React 19, Vite 7, MUI 7, Redux Toolkit, react-router 7, Konva/react-konva, polygon-clipping, react-color, Less modules, Firebase 12 (Auth, Firestore, Storage, Analytics, Hosting). Firebase project id: `zoofus-48264`.
+Stack: React 19, Vite 7, Tailwind CSS v4 + Radix UI (design system in `design-system/`), react-router 7, Konva/react-konva, polygon-clipping, Zustand, TanStack Query, react-i18next (en, zh-CN), Firebase 12 (Auth, Firestore, Storage, Analytics, Hosting). Firebase project id: `zoofus-48264`.
 Local runs need a `.env` with `VITE_APP_*` Firebase keys. Never read, print or commit it.
 
 ## Commands
@@ -33,20 +33,26 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
   - `store/editorStore.ts` – Zustand store per editor instance with undo/redo history (`EditorStoreProvider`, `useEditor`)
   - `components/` Konva canvas, shapes, controls, result panel; `StickerEditor.tsx` is the entry
   - `library/` saved stickers: `sticker.schema.ts`, `stickers.api.ts` (Firestore `users/{uid}/stickers/{id}` + Storage `{uid}/stickers/{id}.png`), `useStickers.ts`, `StickerBookPage.tsx`, `StickerPreviewDialog.tsx` (zoom/pan preview via `react-zoom-pan-pinch`)
-- `firestore.rules`, `storage.rules`, `rules-tests/` – owner-only security rules and their emulator tests. **Deploying rules changes production: ask the user first** (`firebase deploy --only firestore:rules,storage`).
+- `firestore.rules`, `storage.rules`, `rules-tests/` – owner-only security rules and their emulator tests. Deploying rules changes production. They go out with a release, first, with `npx firebase-tools@14 deploy --only firestore:rules,storage --project zoofus-48264` (the owner has pre-approved this for releases; outside a release, ask).
 - `e2e/` – Playwright tests; `src/**/*.test.tsx` – Testing Library component tests
 - `src/features/pages/` – collage page data model (schema, pure ops, API, hooks; no UI yet). `src/features/account/` – account page (export/delete), email verification banner
 - `docs/app-check.md` – one-time App Check console setup
 - `src/components/ErrorBoundary.tsx`, `src/pages/NotFoundPage.tsx` – error and 404 handling
 - `src/pages/HomePage.tsx` – opens the editor in a dialog
-- `docs/ui-style-brief.md` – brief for the UI redesign (Tailwind + Radix, hand-torn scrapbook style)
+- `design-system/` – the Zoofus design system (reference docs and code, never imported); `ADOPTION_PLAN.md`, `ADOPTION_REPORT.md`, `verification/` screenshots
+- `src/paper/` – ported paper primitives (torn clip pairs, patterns, dieCut, renderSticker) with tests; `src/styles/` – Tailwind theme, tokens, components.css; `src/components/ui/` – Radix-based UI kit, gallery at `/dev/design-system` (dev only); `src/i18n/` – locales; `src/features/tape/` – tape studio (`/tape`)
+- `e2e/design-system.spec.ts` – all 23 screen states at 390 and 1280px in English, Chinese and reduced motion, with axe, flat/no-radius, contrast, torn-edge, layout and CJK-font checks (`e2e/support/ds-checks.ts`); `interaction`, `lasso`, `performance`, `storage-cleanup` specs; `gallery-compare.spec.ts` (`DS_GALLERY=1`)
+- `src/lib/cjkFonts.ts` – the Chinese font stylesheet is loaded only when Chinese is on screen; `src/components/ui/GoogleButton.tsx` – Google's own button spec, the one deliberate exception to the torn look
+- `RELEASE_CHECKLIST.md` – deploy commands, rules changes, smoke test, rollback
 
 ## Conventions
 
-- Server data (Firebase) goes through TanStack Query hooks; Redux is gone. Editor state lives in the Zustand store, never in components.
+- Shapes in the sticker maker are drawn by dragging on the photo (no "Add shape" button); Space adds a default one from the keyboard. Saved data is read leniently (`patternSpecSchema` drops what it can't use; the stickers and tapes lists skip unreadable documents), so an older document can never make a list fail.
+- A dialog never grows past the screen: `Dialog` pins the title and the actions and scrolls only `.zf-dialog__scroll` (one scrolling part; the page behind does not scroll). Put long content in the dialog's children, never in its own scroller.
+- Server data (Firebase) goes through TanStack Query hooks; Redux and MUI are gone. Editor state lives in the Zustand store, never in components.
 - Keep geometry and mask logic in `domain/` as pure functions with unit tests; Konva/React code only renders and forwards events.
 - Validate external data with zod schemas (env, Firestore docs, forms via react-hook-form + zod).
-- UI is MUI for now and will be replaced by Tailwind + Radix in the redesign (issue #16): do not invest in new MUI-specific styling.
+- All user-facing copy goes through i18n (`src/i18n/locales/en.ts` and `zh.ts`); add keys to both.
 - Object URLs are revoked by the component that owns them (the editor owns the image URL).
 - Fix `useEffect` setState lint errors by deriving state, not by disabling the rule.
 
@@ -91,12 +97,21 @@ Stored images are compressed on save by `encodeWithin` + `COMPRESSION` in `src/l
 
 ## Known issues / backlog
 
-- **Cloud Storage needs the Blaze plan.** On the free Spark plan every upload (stickers, profile photos) fails with HTTP 402. The emulators do not enforce this, so tests pass regardless. Upgrade the project to Blaze (pay-as-you-go; the Always Free quota covers small use) and set a budget alert, see `docs/security-setup.md`.
+- Cloud Storage needs the Blaze plan (free Spark plan uploads fail with HTTP 402). Done: the project is on Blaze with a budget alert; see `docs/security-setup.md`. The emulators do not enforce plans, so tests pass regardless.
 
 - Do not upgrade `rollup` past 4.59.0 without checking: 4.64.0 made `vite build` hang (pinned via `overrides`). `@grpc/grpc-js` is overridden to ^1.14.5 to clear audit findings. `npm audit` is clean.
 - Workflows that build the app need the repo secrets `VITE_APP_*` plus `FIREBASE_SERVICE_ACCOUNT_ZOOFUS_48264`.
-- v0.4.0 milestone: UI redesign (#16, needs `docs/ui-style-brief.md` design guide) and i18n (#15).
-- App Check needs the one-time console setup in `docs/app-check.md`; until then it is inactive.
+- The redesign (#16) and i18n (#15) shipped in v0.4.0. The design system lives in `design-system/` (reference, not imported); `RELEASE_CHECKLIST.md` is the release runbook.
+- App Check, the budget alert and the Auth restrictions are set up and enforced in the consoles (`docs/app-check.md`, `docs/security-setup.md`). Local dev against the real backend needs the debug token in `.env.development.local`.
 - Not done yet: pinch-zoom on the canvas, HEIC support (non-Safari browsers), error monitoring (skipped by decision), thumbnails for pre-existing stickers.
 - PR previews use the production backend; do not test destructive flows there.
 - Freehand strokes can be moved with the arrow keys but have no resize handles (only shapes have a transformer).
+
+## Design system (Zoofus)
+
+- UI follows `design-system/` — read `design-system/README.md` first, then the component's `design-system/components/<Name>/README.md`.
+- Hard rules: one "Zoofus" wordmark, no tagline · flat, no shadows · every container is a seeded torn polygon pair (`src/paper/torn.ts`), no border-radius/borders on chrome · AA text contrast using the pairs in `design-system/01-tokens.md` · Special Elite + Courier Prime, Chinese in Xiaolai Mono SC · light theme only · reduced-motion respected · focus ring traced around the tear.
+- Tokens live in `src/styles/theme.css` (Tailwind v4 `@theme`); never hard-code hex values in components.
+- Sticker preview and PNG export both come from `dieCut()` (`src/paper/dieCut.ts`); never add a shadow to stickers.
+- Tape and sticker-edge prints use `PatternSpec` (`src/paper/pattern.ts`); user colours are the 16 `USER_COLORS`.
+- Visual reference: `npx serve design-system` → `gallery.html`.

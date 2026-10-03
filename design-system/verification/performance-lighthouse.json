@@ -1,0 +1,11 @@
+{
+  "note": "Lighthouse 12, mobile preset (simulated slow 4G, 4x CPU), signed in, production build served with `vite preview` against the emulators (no real network). Cold = first visit of the session.",
+  "pages": {
+    "home (cold)": { "performance": 96, "accessibility": 100, "lcp": "2.8 s", "cls": 0.001, "fcp": "0.9 s" },
+    "home (warm)": { "performance": 99, "accessibility": 100, "lcp": "2.1 s", "cls": 0, "fcp": "0.9 s" },
+    "sticker book": { "performance": 99, "accessibility": 100, "lcp": "2.0 s", "cls": 0.001, "fcp": "0.9 s" },
+    "tape studio": { "performance": 99, "accessibility": 100, "lcp": "2.0 s", "cls": 0, "fcp": "0.9 s" }
+  },
+  "before": "Before the fixes in this round the login page measured cls 0.368 (the canvas of a sticker was 300 x 150 until it rendered, and the loading skeleton of the book was half the height of a real tile), performance 49 to 81.",
+  "initialJsGzipKB": { "roundOneEnd": 476, "now": 368 }
+}

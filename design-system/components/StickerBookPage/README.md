@@ -1,0 +1,1 @@
+StickerBookPage is the reference layout for the sticker book: grid, tile actions, inline rename, the detail dialog and the empty state. See Screens → Sticker book. The grid has 5 columns on desktop and 2 on mobile.

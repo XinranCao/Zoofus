@@ -1,0 +1,16 @@
+<!-- @dsCard group="Stickers" height=520 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Sticker — preview</title>
+<style>html,body{margin:0} body{min-height:100vh} .row{display:flex;flex-wrap:wrap;gap:22px;align-items:center} .col{display:grid;gap:10px;justify-items:start} .cap{font-family:var(--font-display);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted)}</style></head>
+<body class="zf-ground zf-root">
+<div id="root" style="padding:28px"></div>
+<script>
+var Z = window.Zoofus, h = React.createElement, F = React.Fragment;
+function L(label, el) { return h('div', { className: 'col' }, h('span', { className: 'cap' }, label), el); }
+ReactDOM.createRoot(document.getElementById('root')).render(h('div',{style:{display:'grid',gap:28}},
+ h('div',{className:'row',style:{gap:36,alignItems:'center'}}, L('smooth', h(Z.Sticker,{art:'cherry',size:110,edge:{shape:'smooth'}})), L('wobbly (default)', h(Z.Sticker,{art:'pear',size:110})), L('torn', h(Z.Sticker,{art:'cup',size:130,edge:{shape:'torn'}})), L('torn · kraft', h(Z.Sticker,{art:'fish',size:120,edge:{shape:'torn',fill:{kind:'solid',bg:'kraft-100'}}})), L('none', h(Z.Sticker,{art:'leaf',size:90,edge:{scale:0}}))),
+ h('div',{className:'row',style:{gap:36,alignItems:'center'}}, L('stripes fill', h(Z.Sticker,{art:'star',size:110,edge:{shape:'wobbly',scale:1.6,fill:{kind:'stripes',bg:'sheet-50',ink:'brick-600',scale:8,angle:45,weight:.35}}})), L('dots fill · torn', h(Z.Sticker,{art:'pear',size:110,seed:'p2',edge:{shape:'torn',scale:1.6,fill:{kind:'dots',bg:'pink-200',ink:'sheet-50',scale:8,weight:.4}}})), L('gingham', h(Z.Sticker,{art:'cherry',size:110,seed:'c2',edge:{shape:'smooth',scale:1.6,fill:{kind:'gingham',bg:'sheet-50',ink:'olive-500',scale:10,weight:.45}}})), L('user pixels', h(Z.Sticker,{art:'fish',size:110,seed:'f2',edge:{shape:'wobbly',scale:1.6,fill:{kind:'pixels',bg:'blush-100',ink:'rose-400',scale:8,pixels:['00000000','01100110','11111111','11111111','01111110','00111100','00011000','00000000']}}})))));
+</script>
+</body>
+</html>

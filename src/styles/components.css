@@ -1,0 +1,1307 @@
+/*
+ * Component styles, ported from design-system/components/bundle.css.
+ * Hard rules: flat (no box-shadow, no blurred drop-shadow), no border-radius or border on chrome,
+ * torn clip-path pairs from src/paper/torn.ts, light theme only, reduced motion respected.
+ * The only drop-shadow is the zero-blur focus trace below, which is an outline, not a shadow.
+ */
+
+:root {
+  /* focus: a sheet halo then a plum ring, both traced around the torn silhouette */
+  --focus-trace: drop-shadow(2px 0 0 var(--sheet-50))
+    drop-shadow(-2px 0 0 var(--sheet-50)) drop-shadow(0 2px 0 var(--sheet-50))
+    drop-shadow(0 -2px 0 var(--sheet-50)) drop-shadow(2px 0 0 var(--plum-900))
+    drop-shadow(-2px 0 0 var(--plum-900)) drop-shadow(0 2px 0 var(--plum-900))
+    drop-shadow(0 -2px 0 var(--plum-900));
+  /* paper grain, tinted cocoa (overrides the plain colour of the same name in tokens.css) */
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .42  0 0 0 0 .29  0 0 0 0 .23  0 0 0 .55 0'/></filter><rect width='160' height='160' filter='url(%23g)'/></svg>");
+}
+
+@theme {
+  /* the layout switches at 760px (03-screens.md) */
+  --breakpoint-md: 760px;
+}
+
+/* ---------- ground: kraft + grain + 22px dot grid ---------- */
+@layer base {
+  html {
+    min-height: 100%;
+  }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--ground);
+    background-image:
+      var(--grain),
+      radial-gradient(circle at 1px 1px, var(--dot) 1.1px, transparent 1.6px);
+    background-size:
+      160px 160px,
+      22px 22px;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  :lang(zh) {
+    line-height: 1.75;
+    letter-spacing: 0.02em;
+  }
+  h1,
+  h2,
+  h3 {
+    font-weight: 400;
+  }
+  a {
+    color: inherit;
+  }
+}
+
+@layer components {
+  .zf-ground {
+    background-color: var(--ground);
+    background-image:
+      var(--grain),
+      radial-gradient(circle at 1px 1px, var(--dot) 1.1px, transparent 1.6px);
+    background-size:
+      160px 160px,
+      22px 22px;
+  }
+
+  /* ---------- paper scrap: wrapper = rotation + focus + fibre lip; face = tone + grain + clip ---------- */
+  .zf-paper {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    transform: rotate(var(--rot, 0deg));
+    transition: transform var(--dur-base) var(--ease-paper);
+  }
+  .zf-paper.is-block {
+    display: block;
+  }
+  .zf-torn {
+    position: relative;
+  }
+  .zf-torn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--fiber-tone, var(--fiber));
+    clip-path: var(--fclip);
+    pointer-events: none;
+  }
+  .zf-torn > .zf-face {
+    clip-path: var(--clip);
+  }
+  .zf-face {
+    position: relative;
+    display: block;
+    background: var(--tone, var(--scrap));
+  }
+  .zf-face::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: var(--grain);
+    background-size: 160px;
+    opacity: 0.4;
+    mix-blend-mode: multiply;
+  }
+  .zf-face > * {
+    position: relative;
+    z-index: 1;
+  }
+  /* the focus ring is a zero-blur trace around the torn silhouette */
+  .zf-torn:focus-visible,
+  .zf-torn:has(:focus-visible) {
+    filter: var(--focus-trace);
+  }
+
+  /* ---------- tape ---------- */
+  .zf-tape {
+    position: absolute;
+    z-index: 3;
+    pointer-events: none;
+    display: block;
+    mix-blend-mode: multiply;
+  }
+  .zf-pattern {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ---------- type ---------- */
+  .zf-kicker {
+    font-family: var(--font-display);
+    font-size: 12px;
+    line-height: 1.3;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  .zf-display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 44px;
+    line-height: 1.05;
+    color: var(--ink-deep);
+    margin: 0;
+  }
+  .zf-h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 30px;
+    line-height: 1.15;
+    color: var(--ink-deep);
+    margin: 0;
+  }
+  .zf-h2 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.2;
+    color: var(--ink-deep);
+    margin: 0;
+  }
+  .zf-label {
+    font-family: var(--font-display);
+    font-size: 15px;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    color: var(--ink-deep);
+  }
+  .zf-muted {
+    color: var(--ink-muted);
+    font-size: 14px;
+  }
+  .zf-wordmark {
+    font-family: var(--font-display);
+    font-size: 34px;
+    line-height: 1;
+    color: var(--ink-deep);
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  /* ---------- icons, lines ---------- */
+  .zf-icon {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .zf-scribble {
+    display: block;
+    width: 100%;
+    height: 8px;
+    color: var(--doodle);
+    overflow: visible;
+    pointer-events: none; /* a drawn line never takes the tap from the control under it */
+  }
+  .zf-divider {
+    display: block;
+    color: var(--doodle);
+    opacity: 0.55;
+    margin: 16px 0;
+  }
+
+  /* ---------- buttons ---------- */
+  .zf-btn {
+    all: unset;
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    vertical-align: middle;
+    transform: rotate(var(--rot, 0deg));
+    transition: transform var(--dur-base) var(--ease-paper);
+  }
+  .zf-btn .zf-face {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font-display);
+    font-size: 15px;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    padding: 12px 22px;
+    min-height: 44px;
+    white-space: nowrap;
+    color: var(--ink-deep);
+  }
+  .zf-btn.sm .zf-face {
+    padding: 8px 14px;
+    min-height: 36px;
+    font-size: 14px;
+  }
+  .zf-btn.lg .zf-face {
+    padding: 15px 28px;
+    min-height: 52px;
+    font-size: 17px;
+  }
+  .zf-btn.primary .zf-face {
+    --tone: var(--accent);
+    color: var(--on-accent);
+  }
+  .zf-btn.secondary .zf-face {
+    --tone: var(--accent-2);
+    color: var(--ink-deep);
+  }
+  .zf-btn.danger .zf-face {
+    --tone: var(--plum-900);
+    color: var(--on-accent);
+  }
+  .zf-btn.quiet::before {
+    display: none;
+  }
+  .zf-btn.quiet .zf-face {
+    --tone: transparent;
+    color: var(--ink);
+    padding-inline: 6px;
+  }
+  .zf-btn.quiet:not(:focus-visible):not(.is-focus) > .zf-face {
+    clip-path: none;
+  }
+  .zf-btn.quiet .zf-face::after {
+    display: none;
+  }
+  .zf-btn.quiet .zf-scribble {
+    position: absolute;
+    width: calc(100% - 8px);
+    left: 4px;
+    bottom: 6px;
+    opacity: 0;
+    transition: opacity var(--dur-quick);
+  }
+  .zf-btn:hover:not([aria-disabled="true"]),
+  .zf-btn.is-hover {
+    transform: rotate(0deg) translateY(-1px);
+  }
+  .zf-btn:hover:not([aria-disabled="true"]) .zf-face,
+  .zf-btn.is-hover .zf-face {
+    filter: brightness(0.95) saturate(1.05);
+  }
+  .zf-btn.quiet:hover .zf-scribble,
+  .zf-btn.quiet.is-hover .zf-scribble {
+    opacity: 1;
+  }
+  .zf-btn:active:not([aria-disabled="true"]),
+  .zf-btn.is-active {
+    transform: rotate(0deg) translateY(1px) scale(0.985);
+    transition-duration: var(--dur-quick);
+  }
+  .zf-btn.is-active .zf-face {
+    filter: brightness(0.9);
+  }
+  .zf-btn:focus-visible,
+  .zf-btn.is-focus {
+    filter: var(--focus-trace);
+  }
+  .zf-btn.quiet:focus-visible .zf-face,
+  .zf-btn.quiet.is-focus .zf-face {
+    --tone: var(--sheet-50);
+  }
+  .zf-btn[aria-disabled="true"] {
+    cursor: not-allowed;
+    transform: none;
+  }
+  .zf-btn[aria-disabled="true"] .zf-face {
+    --tone: var(--sage-100);
+    color: rgb(108 74 59 / 0.62);
+  }
+  .zf-btn.quiet[aria-disabled="true"] .zf-face {
+    --tone: transparent;
+  }
+
+  /* ---------- chips and toggle groups ---------- */
+  .zf-chip {
+    all: unset;
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    transform: rotate(var(--rot, 0deg));
+    transition: transform var(--dur-base) var(--ease-paper);
+  }
+  .zf-chip .zf-face {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 13px;
+    min-height: 36px;
+    font-family: var(--font-display);
+    font-size: 14px;
+    color: var(--ink);
+    --tone: var(--sheet-50);
+  }
+  .zf-chip[aria-pressed="true"] .zf-face,
+  .zf-chip[aria-checked="true"] .zf-face,
+  .zf-chip[data-state="on"] .zf-face,
+  .zf-chip[data-state="checked"] .zf-face {
+    --tone: var(--selected);
+    color: var(--ink-deep);
+  }
+  .zf-chip:hover {
+    transform: rotate(0) translateY(-1px);
+  }
+  .zf-chip:hover .zf-face {
+    filter: brightness(0.96);
+  }
+  .zf-chip:focus-visible,
+  .zf-chip.is-focus {
+    filter: var(--focus-trace);
+  }
+  .zf-chip[aria-disabled="true"],
+  .zf-chip[data-disabled] {
+    cursor: not-allowed;
+  }
+  .zf-chip[aria-disabled="true"] .zf-face,
+  .zf-chip[data-disabled] .zf-face {
+    --tone: var(--sage-100);
+    color: rgb(108 74 59 / 0.6);
+  }
+  .zf-toggle-group {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  /* ---------- text field ---------- */
+  .zf-field {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    align-content: start;
+  }
+  .zf-field__label {
+    font-family: var(--font-display);
+    font-size: 15px;
+    color: var(--ink-deep);
+  }
+  .zf-field__box {
+    position: relative;
+  }
+  .zf-field__box .zf-face {
+    --tone: var(--field);
+  }
+  .zf-field input {
+    all: unset;
+    display: block;
+    width: 100%;
+    padding: 11px 14px 13px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: var(--ink);
+    min-height: 46px;
+    box-sizing: border-box;
+  }
+  .zf-field input::placeholder {
+    color: rgb(108 74 59 / 0.55);
+  }
+  .zf-field .zf-scribble {
+    position: absolute;
+    left: 12px;
+    bottom: 6px;
+    width: calc(100% - 24px);
+    z-index: 2;
+    opacity: 0.55;
+  }
+  .zf-field__box:focus-within,
+  .zf-field.is-focus .zf-field__box {
+    filter: var(--focus-trace);
+  }
+  .zf-field__box:focus-within .zf-scribble,
+  .zf-field.is-focus .zf-scribble {
+    opacity: 1;
+    color: var(--plum-900);
+  }
+  .zf-field.is-error .zf-field__box .zf-face {
+    --tone: var(--scrap-pink);
+  }
+  .zf-field.is-error .zf-scribble {
+    opacity: 1;
+    color: var(--danger-mark);
+  }
+  .zf-field__hint {
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--ink-muted);
+  }
+  .zf-field.is-error .zf-field__hint {
+    color: var(--danger);
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+  }
+  .zf-field.is-disabled {
+    opacity: 0.65;
+  }
+  .zf-field.is-disabled .zf-face {
+    --tone: var(--sage-100);
+  }
+
+  /* ---------- slider ---------- */
+  .zf-slider {
+    display: grid;
+    gap: 8px;
+  }
+  .zf-slider__top {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-display);
+    font-size: 15px;
+    color: var(--ink-deep);
+  }
+  .zf-slider__top output {
+    font-family: var(--font-body);
+    color: var(--ink);
+  }
+  .zf-slider__root {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 28px;
+    touch-action: none;
+    user-select: none;
+  }
+  .zf-slider__art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .zf-slider__track {
+    position: relative;
+    flex: 1;
+    height: 100%;
+  }
+  .zf-slider__thumb {
+    display: block;
+    width: 22px;
+    height: 26px;
+    transform: rotate(-3deg);
+    cursor: grab;
+  }
+  .zf-slider__thumb .zf-face {
+    --tone: var(--mustard-300);
+    width: 100%;
+    height: 100%;
+  }
+  .zf-slider__thumb:focus-visible {
+    outline: none;
+    filter: var(--focus-trace);
+  }
+
+  /* ---------- swatches / colour picker ---------- */
+  .zf-swatches {
+    display: grid;
+    grid-template-columns: repeat(6, 32px);
+    gap: 10px;
+  }
+  .zf-swatch {
+    all: unset;
+    position: relative;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    transform: rotate(var(--rot, 0deg));
+  }
+  .zf-swatches.compact .zf-swatch {
+    width: 28px;
+    height: 28px;
+  }
+  .zf-swatch .zf-face {
+    width: 100%;
+    height: 100%;
+  }
+  .zf-swatch[aria-checked="true"],
+  .zf-swatch[data-state="checked"],
+  .zf-swatch:focus-visible {
+    filter: var(--focus-trace);
+    transform: rotate(0);
+  }
+  .zf-swatch__check {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    z-index: 2;
+    color: var(--ink-deep);
+  }
+
+  /* ---------- dialog, scrim, close ---------- */
+  .zf-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgb(65 71 14 / 0.32);
+  }
+  .zf-dialog-pos {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow: hidden; /* never a second scrollbar: the dialog's own middle scrolls */
+    pointer-events: none;
+  }
+  .zf-dialog-pos > * {
+    pointer-events: auto;
+  }
+  /* The dialog is as tall as its content, up to the screen; then the middle scrolls. */
+  .zf-dialog-box {
+    display: flex !important;
+    flex-direction: column;
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+    min-height: 0;
+  }
+  .zf-dialog-box > .zf-dialog__face {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .zf-dialog__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* room so focus rings and the traced outline are not cut by the scroll box */
+    margin: 0 -6px;
+    padding: 6px;
+    scrollbar-width: thin;
+  }
+  .zf-dialog__actions {
+    flex: 0 0 auto;
+    margin-top: 14px;
+  }
+  .zf-dialog__face {
+    padding: 28px 28px 24px;
+  }
+  .zf-dialog__title {
+    font-weight: 400;
+    font-family: var(--font-display);
+    font-size: 30px;
+    line-height: 1.15;
+    color: var(--ink-deep);
+    margin: 0 0 8px;
+  }
+  .zf-dialog__body {
+    margin: 0 0 20px;
+  }
+  .zf-dialog__actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .zf-close {
+    all: unset;
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 4;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    color: var(--ink);
+  }
+  .zf-close:focus-visible {
+    outline: 2px solid var(--plum-900);
+    outline-offset: 1px;
+  }
+  .zf-dialog-in {
+    animation: zf-dialog-in var(--dur-slow) var(--ease-flop) both;
+  }
+  @keyframes zf-dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px) rotate(calc(var(--rot, 0deg) + 1deg));
+    }
+  }
+  .zf-scrim-in {
+    animation: zf-fade var(--dur-slow) var(--ease-paper) both;
+  }
+  @keyframes zf-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* ---------- menu, toast, tooltip ---------- */
+  .zf-menu > .zf-face {
+    padding: 8px;
+    min-width: 200px;
+  }
+  .zf-menu__item {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    font-family: var(--font-display);
+    font-size: 15px;
+    color: var(--ink);
+    position: relative;
+    cursor: pointer;
+    min-height: 40px;
+  }
+  .zf-menu__item[data-highlighted],
+  .zf-menu__item.is-active {
+    background: var(--selected);
+    color: var(--ink-deep);
+    clip-path: var(--clip-item);
+  }
+  .zf-menu__item:focus-visible {
+    outline: none;
+  }
+  .zf-toast .zf-face {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 14px 18px 14px 16px;
+    max-width: 340px;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  .zf-toast b {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 15px;
+    color: var(--ink-deep);
+    display: block;
+  }
+  .zf-toast-in {
+    animation: zf-toast-in var(--dur-slow) var(--ease-paper) both;
+  }
+  @keyframes zf-toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px) rotate(var(--rot, 0deg));
+    }
+  }
+  .zf-tooltip .zf-face {
+    --tone: var(--loden-900);
+    color: var(--sheet-50);
+    font-size: 13px;
+    padding: 6px 10px;
+    font-family: var(--font-body);
+  }
+
+  /* ---------- avatar ---------- */
+  .zf-avatar {
+    all: unset;
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    cursor: pointer;
+    transform: rotate(var(--rot, 0deg));
+  }
+  .zf-avatar.is-static {
+    cursor: default;
+  }
+  .zf-avatar__img {
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 50%; /* avatar images are the one round thing, inside a torn frame */
+    background: var(--pink-200);
+    color: var(--ink-deep);
+    font-family: var(--font-display);
+  }
+  .zf-avatar:focus-visible,
+  .zf-avatar.is-focus {
+    filter: var(--focus-trace);
+  }
+
+  /* ---------- loaders ---------- */
+  .zf-typing {
+    display: inline-flex;
+    gap: 2px;
+    font-family: var(--font-display);
+    color: inherit;
+  }
+  .zf-typing span {
+    animation: zf-type 1.2s steps(1) infinite;
+    opacity: 0;
+  }
+  .zf-typing span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  .zf-typing span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+  @keyframes zf-type {
+    0% {
+      opacity: 0;
+    }
+    20%,
+    80% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  .zf-reel {
+    animation: zf-spin 1.4s linear infinite;
+    transform-origin: 50% 50%;
+  }
+  @keyframes zf-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .zf-skeleton .zf-face {
+    --tone: var(--sage-100);
+    animation: zf-breathe 1.6s ease-in-out infinite;
+  }
+  @keyframes zf-breathe {
+    50% {
+      opacity: 0.55;
+    }
+  }
+
+  /* ---------- sticker and tile ---------- */
+  .zf-sticker {
+    display: inline-block;
+    transform: rotate(var(--rot, 0deg));
+    transition: transform var(--dur-base) var(--ease-flop);
+  }
+  .zf-sticker canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+  .zf-sticker.is-interactive:hover {
+    transform: rotate(0) translateY(-2px) scale(1.02);
+  }
+  .zf-tile {
+    display: grid;
+    gap: 6px;
+    justify-items: center;
+    text-align: center;
+    margin: 0;
+    min-width: 0;
+  }
+  .zf-tile__name {
+    font-family: var(--font-display);
+    font-size: 15px;
+    color: var(--ink-deep);
+    overflow-wrap: anywhere;
+  }
+  .zf-tile__meta {
+    font-size: 12px;
+    color: var(--ink-muted);
+  }
+
+  .zf-tile__open {
+    all: unset;
+    cursor: pointer;
+    display: grid;
+    gap: 6px;
+    justify-items: center;
+    max-width: 100%;
+  }
+  .zf-tile__open:focus-visible {
+    outline: 2px solid var(--plum-900);
+    outline-offset: 4px;
+  }
+  .zf-tile__actions {
+    display: flex;
+    gap: 2px;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity var(--dur-quick);
+  }
+  .zf-tile:hover .zf-tile__actions,
+  .zf-tile:focus-within .zf-tile__actions {
+    opacity: 1;
+  }
+  @media (hover: none) {
+    .zf-tile__actions {
+      opacity: 1;
+    }
+  }
+  .zf-sticker-img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* ---------- lasso canvas ---------- */
+  .zf-well .zf-face {
+    --tone: var(--field);
+    padding: 12px;
+  }
+  .zf-photo {
+    border-radius: var(--radius-photo);
+  }
+  .zf-ants {
+    fill: none;
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+  .zf-ants.a {
+    stroke: var(--ants-a);
+  }
+  .zf-ants.b {
+    stroke: var(--ants-b);
+    stroke-dasharray: 6 6;
+    animation: zf-march var(--ants-speed) linear infinite;
+  }
+  .zf-ants.b.deselect {
+    stroke: var(--ants-deselect);
+    stroke-dasharray: 3 5;
+  }
+  .zf-ants.halo {
+    stroke: rgb(65 71 14 / 0.28);
+    stroke-width: 5;
+  }
+  @keyframes zf-march {
+    to {
+      stroke-dashoffset: -12;
+    }
+  }
+
+  /* ---------- masthead and layout ---------- */
+  .zf-masthead {
+    position: relative;
+    z-index: 30;
+  }
+  .zf-masthead__row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 14px 48px 22px;
+  }
+  .zf-nav {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+    align-items: center;
+  }
+  .zf-nav a {
+    font-family: var(--font-display);
+    font-size: 15px;
+    color: var(--ink);
+    text-decoration: none;
+    padding: 8px 10px;
+    position: relative;
+  }
+  .zf-nav a[aria-current="page"] {
+    color: var(--ink-deep);
+  }
+  .zf-nav a .zf-scribble {
+    position: absolute;
+    width: calc(100% - 16px);
+    left: 8px;
+    bottom: 2px;
+  }
+  .zf-nav a:focus-visible {
+    outline: 2px solid var(--plum-900);
+    outline-offset: 2px;
+  }
+  .zf-menu-btn {
+    display: none;
+  }
+  .zf-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 40px 48px 56px;
+  }
+  .zf-grid-book {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 36px 28px;
+  }
+  @media (max-width: 759px) {
+    .zf-masthead__row {
+      padding: 12px 16px 18px;
+      gap: 12px;
+    }
+    .zf-wordmark {
+      font-size: 26px;
+    }
+    .zf-nav {
+      display: none;
+    }
+    .zf-menu-btn {
+      display: inline-block;
+      margin-left: auto;
+    }
+    .zf-page {
+      padding: 24px 16px 40px;
+    }
+    .zf-display {
+      font-size: 32px;
+    }
+    .zf-grid-book {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 28px 16px;
+    }
+    .zf-hide-m {
+      display: none !important;
+    }
+    .zf-sheet {
+      width: 100% !important;
+      --rot: 0deg !important;
+    }
+    .zf-sheet-pos {
+      padding: 12px 0 0 !important;
+      align-items: flex-start !important;
+    }
+    .zf-sheet.zf-dialog-box {
+      max-height: calc(100vh - 12px);
+      max-height: calc(100dvh - 12px);
+    }
+    .zf-sheet .zf-dialog__face {
+      padding: 26px 26px 24px;
+    }
+  }
+  @media (min-width: 760px) {
+    .zf-hide-d {
+      display: none !important;
+    }
+    .zf-masthead.is-sticky {
+      position: sticky;
+      top: 0;
+    }
+  }
+
+  /* ---------- studios (tape and sticker edge) ---------- */
+  .zf-studio {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 24px 32px;
+    align-items: start;
+  }
+  .zf-studio__stage {
+    position: relative;
+    min-height: 300px;
+    overflow: hidden;
+    touch-action: none;
+  }
+  .zf-studio__controls {
+    display: grid;
+    gap: 20px;
+    align-content: start;
+    min-width: 0;
+  }
+  .zf-roll {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+  }
+  .zf-roll__item {
+    all: unset;
+    cursor: pointer;
+    display: grid;
+    gap: 2px;
+    width: 104px;
+    text-align: center;
+    padding: 4px;
+  }
+  .zf-roll__item:focus-visible {
+    outline: 2px dashed var(--plum-900);
+    outline-offset: 2px;
+  }
+  .zf-turn-handle {
+    all: unset;
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    margin: -16px 0 0 -16px;
+    display: grid;
+    place-items: center;
+    cursor: grab;
+    color: var(--ink-deep);
+    z-index: 5;
+    touch-action: none;
+  }
+  .zf-turn-handle .zf-face {
+    --tone: var(--sheet-50);
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+  }
+  .zf-turn-handle:focus-visible {
+    filter: var(--focus-trace);
+  }
+  @media (max-width: 759px) {
+    .zf-studio {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .zf-turn-handle {
+      width: 44px;
+      height: 44px;
+      margin: -22px 0 0 -22px;
+    }
+  }
+  .zf-pixels {
+    display: grid;
+    grid-template-columns: repeat(8, 22px);
+    gap: 1px;
+    background: rgb(108 74 59 / 0.18); /* the gap shows this colour as the grid lines */
+    width: max-content;
+    touch-action: none; /* dragging paints, it must not scroll the page */
+    user-select: none;
+  }
+  .zf-pixel {
+    all: unset;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+  }
+  .zf-pixel:focus-visible {
+    outline: 2px solid var(--plum-900);
+    outline-offset: -2px;
+    position: relative;
+    z-index: 1;
+  }
+  .zf-doodle-pad {
+    width: 144px;
+    height: 144px;
+    touch-action: none;
+    cursor: crosshair;
+    outline: 1px solid rgb(108 74 59 / 0.25);
+    outline-offset: -1px;
+  }
+  .zf-doodle-pad:focus-visible {
+    outline: 2px solid var(--plum-900);
+  }
+  .zf-pattern-swatch {
+    overflow: hidden;
+  }
+
+  /* ---------- skip link ---------- */
+  .zf-skip {
+    position: absolute;
+    left: 8px;
+    top: -60px;
+    z-index: 100;
+    padding: 10px 14px;
+    background: var(--sheet-50);
+    color: var(--ink-deep);
+    font-family: var(--font-display);
+  }
+  .zf-skip:focus {
+    top: 8px;
+    outline: 2px solid var(--plum-900);
+  }
+  main:focus {
+    outline: none;
+  }
+
+  /* ---------- drop zone ---------- */
+  .zf-dropzone.is-over {
+    background: var(--scrap-cool);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* nothing moves: no transitions, no animations (loaders show their static state) */
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+  .zf-paper,
+  .zf-btn,
+  .zf-chip,
+  .zf-sticker,
+  .zf-swatch,
+  .zf-face {
+    transition: none !important;
+  }
+  .zf-btn:hover,
+  .zf-chip:hover,
+  .zf-sticker.is-interactive:hover {
+    transform: rotate(var(--rot, 0deg)) !important;
+  }
+  .zf-ants.b,
+  .zf-typing span,
+  .zf-reel,
+  .zf-skeleton .zf-face,
+  .zf-dialog-in,
+  .zf-scrim-in,
+  .zf-toast-in {
+    animation: none !important;
+    opacity: 1;
+  }
+}
+
+/*
+ * Touch targets on a phone. The torn shapes keep their drawn size; each control grows an invisible
+ * hit area (a pseudo-element, which belongs to the control) up to 44 × 44, and the colour swatches
+ * are spaced so those areas do not overlap. A tap on the margin of a control still lands on it.
+ */
+@media (max-width: 759px) {
+  .zf-wordmark::after,
+  .zf-slider__thumb::after,
+  .zf-swatch::after,
+  .zf-menu-btn button::after {
+    content: "";
+    position: absolute;
+    inset: -8px 0;
+  }
+  .zf-wordmark {
+    position: relative;
+  }
+  .zf-chip .zf-face,
+  .zf-btn.sm .zf-face,
+  .zf-btn.quiet .zf-face {
+    min-height: 44px;
+  }
+  .zf-chip .zf-face,
+  .zf-btn.sm .zf-face {
+    box-sizing: border-box;
+  }
+  .zf-toggle-group {
+    gap: 8px;
+  }
+  .zf-wordmark {
+    display: inline-block;
+  }
+  .zf-wordmark::after {
+    inset: -10px 0;
+  }
+  /* the tear takes a few px off a button's tappable face: win them back */
+  .zf-btn::after,
+  .zf-chip::after {
+    content: "";
+    position: absolute;
+    inset: -8px 0;
+  }
+  .zf-slider__thumb::after {
+    inset: -12px;
+  }
+  .zf-menu-btn {
+    min-width: 44px;
+  }
+  .zf-menu-btn button::after {
+    inset: -8px;
+  }
+  /* 16 colours at 48px centres: 28px chips with a 20px gap */
+  .zf-swatches,
+  .zf-swatches.compact {
+    grid-template-columns: repeat(auto-fill, 28px) !important;
+    gap: 20px !important;
+  }
+  .zf-swatch::after {
+    inset: -10px; /* 28 + 20 = a 48px pitch: neighbours' areas meet, never overlap */
+  }
+  .zf-close::after {
+    content: "";
+    position: absolute;
+    inset: -12px;
+  }
+  /* the pixel grid fills the width it has, and dragging paints, so a cell need not be a full tap target */
+  .zf-pixels {
+    grid-template-columns: repeat(8, 1fr);
+    width: min(100%, 304px);
+  }
+  .zf-pixel {
+    width: auto;
+    height: auto;
+    aspect-ratio: 1;
+  }
+}
+
+/* Continue with Google: Google's own button spec, not a torn scrap (see GoogleButton.tsx). */
+.zf-google {
+  all: unset;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 12px;
+  background: #ffffff;
+  border: 1px solid #747775;
+  border-radius: 4px;
+  color: #1f1f1f;
+  font:
+    500 14px/20px "Google Sans",
+    Roboto,
+    Arial,
+    sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.zf-google:hover {
+  background: #f5f5f5;
+}
+.zf-google:focus-visible {
+  outline: 2px solid var(--plum-900);
+  outline-offset: 2px;
+}
+.zf-google:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+@media (max-width: 759px) {
+  .zf-google {
+    height: 44px;
+  }
+}
+
+/* the language switch in the account menu: "EN · 中文" */
+.zf-menu__lang {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+}
+.zf-menu__langopt {
+  all: unset;
+  cursor: pointer;
+  padding: 6px 12px;
+  min-height: 32px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--ink);
+  position: relative;
+  clip-path: var(--clip-item);
+}
+.zf-menu__langopt[aria-checked="true"] {
+  color: var(--ink-deep);
+  background: var(--selected);
+}
+.zf-menu__langopt[data-highlighted] {
+  background: var(--selected);
+}
+.zf-menu__langopt:focus-visible {
+  outline: 2px solid var(--plum-900);
+}
+@media (max-width: 759px) {
+  .zf-menu__langopt {
+    min-height: 44px;
+    min-width: 44px;
+    justify-content: center;
+  }
+}

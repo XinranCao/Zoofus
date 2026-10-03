@@ -1,0 +1,1 @@
+StickerMakerPage is the reference layout for the sticker-maker dialog in its stages: `empty`, `loading`, `error`, `lasso` and `result`. See Screens → Sticker maker. Desktop is a 1040px taped dialog with two columns; mobile is a full-bleed sheet with the tools stacked under the canvas.

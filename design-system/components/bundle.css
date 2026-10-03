@@ -1,0 +1,242 @@
+/* Zoofus — component stylesheet. Loaded after tokens.css. Hosted faces for previews; the app self-hosts via @fontsource. */
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@400;600&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/cn-fontsource-xiaolai-mono-sc-regular/font.css');
+
+:root {
+  /* focus: a sheet halo then a plum ring, both traced around the torn silhouette */
+  --focus-trace:
+    drop-shadow(2px 0 0 var(--sheet-50)) drop-shadow(-2px 0 0 var(--sheet-50))
+    drop-shadow(0 2px 0 var(--sheet-50)) drop-shadow(0 -2px 0 var(--sheet-50))
+    drop-shadow(2px 0 0 var(--plum-900)) drop-shadow(-2px 0 0 var(--plum-900))
+    drop-shadow(0 2px 0 var(--plum-900)) drop-shadow(0 -2px 0 var(--plum-900));
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .42  0 0 0 0 .29  0 0 0 0 .23  0 0 0 .55 0'/></filter><rect width='160' height='160' filter='url(%23g)'/></svg>");
+}
+
+/* ---------- ground ---------- */
+.zf-ground {
+  background-color: var(--ground);
+  background-image: var(--grain), radial-gradient(circle at 1px 1px, var(--dot) 1.1px, transparent 1.6px);
+  background-size: 160px 160px, 22px 22px;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px; line-height: 1.55;
+}
+.zf-root, .zf-root * { box-sizing: border-box; }
+.zf-root { font-family: var(--font-body); color: var(--ink); }
+:lang(zh) { line-height: 1.75; letter-spacing: 0.02em; }
+
+/* ---------- paper scrap: FLAT. wrapper = rotation + focus + fibre lip; face = tone + grain + clip ---------- */
+.zf-paper {
+  position: relative; display: inline-block; vertical-align: middle;
+  transform: rotate(var(--rot, 0deg));
+  transition: transform var(--dur-base) var(--ease-paper);
+}
+/* the torn lip: the paper's paler core, showing just outside the printed face */
+.zf-torn { position: relative; }
+.zf-torn::before { content: ""; position: absolute; inset: 0; background: var(--fiber-tone, var(--fiber)); clip-path: var(--fclip); pointer-events: none; }
+.zf-torn > .zf-face { clip-path: var(--clip); }
+.zf-paper.is-block { display: block; }
+.zf-face {
+  position: relative; display: block; background: var(--tone, var(--scrap));
+}
+.zf-face::after { /* grain sits inside the clip */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: var(--grain); background-size: 160px; opacity: .4; mix-blend-mode: multiply;
+}
+.zf-face > * { position: relative; z-index: 1; }
+
+/* ---------- tape (pattern is an inline SVG; angle, size, opacity, ends set inline) ---------- */
+.zf-tape { position: absolute; z-index: 3; pointer-events: none; display: block; mix-blend-mode: multiply; }
+.zf-tape .zf-pattern, .zf-pattern-swatch .zf-pattern { display: block; width: 100%; height: 100%; }
+
+/* ---------- buttons ---------- */
+.zf-btn { all: unset; position: relative; display: inline-block; cursor: pointer; vertical-align: middle;
+  transform: rotate(var(--rot, 0deg));
+  transition: transform var(--dur-base) var(--ease-paper); }
+.zf-btn .zf-face { display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: var(--font-display); font-size: 15px; line-height: 1.2; letter-spacing: .02em;
+  padding: 12px 22px; min-height: 44px; white-space: nowrap; color: var(--ink-deep); }
+.zf-btn.sm .zf-face { padding: 8px 14px; min-height: 36px; font-size: 14px; }
+.zf-btn.lg .zf-face { padding: 15px 28px; min-height: 52px; font-size: 17px; }
+.zf-btn.primary .zf-face { --tone: var(--accent); color: var(--on-accent); }
+.zf-btn.secondary .zf-face { --tone: var(--accent-2); color: var(--ink-deep); }
+.zf-btn.danger .zf-face { --tone: var(--plum-900); color: var(--on-accent); }
+.zf-btn.quiet::before { display: none; }
+.zf-btn.quiet .zf-face { --tone: transparent; color: var(--ink); padding-inline: 6px; }
+.zf-btn.quiet:not(:focus-visible):not(.is-focus) > .zf-face { clip-path: none; }
+.zf-btn.quiet .zf-face::after { display: none; }
+.zf-btn.quiet .zf-scribble { position: absolute; width: calc(100% - 8px); left: 4px; bottom: 6px; opacity: 0; transition: opacity var(--dur-quick); }
+.zf-btn:hover:not([aria-disabled="true"]), .zf-btn.is-hover { transform: rotate(0deg) translateY(-1px); }
+.zf-btn:hover:not([aria-disabled="true"]) .zf-face, .zf-btn.is-hover .zf-face { filter: brightness(.95) saturate(1.05); }
+.zf-btn.quiet:hover .zf-scribble, .zf-btn.quiet.is-hover .zf-scribble { opacity: 1; }
+.zf-btn:active:not([aria-disabled="true"]), .zf-btn.is-active { transform: rotate(0deg) translateY(1px) scale(.985); transition-duration: var(--dur-quick); }
+.zf-btn.is-active .zf-face { filter: brightness(.9); }
+.zf-btn:focus-visible, .zf-btn.is-focus { filter: var(--focus-trace); }
+.zf-btn.quiet:focus-visible .zf-face, .zf-btn.quiet.is-focus .zf-face { --tone: var(--sheet-50); }
+.zf-btn[aria-disabled="true"] { cursor: not-allowed; transform: none; }
+.zf-btn[aria-disabled="true"] .zf-face { --tone: var(--sage-100); color: rgba(108,74,59,.62); }
+.zf-btn.quiet[aria-disabled="true"] .zf-face { --tone: transparent; }
+.zf-icon { width: 18px; height: 18px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- chips & toggles ---------- */
+.zf-chip { all: unset; position: relative; display: inline-block; cursor: pointer; transform: rotate(var(--rot,0deg)); transition: transform var(--dur-base) var(--ease-paper); }
+.zf-chip .zf-face { display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; min-height: 36px;
+  font-family: var(--font-display); font-size: 14px; color: var(--ink); --tone: var(--sheet-50); }
+.zf-chip[aria-pressed="true"] .zf-face, .zf-chip[aria-checked="true"] .zf-face, .zf-chip[data-state="on"] .zf-face { --tone: var(--selected); color: var(--ink-deep); }
+.zf-chip:hover { transform: rotate(0) translateY(-1px); }
+.zf-chip:hover .zf-face { filter: brightness(.96); }
+.zf-chip:focus-visible, .zf-chip.is-focus { filter: var(--focus-trace); }
+.zf-chip[aria-disabled="true"] { cursor: not-allowed; }
+.zf-chip[aria-disabled="true"] .zf-face { --tone: var(--sage-100); color: rgba(108,74,59,.6); }
+.zf-toggle-group { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+/* ---------- text field ---------- */
+.zf-field { display: grid; gap: 6px; min-width: 0; align-content: start; }
+.zf-field__label { font-family: var(--font-display); font-size: 15px; color: var(--ink-deep); }
+.zf-field__box { position: relative; }
+.zf-field__box .zf-face { --tone: var(--field); }
+.zf-field input { all: unset; display: block; width: 100%; padding: 11px 14px 13px; font-family: var(--font-body); font-size: 16px; color: var(--ink); min-height: 46px; box-sizing: border-box; }
+.zf-field input::placeholder { color: rgba(108,74,59,.55); }
+.zf-field .zf-scribble { position: absolute; left: 12px; bottom: 6px; width: calc(100% - 24px); z-index: 2; opacity: .55; }
+.zf-field__box:focus-within, .zf-field.is-focus .zf-field__box { filter: var(--focus-trace); }
+.zf-field__box:focus-within .zf-scribble, .zf-field.is-focus .zf-scribble { opacity: 1; color: var(--plum-900); }
+.zf-field.is-error .zf-field__box .zf-face { --tone: var(--scrap-pink); }
+.zf-field.is-error .zf-scribble { opacity: 1; color: var(--danger-mark); }
+.zf-field__hint { font-size: 14px; line-height: 1.45; color: var(--ink-muted); }
+.zf-field.is-error .zf-field__hint { color: var(--danger); display: flex; gap: 6px; align-items: flex-start; }
+.zf-field.is-disabled { opacity: .65; }
+.zf-field.is-disabled .zf-face { --tone: var(--sage-100); }
+
+/* ---------- slider ---------- */
+.zf-slider { display: grid; gap: 8px; }
+.zf-slider__top { display: flex; justify-content: space-between; font-family: var(--font-display); font-size: 15px; color: var(--ink-deep); }
+.zf-slider__top output { font-family: var(--font-body); color: var(--ink); }
+.zf-slider__track { position: relative; height: 28px; }
+.zf-slider__track svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.zf-slider__thumb { position: absolute; top: 50%; width: 22px; height: 26px; transform: translate(-50%,-50%) rotate(-3deg); }
+.zf-slider__thumb .zf-face { --tone: var(--mustard-300); width: 100%; height: 100%; }
+.zf-slider.is-focus .zf-slider__thumb, .zf-slider__track:focus-within .zf-slider__thumb { filter: var(--focus-trace); }
+
+/* ---------- swatches / colour picker ---------- */
+.zf-swatches { display: grid; grid-template-columns: repeat(6, 32px); gap: 10px; }
+.zf-swatches[style] .zf-swatch { width: 28px; height: 28px; }
+.zf-swatch { all: unset; position: relative; width: 32px; height: 32px; cursor: pointer; transform: rotate(var(--rot,0deg)); }
+.zf-swatch .zf-face { width: 100%; height: 100%; }
+.zf-swatch[aria-checked="true"], .zf-swatch:focus-visible { filter: var(--focus-trace); transform: rotate(0); }
+.zf-swatch[aria-checked="true"]::after { content: ""; position: absolute; left: 50%; top: 50%; width: 9px; height: 5px; border: solid var(--ink-deep); border-width: 0 0 2px 2px; transform: translate(-50%,-70%) rotate(-45deg); }
+
+/* ---------- dialog / popover / menu / toast / tooltip ---------- */
+.zf-scrim { position: absolute; inset: 0; background: rgba(65,71,14,.32); }
+.zf-dialog__face { padding: 28px 28px 24px; }
+.zf-dialog__title { font-weight: 400; font-family: var(--font-display); font-size: 30px; line-height: 1.15; color: var(--ink-deep); margin: 0 0 8px; }
+.zf-dialog__body { margin: 0 0 20px; }
+.zf-dialog__actions { display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap; align-items: center; }
+.zf-close { all: unset; position: absolute; top: 14px; right: 14px; z-index: 4; cursor: pointer; width: 32px; height: 32px; display: grid; place-items: center; color: var(--ink); }
+.zf-menu > .zf-face { padding: 8px; min-width: 200px; }
+.zf-menu__item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; font-family: var(--font-display); font-size: 15px; color: var(--ink); position: relative; cursor: pointer; }
+.zf-menu__item.is-active { background: var(--selected); color: var(--ink-deep); clip-path: var(--clip-item); }
+.zf-menu__sep { margin: 6px 8px; }
+.zf-toast .zf-face { display: flex; gap: 10px; align-items: flex-start; padding: 14px 18px 14px 16px; max-width: 340px; font-size: 14px; line-height: 1.45; }
+.zf-toast b { font-family: var(--font-display); font-weight: 400; font-size: 15px; color: var(--ink-deep); display: block; }
+.zf-tooltip .zf-face { --tone: var(--loden-900); color: var(--sheet-50); font-size: 13px; padding: 6px 10px; font-family: var(--font-body); }
+
+/* sticker-maker sheet: centred dialog on desktop, full-bleed sheet under 760px */
+.zf-sheet-wrap { position: absolute; inset: 0; z-index: 20; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; align-items: center; padding: 24px; }
+.zf-sheet { width: 1040px; max-width: 100%; }
+@container (max-width: 759px) {
+  .zf-sheet-wrap { padding: 12px 0 0; align-items: start; }
+  .zf-sheet { width: 100%; --rot: 0deg !important; }
+  .zf-sheet .zf-dialog__face { padding: 22px 16px 20px; }
+}
+
+/* ---------- avatar ---------- */
+.zf-avatar { all: unset; position: relative; display: inline-grid; place-items: center; cursor: pointer; }
+.zf-avatar__img { display: grid; place-items: center; overflow: hidden; background: var(--pink-200); color: var(--ink-deep); font-family: var(--font-display); }
+.zf-avatar:focus-visible, .zf-avatar.is-focus { filter: var(--focus-trace); }
+
+/* ---------- scribble line ---------- */
+.zf-scribble { display: block; width: 100%; height: 8px; color: var(--doodle); overflow: visible; }
+.zf-divider { display: block; color: var(--doodle); opacity: .55; margin: 16px 0; }
+
+/* ---------- loaders ---------- */
+.zf-typing { display: inline-flex; gap: 2px; font-family: var(--font-display); color: var(--ink); }
+.zf-typing span { animation: zf-type 1.2s steps(1) infinite; opacity: 0; }
+.zf-typing span:nth-child(2) { animation-delay: .2s; } .zf-typing span:nth-child(3) { animation-delay: .4s; }
+@keyframes zf-type { 0% { opacity: 0 } 20%,80% { opacity: 1 } 100% { opacity: 0 } }
+.zf-reel { animation: zf-spin 1.4s linear infinite; transform-origin: 50% 50%; }
+@keyframes zf-spin { to { transform: rotate(360deg) } }
+.zf-skeleton .zf-face { --tone: var(--sage-100); animation: zf-breathe 1.6s ease-in-out infinite; }
+@keyframes zf-breathe { 50% { opacity: .55 } }
+
+/* ---------- sticker ---------- */
+.zf-sticker { display: inline-block; transform: rotate(var(--rot,0deg)); transition: transform var(--dur-base) var(--ease-flop); }
+.zf-sticker:hover { transform: rotate(0) translateY(-2px) scale(1.02); }
+.zf-sticker svg, .zf-sticker img { display: block; overflow: visible; }
+.zf-tile { display: grid; gap: 6px; justify-items: center; text-align: center; }
+.zf-tile__name { font-family: var(--font-display); font-size: 15px; color: var(--ink-deep); }
+.zf-tile__meta { font-size: 12px; color: var(--ink-muted); }
+
+/* ---------- lasso / canvas ---------- */
+.zf-well .zf-face { --tone: var(--field); padding: 12px; }
+.zf-ants { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.zf-ants.a { stroke: var(--ants-a); }
+.zf-ants.b { stroke: var(--ants-b); stroke-dasharray: 6 6; animation: zf-march var(--ants-speed) linear infinite; }
+.zf-ants.b.deselect { stroke: var(--ants-deselect); stroke-dasharray: 3 5; }
+.zf-ants.halo { stroke: rgba(65,71,14,.28); stroke-width: 5; }
+@keyframes zf-march { to { stroke-dashoffset: -12 } }
+
+/* ---------- masthead ---------- */
+.zf-masthead { position: relative; }
+.zf-masthead__face { --tone: var(--peach-100); }
+.zf-masthead__row { display: flex; align-items: center; gap: 24px; padding: 14px 48px 22px; }
+.zf-wordmark { font-family: var(--font-display); font-size: 34px; line-height: 1; color: var(--ink-deep); letter-spacing: -.01em; text-decoration: none; white-space: nowrap; }
+.zf-nav { display: flex; gap: 6px; margin-left: auto; align-items: center; }
+.zf-nav a { font-family: var(--font-display); font-size: 15px; color: var(--ink); text-decoration: none; padding: 8px 10px; position: relative; }
+.zf-nav a[aria-current="page"] { color: var(--ink-deep); }
+.zf-nav a .zf-scribble { position: absolute; width: calc(100% - 16px); left: 8px; bottom: 2px; }
+.zf-menu-btn { display: none; }
+
+/* ---------- studios (tape + sticker edge) ---------- */
+.zf-studio { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px 32px; align-items: start; }
+.zf-studio__stage { position: relative; min-height: 300px; overflow: hidden; touch-action: none; }
+.zf-studio__controls { display: grid; gap: 20px; align-content: start; min-width: 0; }
+.zf-studio__roll { grid-column: 1 / -1; }
+.zf-roll { display: flex; flex-wrap: wrap; gap: 10px 18px; }
+.zf-roll__item { all: unset; cursor: pointer; display: grid; gap: 2px; width: 104px; text-align: center; padding: 4px; }
+.zf-roll__item:focus-visible { outline: 2px dashed var(--plum-900); outline-offset: 2px; }
+.zf-turn-handle { all: unset; position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; display: grid; place-items: center; cursor: grab; border-radius: 50%; background: var(--sheet-50); color: var(--ink-deep); z-index: 5; }
+.zf-turn-handle:focus-visible { outline: 2px solid var(--plum-900); outline-offset: 2px; }
+.zf-pixels { display: grid; grid-template-columns: repeat(8, 22px); gap: 2px; }
+.zf-pixel { all: unset; width: 22px; height: 22px; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(108,74,59,.18); }
+.zf-pixel:focus-visible { outline: 2px solid var(--plum-900); outline-offset: 1px; position: relative; z-index: 1; }
+.zf-doodle-pad { width: 144px; height: 144px; touch-action: none; cursor: crosshair; box-shadow: inset 0 0 0 1px rgba(108,74,59,.25); }
+.zf-pattern-swatch { overflow: hidden; }
+@container (max-width: 759px) { .zf-studio { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 759px) { .zf-studio { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- layout frames (container queries: the real breakpoints) ---------- */
+.zf-frame { container-type: inline-size; position: relative; overflow: hidden; }
+.zf-kicker { font-family: var(--font-display); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-muted); }
+.zf-h-display { font-family: var(--font-display); font-weight: 400; font-size: 44px; line-height: 1.05; color: var(--ink-deep); margin: 0; }
+.zf-h1 { font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1.15; color: var(--ink-deep); margin: 0; }
+.zf-h2 { font-family: var(--font-display); font-weight: 400; font-size: 22px; line-height: 1.2; color: var(--ink-deep); margin: 0; }
+.zf-muted { color: var(--ink-muted); font-size: 14px; }
+.zf-page { padding: 40px 48px 56px; }
+.zf-grid-book { display: grid; grid-template-columns: repeat(5, 1fr); gap: 36px 28px; }
+@container (max-width: 759px) {
+  .zf-masthead__row { padding: 12px 16px 18px; gap: 12px; }
+  .zf-wordmark { font-size: 26px; }
+  .zf-nav { display: none; }
+  .zf-menu-btn { display: inline-block; margin-left: auto; }
+  .zf-page { padding: 24px 16px 40px; }
+  .zf-h-display { font-size: 32px; }
+  .zf-grid-book { grid-template-columns: repeat(2, 1fr); gap: 28px 16px; }
+  .zf-hide-m { display: none !important; }
+}
+@container (min-width: 760px) { .zf-hide-d { display: none !important; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .zf-paper, .zf-btn, .zf-chip, .zf-sticker, .zf-swatch, .zf-face { transition: none !important; }
+  .zf-btn:hover, .zf-chip:hover, .zf-sticker:hover { transform: rotate(var(--rot,0deg)) !important; }
+  .zf-ants.b, .zf-typing span, .zf-reel, .zf-skeleton .zf-face { animation: none !important; opacity: 1; }
+}

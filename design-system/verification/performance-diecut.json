@@ -1,0 +1,10 @@
+{
+  "longSide": 2000,
+  "cpuThrottle": "4x",
+  "ms": {
+    "tornSolid": 28,
+    "tornStripes": 37.1,
+    "wobbly": 15.2,
+    "smooth": 5.2
+  }
+}

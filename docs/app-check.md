@@ -1,5 +1,7 @@
 # Firebase App Check setup (one-time, in the consoles)
 
+> **Status:** done. App Check is registered and enforced for Firestore, Storage and Authentication (owner, October 2026). The steps below stay as the record and for setting it up again.
+
 **Cost:** App Check is free. On the web it uses reCAPTCHA Enterprise, free for the first 10,000 assessments per month (one per app token). Without a billing account you stay on the free Essentials tier; above 10,000 a month, Standard is $8/month and needs billing. Set the token lifetime to 1 day or more (step 2) to keep usage low. If the free quota ran out while enforcement is on, token requests would fail, so keep an eye on the reCAPTCHA usage page.
 
 App Check makes Firestore, Storage and Auth reject requests that do not come from the real app. The code is already wired: it activates when `VITE_APP_RECAPTCHA_SITE_KEY` is set.

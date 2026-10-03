@@ -1,0 +1,210 @@
+{
+  "checked": 365,
+  "lowest": [
+    {
+      "screen": "zh/desktop/07-home-empty",
+      "text": "No. 02 · 贴纸本",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/08-menu-open",
+      "text": "No. 02 · 贴纸本",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/10-book-empty",
+      "text": "No. 00 · 贴纸本",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/17-book-grid",
+      "text": "No. 02 · 1 张贴纸",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/17-book-grid",
+      "text": "10月3日 剪的",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/20-tape-studio",
+      "text": "No. 03 · 胶带",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/20-tape-studio",
+      "text": "我的胶带卷 · 4",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/20-tape-studio",
+      "text": "Pink dots",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/20-tape-studio",
+      "text": "Lime stripe",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/20-tape-studio",
+      "text": "Picnic",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/20-tape-studio",
+      "text": "Masking",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/21-account",
+      "text": "No. 04 · 账号",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 12,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/21-account",
+      "text": "ds-zh-desktop-1791055758843@example.com",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 14,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/01-login",
+      "text": "登录",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/02-login-error",
+      "text": "登录",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/03-reset-dialog",
+      "text": "发送链接",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/04-signup-step1",
+      "text": "继续",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/05-signup-field-error",
+      "text": "继续",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/06-signup-step2",
+      "text": "开始剪贴纸",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/07-home-empty",
+      "text": "上传照片",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 17,
+      "weight": 400
+    }
+  ],
+  "cjkFonts": [
+    "Xiaolai Mono SC (web font)",
+    "Special Elite (web font)",
+    "Courier Prime (web font)"
+  ]
+}

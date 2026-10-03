@@ -1,0 +1,135 @@
+/* Design tokens: copied verbatim from design-system/01-tokens.md (Tailwind v4 @theme + :root). Do not hard-code hex values in components. */
+@theme {
+  /* palette + roles */
+  --color-kraft-100: #e8ddd0;
+  --color-peach-100: #ffe4c5;
+  --color-apricot-300: #f1a17a;
+  --color-tangerine-400: #e57c48;
+  --color-orange-500: #ea6422;
+  --color-sage-100: #e3e5d0;
+  --color-celery-200: #ecefbc;
+  --color-lime-300: #dce35d;
+  --color-chartreuse-400: #e3ed2a;
+  --color-olive-500: #b4bc2f;
+  --color-moss-700: #57620d;
+  --color-mustard-300: #edcd7e;
+  --color-cream-100: #f1e9bf;
+  --color-blush-100: #f4ddea;
+  --color-pink-200: #efb6d5;
+  --color-hotpink-300: #f779be;
+  --color-rose-400: #e374a7;
+  --color-magenta-500: #da3b84;
+  --color-brick-600: #bc3b22;
+  --color-raspberry-600: #c32768;
+  --color-cocoa-800: #6c4a3b;
+  --color-loden-900: #41470e;
+  --color-plum-900: #7a0e4d;
+  --color-sheet-50: #fbf6ee;
+  --color-ground: var(--color-kraft-100);
+  --color-scrap: var(--color-cream-100);
+  --color-scrap-warm: var(--color-peach-100);
+  --color-scrap-cool: var(--color-celery-200);
+  --color-scrap-pink: var(--color-blush-100);
+  --color-field: var(--color-sheet-50);
+  --color-ink: var(--color-cocoa-800);
+  --color-ink-deep: var(--color-loden-900);
+  --color-ink-muted: var(--color-moss-700);
+  --color-accent: var(--color-brick-600);
+  --color-on-accent: var(--color-sheet-50);
+  --color-accent-2: var(--color-mustard-300);
+  --color-selected: var(--color-lime-300);
+  --color-focus: var(--color-plum-900);
+  --color-danger: var(--color-plum-900);
+  --color-danger-mark: var(--color-raspberry-600);
+  --color-success: var(--color-moss-700);
+  --color-ants-a: var(--color-sheet-50);
+  --color-ants-b: var(--color-loden-900);
+  --color-ants-deselect: var(--color-plum-900);
+  --color-doodle: var(--color-cocoa-800);
+  --color-fiber: var(--color-sheet-50);
+  --color-dot: #6c4a3b26;
+  --color-grain: #6c4a3b14;
+
+  /* type */
+  --font-display:
+    "Special Elite", "Xiaolai Mono SC", "LXGW WenKai", "Noto Serif SC", serif;
+  --font-body:
+    "Courier Prime", "Xiaolai Mono SC", "LXGW WenKai", "Noto Serif SC", ui-monospace,
+    monospace;
+  --text-wordmark: 34px;
+  --text-wordmark--line-height: 1;
+  --text-wordmark--letter-spacing: -0.01em;
+  --text-display: 44px;
+  --text-display--line-height: 1.05;
+  --text-h1: 30px;
+  --text-h1--line-height: 1.15;
+  --text-h2: 22px;
+  --text-h2--line-height: 1.2;
+  --text-label: 15px;
+  --text-label--line-height: 1.2;
+  --text-label--letter-spacing: 0.02em;
+  --text-kicker: 12px;
+  --text-kicker--line-height: 1.3;
+  --text-kicker--letter-spacing: 0.12em;
+  --text-body: 16px;
+  --text-body--line-height: 1.55;
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 1.5;
+  --text-body-strong: 16px;
+  --text-body-strong--line-height: 1.55;
+  --text-caption: 12px;
+  --text-caption--line-height: 1.4;
+
+  /* spacing: Tailwind multiplies --spacing; 4px base keeps p-4 = 16px */
+  --spacing: 4px;
+
+  /* radius: torn shapes, so only these */
+  --radius-none: 0;
+  --radius-photo: 2px;
+
+  /* no shadows: flat paper. Reset Tailwind's scale so nobody reaches for it */
+  --shadow-*: initial;
+  --drop-shadow-*: initial;
+  --inset-shadow-*: initial;
+
+  /* motion */
+  --ease-paper: cubic-bezier(0.3, 0.7, 0.4, 1);
+  --ease-flop: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --animate-march: march 600ms linear infinite;
+  @keyframes march {
+    to {
+      stroke-dashoffset: -12;
+    }
+  }
+}
+
+:root {
+  /* non-Tailwind design variables */
+  --tear-xs: 2.6px;
+  --tear-sm: 3.6px;
+  --tear-md: 5.5px;
+  --tear-lg: 7.5px;
+  --tear-xl: 10px;
+  --rot-text: 0.4deg;
+  --rot-control: 0.8deg;
+  --rot-card: 1.5deg;
+  --rot-sticker: 4deg;
+  --rot-tape: 8deg;
+  --pattern-scale-min: 6px;
+  --pattern-scale-default: 12px;
+  --pattern-scale-max: 28px;
+  --pixel-grid: 8;
+  --doodle-tile: 48;
+  --tape-opacity-default: 0.82;
+  --dur-quick: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-quick: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+}

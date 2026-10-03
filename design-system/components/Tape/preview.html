@@ -1,0 +1,20 @@
+<!-- @dsCard group="Tape" height=260 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Tape — preview</title>
+<style>html,body{margin:0} body{min-height:100vh} .row{display:flex;flex-wrap:wrap;gap:22px;align-items:center} .col{display:grid;gap:10px;justify-items:start} .cap{font-family:var(--font-display);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted)}</style></head>
+<body class="zf-ground zf-root">
+<div id="root" style="padding:28px"></div>
+<script>
+var Z = window.Zoofus, h = React.createElement, F = React.Fragment;
+function L(label, el) { return h('div', { className: 'col' }, h('span', { className: 'cap' }, label), el); }
+ReactDOM.createRoot(document.getElementById('root')).render(h('div',{style:{display:'grid',gap:30}},
+ h('div',{className:'row',style:{gap:44}},
+ [['tape-mustard',-8],['tape-celery',4],['tape-pink',-3],['tape-apricot',10],['tape-gingham',-12]].map(function(c,i){return L(c[0].replace('tape-',''), h('div',{style:{position:'relative',width:150,height:96}}, h(Z.Paper,{seed:'tp'+i,size:'md',tone:'cream-100',rotate:1.5,style:{width:150},faceStyle:{height:96}}), h(Z.Tape,{seed:c[0],color:c[0],angle:c[1],x:'50%',y:'4px'})))})),
+ h('div',{className:'row',style:{gap:44}},
+  L('direction: any angle', h('div',{style:{position:'relative',width:240,height:90}}, [-60,-25,0,30,75].map(function(a,i){return h(Z.Tape,{key:a,seed:'d'+i,color:'tape-pink',angle:a,length:70,x:(30+i*45)+'px',y:'45px'})}))),
+  L('ends: torn · cut · pinked', h('div',{style:{position:'relative',width:300,height:90}}, ['torn','cut','pinked'].map(function(e,i){return h(Z.Tape,{key:e,seed:'e'+e,pattern:{kind:'stripes',bg:'mustard-300',ink:'sheet-50',scale:9,angle:45,weight:.35},ends:e,angle:-6+i*6,length:84,thickness:24,x:(50+i*100)+'px',y:'45px'})}))),
+  L('user prints', h('div',{style:{position:'relative',width:320,height:90}}, [{kind:'pixels',bg:'blush-100',ink:'rose-400',scale:9,pixels:['00000000','01100110','11111111','11111111','01111110','00111100','00011000','00000000']},{kind:'wave',bg:'celery-200',ink:'moss-700',scale:10,weight:.3},{kind:'doodle',bg:'peach-100',ink:'brick-600',scale:7,weight:.3,strokes:['M8 30 C14 18 22 18 26 28 S38 38 42 24','M10 10 l4 4 M14 10 l-4 4']}].map(function(sp,i){return h(Z.Tape,{key:i,seed:'u'+i,pattern:sp,angle:[-10,4,-3][i],length:96,thickness:24,x:(56+i*104)+'px',y:'45px'})}))))));
+</script>
+</body>
+</html>

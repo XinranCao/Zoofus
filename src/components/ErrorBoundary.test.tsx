@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import "@/i18n";
 import { ErrorBoundary } from "./ErrorBoundary";
 
 function Boom(): never {
@@ -25,8 +26,10 @@ describe("ErrorBoundary", () => {
         <Boom />
       </ErrorBoundary>,
     );
-    expect(screen.getByText("Something went wrong on this page.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Back to home" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "That page didn’t load" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Back to the start" })).toBeInTheDocument();
   });
 });
 
@@ -45,7 +48,9 @@ describe("ErrorBoundary reset", () => {
         <Maybe />
       </ErrorBoundary>,
     );
-    expect(screen.getByText("Something went wrong on this page.")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "That page didn’t load" }),
+    ).toBeInTheDocument();
 
     shouldThrow = false;
     rerender(

@@ -22,3 +22,12 @@ describe("stickerDocSchema", () => {
     expect(() => stickerDocSchema.parse({ ...doc, name: undefined })).toThrow();
   });
 });
+
+describe("stickerKind", () => {
+  it("is editable only when the edge-less source is stored", async () => {
+    const { stickerKind } = await import("./sticker.schema");
+    expect(stickerKind({ sourceUrl: "u", sourcePath: "p" })).toBe("editable");
+    expect(stickerKind({})).toBe("legacy");
+    expect(stickerKind({ sourceUrl: "u" })).toBe("legacy");
+  });
+});

@@ -75,10 +75,29 @@ describe("editor store history", () => {
     expect(s.imageUrl).toBe("blob:new");
   });
 
-  it("keeps the border settings when the image changes", () => {
-    store.getState().setBorder({ width: 20 });
+  it("keeps the chosen edge but starts a new seed when the image changes", () => {
+    store.getState().setEdge({ shape: "torn", scale: 1.4 });
+    const before = store.getState().seed;
     store.getState().setImage("blob:new");
-    expect(store.getState().border.width).toBe(20);
+    expect(store.getState().edge).toMatchObject({ shape: "torn", scale: 1.4 });
+    expect(store.getState().seed).not.toBe(before);
+  });
+
+  it("merges edge changes without losing the fill", () => {
+    store.getState().setEdge({ fill: { kind: "dots", bg: "pink-200", ink: "sheet-50" } });
+    store.getState().setEdge({ shape: "smooth" });
+    expect(store.getState().edge.fill.kind).toBe("dots");
+    expect(store.getState().edge.shape).toBe("smooth");
+  });
+
+  it("tracks the photo loading state", () => {
+    store.getState().setImageStatus("loading");
+    expect(store.getState().imageStatus).toBe("loading");
+    store.getState().setImageStatus("error", "That file is not an image.");
+    expect(store.getState().imageError).toBe("That file is not an image.");
+    store.getState().setImage("blob:ok");
+    expect(store.getState().imageStatus).toBe("idle");
+    expect(store.getState().imageError).toBeNull();
   });
 
   it("limits history to 100 steps", () => {

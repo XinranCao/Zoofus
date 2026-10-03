@@ -13,6 +13,36 @@ service cloud.firestore {
     function isString(value, maxLen) {
       return value is string && value.size() <= maxLen;
     }
+    // The 16 colours users may print with (USER_COLORS in src/paper/pattern.ts).
+    function userColour(c) {
+      return c in ['sheet-50', 'cream-100', 'peach-100', 'blush-100', 'pink-200', 'celery-200', 'lime-300', 'mustard-300',
+                   'apricot-300', 'rose-400', 'olive-500', 'tangerine-400', 'brick-600', 'plum-900', 'moss-700', 'cocoa-800'];
+    }
+    function pixelRow(r) {
+      return r is string && r.matches('^[01]{8}$');
+    }
+    // A user-designed print (tape prints and sticker-edge fills). Keep in sync with
+    // src/paper/patternSchema.ts. Rules cannot loop, so the 8 pixel rows are checked one by one
+    // and doodle strokes (at most 60 paths of path data) are checked for count here and for
+    // content by the client; every stroke is validated again when it is drawn (isSafeStroke).
+    function validPattern(p) {
+      return p is map
+        && p.keys().hasOnly(['kind', 'bg', 'ink', 'scale', 'angle', 'weight', 'pixels', 'strokes'])
+        && p.kind in ['solid', 'stripes', 'dots', 'gingham', 'check', 'wave', 'pixels', 'doodle']
+        && userColour(p.bg)
+        && (!('ink' in p) || userColour(p.ink))
+        && (!('scale' in p) || (p.scale is number && p.scale >= 6 && p.scale <= 28))
+        && (!('angle' in p) || (p.angle is number && p.angle >= 0 && p.angle <= 180))
+        && (!('weight' in p) || (p.weight is number && p.weight >= 0.1 && p.weight <= 0.9))
+        && (!('pixels' in p) || (p.pixels is list && p.pixels.size() == 8
+            && pixelRow(p.pixels[0]) && pixelRow(p.pixels[1]) && pixelRow(p.pixels[2]) && pixelRow(p.pixels[3])
+            && pixelRow(p.pixels[4]) && pixelRow(p.pixels[5]) && pixelRow(p.pixels[6]) && pixelRow(p.pixels[7])))
+        && (!('strokes' in p) || (p.strokes is list && p.strokes.size() <= 60
+            && (p.strokes.size() < 1 || isPath(p.strokes[0]))));
+    }
+    function isPath(d) {
+      return d is string && d.size() <= 2000 && d.matches('^[MLQCSTZmlqcstz0-9 .,-]+$');
+    }
 
     // users/{uid}: the owner's profile
     match /users/{uid} {
@@ -49,27 +79,62 @@ service cloud.firestore {
         allow delete: if isOwner(uid);
       }
 
-      // users/{uid}/stickers/{stickerId}: the owner's saved stickers
-      match /stickers/{stickerId} {
+      // users/{uid}/tapes/{tapeId}: "My tape roll" (a TapeSpec: name, print, width, see-through, ends).
+      // Angle and length belong to each placement on a page, not to the saved tape.
+      match /tapes/{tapeId} {
+        function validTape(d) {
+          return d.keys().hasOnly(['name', 'pattern', 'thickness', 'opacity', 'ends', 'createdAt'])
+            && isString(d.name, 40) && d.name.size() > 0
+            && validPattern(d.pattern)
+            && d.thickness is number && d.thickness >= 12 && d.thickness <= 36
+            && d.opacity is number && d.opacity >= 0.5 && d.opacity <= 1
+            && d.ends in ['torn', 'cut', 'pinked'];
+        }
         allow read: if isOwner(uid);
         allow create: if isOwner(uid)
-          && request.resource.data.keys().hasOnly(['name', 'storagePath', 'imageUrl', 'thumbnailUrl', 'thumbnailPath', 'width', 'height', 'createdAt'])
-          && isString(request.resource.data.name, 60)
-          && request.resource.data.name.size() > 0
-          && request.resource.data.storagePath.matches('^' + uid + '/stickers/.+')
-          && isString(request.resource.data.imageUrl, 2048)
-          && (!('thumbnailUrl' in request.resource.data) || isString(request.resource.data.thumbnailUrl, 2048))
-          && (!('thumbnailPath' in request.resource.data)
-              || (isString(request.resource.data.thumbnailPath, 512)
-                  && request.resource.data.thumbnailPath.matches('^' + uid + '/stickers/.+')))
-          && request.resource.data.width is int && request.resource.data.width > 0
-          && request.resource.data.height is int && request.resource.data.height > 0
+          && validTape(request.resource.data)
           && request.resource.data.createdAt == request.time;
-        // Only renaming is allowed after creation.
         allow update: if isOwner(uid)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
-          && isString(request.resource.data.name, 60)
-          && request.resource.data.name.size() > 0;
+          && validTape(request.resource.data);
+        allow delete: if isOwner(uid);
+      }
+
+      // users/{uid}/stickers/{stickerId}: the owner's saved stickers
+      match /stickers/{stickerId} {
+        function validEdge(e) {
+          return e is map
+            && e.keys().hasOnly(['shape', 'scale', 'fill'])
+            && e.shape in ['smooth', 'wobbly', 'torn']
+            && e.scale is number && e.scale >= 0 && e.scale <= 1.6
+            && validPattern(e.fill);
+        }
+        function ownFile(path) {
+          return isString(path, 512) && path.matches('^' + uid + '/stickers/.+');
+        }
+        // Fields shared by create and update. Older stickers have no source, edge or seed.
+        function validSticker(d) {
+          return d.keys().hasOnly(['name', 'storagePath', 'imageUrl', 'sourcePath', 'sourceUrl', 'edge', 'seed', 'thumbnailUrl', 'thumbnailPath', 'width', 'height', 'createdAt'])
+            && isString(d.name, 60) && d.name.size() > 0
+            && ownFile(d.storagePath)
+            && isString(d.imageUrl, 2048)
+            && (!('sourcePath' in d) || ownFile(d.sourcePath))
+            && (!('sourceUrl' in d) || isString(d.sourceUrl, 2048))
+            && (!('edge' in d) || validEdge(d.edge))
+            && (!('seed' in d) || isString(d.seed, 64))
+            && (!('thumbnailUrl' in d) || isString(d.thumbnailUrl, 2048))
+            && (!('thumbnailPath' in d) || ownFile(d.thumbnailPath))
+            && d.width is int && d.width > 0
+            && d.height is int && d.height > 0;
+        }
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid)
+          && validSticker(request.resource.data)
+          && request.resource.data.createdAt == request.time;
+        // After creation: rename, or redo the edge (new image file, edge settings and size).
+        allow update: if isOwner(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'storagePath', 'imageUrl', 'edge', 'seed', 'width', 'height'])
+          && validSticker(request.resource.data);
         allow delete: if isOwner(uid);
       }
     }

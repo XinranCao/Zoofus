@@ -26,6 +26,7 @@ describe("buildExport", () => {
             name: "Froggo",
             storagePath: "u/stickers/a.png",
             imageUrl: "https://x/a.png",
+            kind: "legacy",
             width: 1,
             height: 1,
             createdAt,
