@@ -33,6 +33,7 @@ const PreviewBox = () => {
   const {
     imageSrc,
     confirmed,
+    setResultUrl,
     fit,
     stageImage,
     shapeType,
@@ -419,6 +420,7 @@ const PreviewBox = () => {
                 naturalWidth={imgNaturalWidth}
                 naturalHeight={imgNaturalHeight}
                 styles={styles}
+                onRender={setResultUrl}
               />
             )}
           </Box>

@@ -41,6 +41,7 @@ export function useImageLassoState(onClose, styles) {
   const [lassoSelections, setLassoSelections] = useState([]); // { id, path }
   const [activeShapeId, setActiveShapeId] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
+  const [resultUrl, setResultUrl] = useState(null); // PNG data URL of the masked cut-out
 
   // --- Add shape ---
   const addShape = (type) => {
@@ -121,6 +122,8 @@ export function useImageLassoState(onClose, styles) {
     setImageSrc,
     confirmed,
     setConfirmed,
+    resultUrl,
+    setResultUrl,
     borderColor,
     setBorderColor,
     borderWidth,
