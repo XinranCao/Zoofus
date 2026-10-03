@@ -1,0 +1,19 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    target-branch: dev
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # rollup 4.64.0 hangs `vite build` (see CLAUDE.md); bump by hand after testing.
+      - dependency-name: rollup
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    target-branch: dev

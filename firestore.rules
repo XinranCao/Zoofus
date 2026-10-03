@@ -1,0 +1,77 @@
+rules_version = '2';
+
+// Everything is private to its owner. Anything not matched below is denied.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function isString(value, maxLen) {
+      return value is string && value.size() <= maxLen;
+    }
+
+    // users/{uid}: the owner's profile
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(['uid', 'nickname', 'profilePictureUrl', 'email'])
+        && request.resource.data.uid == uid
+        && isString(request.resource.data.nickname, 40)
+        && isString(request.resource.data.profilePictureUrl, 2048)
+        && isString(request.resource.data.email, 320);
+      // Deleting the profile is part of deleting the account (the app removes the rest first).
+      allow delete: if isOwner(uid);
+
+      // users/{uid}/pages/{pageId}: collage / journal pages (stickers placed on a canvas).
+      // Rules cannot loop over `items`, so per-item shape is validated by the client (zod);
+      // here we cap the count and the scalar fields. Keep limits in sync with page.schema.ts.
+      match /pages/{pageId} {
+        function validPage(data) {
+          return data.keys().hasOnly(['title', 'width', 'height', 'background', 'items', 'createdAt', 'updatedAt'])
+            && isString(data.title, 80)
+            && data.width is int && data.width >= 100 && data.width <= 4000
+            && data.height is int && data.height >= 100 && data.height <= 4000
+            && isString(data.background, 32)
+            && data.items is list && data.items.size() <= 200
+            && data.updatedAt == request.time;
+        }
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid)
+          && validPage(request.resource.data)
+          && request.resource.data.createdAt == request.time;
+        allow update: if isOwner(uid)
+          && validPage(request.resource.data)
+          && request.resource.data.createdAt == resource.data.createdAt;
+        allow delete: if isOwner(uid);
+      }
+
+      // users/{uid}/stickers/{stickerId}: the owner's saved stickers
+      match /stickers/{stickerId} {
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(['name', 'storagePath', 'imageUrl', 'thumbnailUrl', 'thumbnailPath', 'width', 'height', 'createdAt'])
+          && isString(request.resource.data.name, 60)
+          && request.resource.data.name.size() > 0
+          && request.resource.data.storagePath.matches('^' + uid + '/stickers/.+')
+          && isString(request.resource.data.imageUrl, 2048)
+          && (!('thumbnailUrl' in request.resource.data) || isString(request.resource.data.thumbnailUrl, 2048))
+          && (!('thumbnailPath' in request.resource.data)
+              || (isString(request.resource.data.thumbnailPath, 512)
+                  && request.resource.data.thumbnailPath.matches('^' + uid + '/stickers/.+')))
+          && request.resource.data.width is int && request.resource.data.width > 0
+          && request.resource.data.height is int && request.resource.data.height > 0
+          && request.resource.data.createdAt == request.time;
+        // Only renaming is allowed after creation.
+        allow update: if isOwner(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
+          && isString(request.resource.data.name, 60)
+          && request.resource.data.name.size() > 0;
+        allow delete: if isOwner(uid);
+      }
+    }
+  }
+}
