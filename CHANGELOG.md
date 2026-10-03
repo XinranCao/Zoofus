@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.1 – 2026-10-03
+
+### Other
+
+- The two timing checks (tear generation, torn die-cut) run on a developer machine only; CI runners are too slow and variable for them. No change to the app.
+
 ## v0.4.0 – 2026-10-03
 
 The redesign and the Chinese interface.

@@ -5,6 +5,13 @@ import { mkdirSync, writeFileSync } from "node:fs";
 // (Chrome's "mid-tier mobile" profile). Numbers are saved to design-system/verification/.
 const OUT = "design-system/verification";
 
+// Timings depend on the machine: shared CI runners are several times slower than a laptop, so
+// these run locally (or in CI with DS_PERF=1) and never gate a merge.
+test.skip(
+  !!process.env.CI && !process.env.DS_PERF,
+  "timing checks run locally; set DS_PERF=1 to run them in CI",
+);
+
 // module URLs served by the Vite dev server: the same instances the running app uses
 const TORN = "/src/paper/torn.ts";
 const DIE = "/src/paper/renderSticker.ts";
