@@ -12,8 +12,8 @@ import {
 } from "@mui/material";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import ReplayIcon from "@mui/icons-material/Replay";
-import UndoIcon from "@mui/icons-material/Undo";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import DownloadIcon from "@mui/icons-material/Download";
 import { useImageLasso } from "./ImageLassoContext";
 import { ChromePicker } from "react-color";
 
@@ -27,6 +27,7 @@ const LassoControls = () => {
     setLassoSelections,
     handleConfirm,
     handleRedoAll,
+    resultUrl,
     inputRef,
     borderColor,
     setBorderColor,
@@ -101,18 +102,20 @@ const LassoControls = () => {
               >
                 Choose Another Image
               </Button>
-              {/* <Button
-                variant="outlined"
-                color="secondary"
-                startIcon={<UndoIcon />}
-                onClick={handleRedoLast}
-                disabled={shapes.length === 0 && lassoSelections.length === 0}
-              >
-                Redo Last
-              </Button> */}
             </Stack>
           ) : (
             <Stack spacing={2} sx={{ mt: 2 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<DownloadIcon />}
+                component="a"
+                href={resultUrl || undefined}
+                download="zoofus-cutout.png"
+                disabled={!resultUrl}
+              >
+                Download PNG
+              </Button>
               <Button
                 variant="outlined"
                 color="secondary"

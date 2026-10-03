@@ -22,9 +22,15 @@ const MaskedImage = React.memo(function MaskedImage(props) {
     displayWidth = 500,
     displayHeight = 500,
     styles,
+    onRender,
   } = props;
   const [image] = useImageCustom(src, "anonymous");
   const [maskUrl, setMaskUrl] = useState(null);
+
+  // Report the rendered PNG (or null) so the parent can offer a download
+  useEffect(() => {
+    if (onRender) onRender(maskUrl);
+  }, [maskUrl, onRender]);
 
   useEffect(() => {
     if (!image) {

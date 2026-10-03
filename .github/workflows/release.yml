@@ -1,0 +1,51 @@
+name: Release
+# Runs when a version tag (vX.Y.Z) is pushed. Tags are created by hand from main
+# (see "Release process" in CLAUDE.md), so a human always decides when a release ships.
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+permissions:
+  contents: write
+  checks: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify tag is on main and matches package.json
+        run: |
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "Tag $GITHUB_REF_NAME is not on main"; exit 1; }
+          pkg="v$(node -p "require('./package.json').version")"
+          [ "$pkg" = "$GITHUB_REF_NAME" ] || { echo "package.json is $pkg but tag is $GITHUB_REF_NAME"; exit 1; }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+        env:
+          VITE_APP_API_KEY: ${{ secrets.VITE_APP_API_KEY }}
+          VITE_APP_AUTH_DOMAIN: ${{ secrets.VITE_APP_AUTH_DOMAIN }}
+          VITE_APP_PROJECT_ID: ${{ secrets.VITE_APP_PROJECT_ID }}
+          VITE_APP_STORAGE_BUCKET: ${{ secrets.VITE_APP_STORAGE_BUCKET }}
+          VITE_APP_MESSAGING_SENDER_ID: ${{ secrets.VITE_APP_MESSAGING_SENDER_ID }}
+          VITE_APP_APP_ID: ${{ secrets.VITE_APP_APP_ID }}
+          VITE_APP_MEASUREMENT_ID: ${{ secrets.VITE_APP_MEASUREMENT_ID }}
+      - name: Deploy to Firebase Hosting (live)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ZOOFUS_48264 }}
+          projectId: zoofus-48264
+          channelId: live
+      - name: Create GitHub Release from CHANGELOG
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ver="${GITHUB_REF_NAME#v}"
+          awk -v v="$ver" '$0 ~ "^## v"v" " {f=1; next} /^## /{f=0} f' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "Release $GITHUB_REF_NAME" > notes.md
+          gh release create "$GITHUB_REF_NAME" --title "Zoofus $GITHUB_REF_NAME" --notes-file notes.md --verify-tag

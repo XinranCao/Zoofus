@@ -51,13 +51,13 @@ export function AuthProvider({ children }) {
   async function updateProfile({ displayName, photo }) {
     const user = auth.currentUser;
     if (!user) return;
-    dispatch(
+    await dispatch(
       updateUserProfile({
         uid: user.uid,
         displayName,
         photo,
       })
-    );
+    ).unwrap();
   }
 
   useEffect(() => {

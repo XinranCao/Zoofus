@@ -1,0 +1,68 @@
+# Zoofus
+
+## Project summary
+Zoofus is a React + Firebase web app. Users sign up / log in (email+password or Google), then use the **Image Lasso** tool on the Home page: upload an image, select regions with freehand lasso or rectangle/triangle/star shapes (select vs deselect), and preview the masked cut-out with an adjustable border.
+Stack: React 19, Vite 7, MUI 7, Redux Toolkit, react-router 7, Konva/react-konva, polygon-clipping, react-color, Less modules, Firebase 12 (Auth, Firestore, Storage, Analytics, Hosting). Firebase project id: `zoofus-48264`.
+Local runs need a `.env` with `VITE_APP_*` Firebase keys. Never read, print or commit it.
+
+## Commands
+- `npm install` / `npm ci` – install deps
+- `npm run dev` – Vite dev server
+- `npm run build` – production build into `dist/`
+- `npm run preview` – serve the built app
+- `npm run deploy` – build, then `firebase deploy` to Hosting (needs user approval)
+- `npm test` – Vitest (jsdom) single run; `npm run test:watch` for watch mode. Tests live next to the code as `*.test.js`.
+- Node 22 (`.nvmrc`); Vite 7 needs Node 20.19+. CI (`.github/workflows/ci.yml`) runs `npm ci`, `npm test`, `npm run build` on pushes and PRs to `dev`/`main`.
+
+## Architecture map
+- `src/main.jsx` – providers: Redux `Provider` > `BrowserRouter` > `AuthProvider` > `App`
+- `src/App.jsx` – routes: `/login`, `/signup`, `/` (behind `ProtectedRoute`)
+- `src/context/AuthContext.jsx` – Firebase Auth wrapper (`useAuth`): signup/login/Google/logout/reset, `updateProfile`
+- `src/store/userSlice.js` – Redux thunks for the Firestore `users/{uid}` profile and Storage upload to `{uid}/profile/profile_pic/`
+- `src/services/firebase.js` – Firebase init (auth, db, storage, analytics) from `import.meta.env.VITE_APP_*`
+- `src/pages/Auth/*` – Login and two-step SignUp pages; `src/components/auth/*` – forms and password-reset dialog
+- `src/pages/Home/Home.jsx` – opens the Image Lasso dialog
+- `src/components/ImageLasso/*` – the lasso tool: `ImageLassoPanel` (dialog), `PreviewBox` (Konva stage), `LassoControls`, `ShapeSelector`, `MaskedImage` (polygon-clipping union/difference + border), `hooks/` (state, drawing, transform), `shapeHandler/`, `utils/lassoUtils.js`
+- `src/components/navigation/NavBar.jsx` – top bar with avatar and menu
+- `src/utils/image.js` – `compressImage`, `useImageCustom`, `scalePoints`, `getFitSize`
+- `.github/workflows/` – `ci.yml` (test + build), Firebase Hosting preview on PRs, `claude.yml` (@claude)
+- Local-only (git-ignored): `.claude/` (settings + hooks) and `CLAUDE_SETUP_TASK.md`. `CLAUDE.md` itself is tracked so `@claude` on GitHub can read it.
+
+## Conventions
+- React function components with hooks; MUI components styled via the `sx` prop; `*.module.less` CSS modules for layout.
+- Redux Toolkit thunks (`createAsyncThunk`) for Firebase I/O.
+- ImageLasso state lives in `useImageLassoState` and is shared through `ImageLassoContext`.
+
+## Git workflow
+- `dev` is the only development branch. Commit and push all work to `dev`. No feature branches.
+- `main` is release-only. Never commit, push, or merge to `main` except during a release the user explicitly asked for.
+- Before starting a task: confirm `git branch --show-current` is `dev` and run `git pull --ff-only`.
+- After each finished task: run `npm run build` (and tests once they exist). If they pass, commit and `git push origin dev`.
+- Commit message style: `FEAT:` / `FIX:` / `UPDATE:` / `STYLE:` / `CLEAN:` / `SETUP:` / `CHORE:` / `RELEASE:` + short imperative summary, e.g. `FEAT: add export button for masked image`.
+- A Stop hook auto-commits leftover changes on `dev` as `WIP: auto-save …` and pushes them. Prefer making your own descriptive commit before ending a turn.
+- Never commit `.env`, service-account JSON, or any secret. Never force-push.
+- Work from `@claude` on GitHub arrives as PRs into `dev`. The user reviews and merges them.
+
+## Release process (only when the user says "release" / "cut a version")
+1. On `dev`, with a clean tree: `git pull --ff-only`, `npm ci`, `npm run build` (and tests). Everything must pass.
+2. Propose the version number (semver; current is in package.json) and confirm it with the user.
+3. Update `CHANGELOG.md`: a new `## vX.Y.Z – YYYY-MM-DD` section summarizing changes since the last tag (`git log <last-tag>..dev --oneline`, or since the first commit if there is no tag). Group them as Features / Fixes / Other, and skip WIP auto-save commits.
+4. `npm version X.Y.Z --no-git-tag-version`, then commit `RELEASE: vX.Y.Z` on `dev` and push `dev`.
+5. `git switch main && git pull --ff-only && git merge --no-ff dev -m "RELEASE: vX.Y.Z"`
+6. `git tag -a vX.Y.Z -m "Zoofus vX.Y.Z"`, then `git push origin main && git push origin vX.Y.Z`
+7. Pushing the tag triggers `.github/workflows/release.yml`, which verifies the tag is on `main` and matches `package.json`, runs tests + build, **deploys to Firebase Hosting (live)** and creates the GitHub Release from the `CHANGELOG.md` section. Watch it with `gh run watch`, then check https://zoofus-48264.web.app loads. Every tag is deployed this way.
+8. If the workflow fails, fix forward on `dev` and release a patch; as a last resort deploy manually from the tagged commit with `npm run deploy` (needs local `.env`; user approves).
+9. `git switch dev`.
+- `git log --first-parent main --oneline` lists the releases.
+
+## Working from GitHub
+- Mention `@claude` in an issue or PR comment to have Claude work on it in GitHub Actions (`.github/workflows/claude.yml`, auth secret `CLAUDE_CODE_OAUTH_TOKEN`).
+- Claude opens PRs into `dev`, and follows this same `CLAUDE.md`.
+- `@claude` never merges to `main` or tags releases. Only the human-pushed `vX.Y.Z` tag triggers `release.yml` (deploy + GitHub Release).
+
+## Known issues / backlog
+- Do not upgrade `rollup` past 4.59.0 without checking: 4.64.0 made `vite build` hang (pinned via `overrides` in package.json). `@grpc/grpc-js` is also overridden to ^1.14.5 to clear audit findings (Firestore pins 1.9.x; unused in the browser bundle). `npm audit` is clean.
+- Workflows that build the app (`firebase-hosting-pull-request.yml`, `release.yml`) need the repo secrets `VITE_APP_*` (same names as `.env`) plus `FIREBASE_SERVICE_ACCOUNT_ZOOFUS_48264`.
+- "Redo" in the lasso panel resets everything (it is not a redo). No ESLint yet. Minor commented-out code remains in the lasso components.
+- Next sprint: main feature development, then the first major version (v1.0.0).
+
