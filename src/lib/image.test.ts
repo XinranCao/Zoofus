@@ -21,9 +21,7 @@ describe("getFitSize", () => {
 
 describe("scalePoints", () => {
   it("scales x and y independently", () => {
-    expect(scalePoints([10, 20, 30, 40], 100, 200, 200, 400)).toEqual([
-      20, 40, 60, 80,
-    ]);
+    expect(scalePoints([10, 20, 30, 40], 100, 200, 200, 400)).toEqual([20, 40, 60, 80]);
   });
 
   it("returns an empty array for no points", () => {
