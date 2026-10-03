@@ -34,6 +34,16 @@ export function stickerBorder(size: number, scale = 1): number {
   return Math.round(Math.min(28, Math.max(4, size * 0.045)) * scale);
 }
 
+/**
+ * Edge width in px for a cut-out whose longest side is `longSide` px, times the user's scale
+ * (0 = none, up to 1.6). Proportional to the image (4.5%), so the on-screen preview and the
+ * larger exported file always have the same look. 0 only when the scale is 0.
+ */
+export function edgeWidth(longSide: number, scale = 1): number {
+  if (scale <= 0) return 0;
+  return Math.max(2, Math.round(longSide * 0.045 * scale));
+}
+
 interface EdgeSample {
   r: number;
   f: number;

@@ -9,6 +9,9 @@ const LoginPage = lazy(() => import("@/features/auth/pages/LoginPage"));
 const SignUpPage = lazy(() => import("@/features/auth/pages/SignUpPage"));
 const HomePage = lazy(() => import("@/pages/HomePage"));
 const AccountPage = lazy(() => import("@/features/account/AccountPage"));
+const DesignSystemPage = import.meta.env.DEV
+  ? lazy(() => import("@/pages/dev/DesignSystemPage"))
+  : null;
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const StickerBookPage = lazy(() => import("@/features/stickers/library/StickerBookPage"));
 
@@ -40,6 +43,9 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
+              {DesignSystemPage && (
+                <Route path="/dev/design-system" element={<DesignSystemPage />} />
+              )}
               <Route path="*" element={<NotFoundPage />} />
               <Route
                 path="/"
