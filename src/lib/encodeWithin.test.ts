@@ -98,9 +98,8 @@ describe("encodeWithin", () => {
     expect(fillRect).toHaveBeenCalled();
   });
 
-  it("uses the policy limits: 1280 px stickers, 256 px thumbnails, 512 px avatars", () => {
+  it("uses the policy limits: 1280 px stickers and 512 px avatars", () => {
     expect(COMPRESSION.sticker.maxSide).toBe(1280);
-    expect(COMPRESSION.thumbnail.maxSide).toBe(256);
     expect(COMPRESSION.avatar.maxSide).toBe(512);
   });
 });

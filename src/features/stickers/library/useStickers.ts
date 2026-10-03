@@ -27,15 +27,11 @@ export function useSaveSticker() {
     mutationFn: async ({ canvas, name }: { canvas: HTMLCanvasElement; name: string }) => {
       if (!uid) throw new Error("Not signed in");
       // Whatever the original photo size, what we store is compressed to the policy in
-      // COMPRESSION (max 1280 px, WebP ~q82, small thumbnail), so storage stays cheap.
-      const [sticker, thumb] = await Promise.all([
-        encodeWithin(canvas, COMPRESSION.sticker),
-        encodeWithin(canvas, COMPRESSION.thumbnail),
-      ]);
+      // COMPRESSION (max 1280 px, WebP ~q82), so storage stays cheap but the sticker stays sharp.
+      const sticker = await encodeWithin(canvas, COMPRESSION.sticker);
       return saveSticker(uid, {
         name,
         blob: sticker.blob,
-        thumbnail: thumb.blob,
         width: sticker.width,
         height: sticker.height,
       });

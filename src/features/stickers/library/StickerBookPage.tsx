@@ -50,7 +50,7 @@ export default function StickerBookPage() {
           sx={{
             display: "grid",
             gap: 3,
-            gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
           }}
         >
           {stickers?.map((sticker) => (
@@ -61,9 +61,12 @@ export default function StickerBookPage() {
               >
                 <CardMedia
                   component="img"
-                  image={sticker.thumbnailUrl ?? sticker.imageUrl}
+                  // Full-size image so the grid stays sharp on high-DPI screens; lazy so only visible ones load.
+                  loading="lazy"
+                  decoding="async"
+                  image={sticker.imageUrl}
                   alt={sticker.name}
-                  sx={{ height: 160, objectFit: "contain", bgcolor: "action.hover" }}
+                  sx={{ height: 200, objectFit: "contain", bgcolor: "action.hover" }}
                 />
                 <CardContent>
                   <Typography noWrap>{sticker.name}</Typography>

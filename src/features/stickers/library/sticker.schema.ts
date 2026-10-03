@@ -6,7 +6,7 @@ export const stickerDocSchema = z.object({
   name: z.string(),
   storagePath: z.string(),
   imageUrl: z.string(),
-  /** Small preview for grids; older stickers don't have one. */
+  /** Legacy: stickers saved before v0.3.1 have a small thumbnail. It is no longer created or shown, only deleted with the sticker. */
   thumbnailUrl: z.string().optional(),
   thumbnailPath: z.string().optional(),
   width: z.number().int().positive(),

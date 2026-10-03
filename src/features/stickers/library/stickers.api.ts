@@ -33,7 +33,6 @@ export async function listStickers(uid: string): Promise<Sticker[]> {
 
 export interface NewSticker {
   blob: Blob;
-  thumbnail?: Blob;
   name: string;
   width: number;
   height: number;
@@ -55,39 +54,22 @@ export async function saveSticker(uid: string, input: NewSticker): Promise<strin
 
   const id = crypto.randomUUID();
   const storagePath = `${uid}/stickers/${id}.${extensionFor(input.blob)}`;
-  const thumbnailPath = input.thumbnail
-    ? `${uid}/stickers/${id}_thumb.${extensionFor(input.thumbnail)}`
-    : undefined;
+  const fileRef = ref(storage, storagePath);
 
   try {
-    const fileRef = ref(storage, storagePath);
     await uploadBytes(fileRef, input.blob, { contentType: input.blob.type });
-    const imageUrl = await getDownloadURL(fileRef);
-
-    let thumbnailUrl: string | undefined;
-    if (input.thumbnail && thumbnailPath) {
-      const thumbRef = ref(storage, thumbnailPath);
-      await uploadBytes(thumbRef, input.thumbnail, { contentType: input.thumbnail.type });
-      thumbnailUrl = await getDownloadURL(thumbRef);
-    }
-
     await setDoc(doc(stickersRef(uid), id), {
       name: input.name,
       storagePath,
-      imageUrl,
-      ...(thumbnailPath && thumbnailUrl ? { thumbnailPath, thumbnailUrl } : {}),
+      imageUrl: await getDownloadURL(fileRef),
       width: input.width,
       height: input.height,
       createdAt: serverTimestamp(),
     });
     return id;
   } catch (err) {
-    // Don't leave files behind that no sticker document points at.
-    await Promise.allSettled(
-      [storagePath, thumbnailPath]
-        .filter((p): p is string => Boolean(p))
-        .map((p) => deleteFileIfExists(ref(storage, p))),
-    );
+    // Don't leave a file behind that no sticker document points at.
+    await deleteFileIfExists(fileRef).catch(() => {});
     throw err;
   }
 }

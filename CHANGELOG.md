@@ -5,7 +5,7 @@
 ### Features
 
 - Click a sticker in My Stickers to preview it full size in a pop-up: zoom with the buttons, mouse wheel, double click or pinch, drag to move around, Escape to close. Transparent areas show on a checkerboard.
-- Saved stickers are compressed: scaled to at most 1,280 px and stored as WebP (quality 82, stepping down to 60 if needed, 400 KB target) with a 256 px thumbnail, so each sticker is typically under 100 KB. "Download PNG" is still full quality.
+- Saved stickers are compressed: scaled to at most 1,280 px and stored as WebP (quality 82, stepping down to 60 if needed, 400 KB target), so each sticker is typically under 100 KB. The My Stickers grid shows this full-size image (lazy-loaded) instead of a tiny thumbnail, so stickers look sharp; old thumbnails are no longer used. "Download PNG" is still full quality.
 - Profile photos are scaled to 512 px and compressed to JPEG before upload (they used to keep their full dimensions).
 
 ### Other

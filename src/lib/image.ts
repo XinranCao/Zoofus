@@ -148,14 +148,6 @@ export const COMPRESSION = {
     minSide: 480,
     maxBytes: 400 * 1024,
   },
-  thumbnail: {
-    format: "webp",
-    maxSide: 256,
-    quality: 0.8,
-    minQuality: 0.6,
-    minSide: 128,
-    maxBytes: 40 * 1024,
-  },
   avatar: {
     format: "jpeg",
     maxSide: 512,
