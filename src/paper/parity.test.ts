@@ -42,7 +42,7 @@ function cutout(L: number): Canvas {
 const STRIPES: PatternSpec = {
   kind: "stripes",
   bg: "sheet-50",
-  ink: "brick-700",
+  ink: "brick-600",
   scale: 12,
   angle: 45,
   weight: 0.5,
