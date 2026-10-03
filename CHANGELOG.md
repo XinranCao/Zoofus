@@ -1,28 +1,42 @@
 # Changelog
 
-## Unreleased
+## v0.3.0 – 2026-10-03
+
+Architecture rewrite and app foundations. The visual redesign moves to v0.4.0.
 
 ### Features
 
-- Sticker book: save a cut-out to your account (Firestore + Storage), list and delete it on the new My Stickers page.
+- Sticker book: save a cut-out to your account, with a thumbnail, then list, rename and delete it on the new My Stickers page.
 - Real undo and redo in the sticker editor (the old "Redo" only reset everything), plus Clear.
+- Editor keyboard shortcuts (arrows move the selection, Delete removes it, Ctrl/Cmd+Z undoes) and touch handling for drawing.
+- Account page: download all your data as JSON, delete your account and everything in it.
+- Email verification: new password accounts get a verification email and a reminder banner.
+- Photos are rotated by their EXIF orientation, large photos are downscaled for editing, and unsupported files get a clear message.
+- Error screen and a 404 page.
+
+### Security
+
+- Firestore and Storage rules are owner-only with validated fields, size and type limits. Deployed to production, with emulator tests.
+- Firebase App Check is wired in (needs the one-time console setup and a site key; off until then).
+- Limits: 200 stickers per account, 9.5 MB per sticker. Sign-up requires 8-character passwords.
+- Branch protection on `dev` and `main`; Dependabot enabled.
+
+### Fixes
+
+- The cut-out canvas was rebuilt endlessly because its size object changed every render.
+- Account and sticker deletion no longer fail when a file is already gone; failed saves clean up their uploads.
+- The error screen clears when you navigate; cached data is cleared on sign-out.
+- The first uploaded image no longer fails to load.
 
 ### Other
 
-- Sign-up requires 8-character passwords (login stays lenient for existing accounts); security setup checklist in `docs/security-setup.md`.
-- More unit tests: image preparation, cut-out rendering, sticker API, account deletion order (92 unit tests total).
-- Review fixes: error screen now clears on navigation; account and sticker deletion no longer fail on missing files; failed saves clean up uploaded files; query cache cleared on sign-out; faster border slider; sign-up uses new-password autocomplete; App Check initialised first; test scripts use a pinned `npx firebase-tools`.
-- Testing: Testing Library component tests and a Playwright end-to-end flow on the emulators, both in CI.
-- Account page (download data, delete account), email verification banner, App Check wiring, per-account sticker limits, collage page data model, editor keyboard shortcuts and touch handling.
-- Local emulator environment (`npm run emulators`, `npm run dev:emulated`); `.env.example`; environments documented.
-- Image pipeline: EXIF rotation, downscaling of large photos, friendly errors for unsupported files, sticker thumbnails, rename stickers.
-- Firestore and Storage security rules (owner-only, validated fields, size and type limits) with emulator tests and a CI job. Not deployed yet.
-- Error boundary and a 404 page.
-- Migrated to TypeScript (strict) with ESLint, Prettier, typecheck and lint in CI.
-- Feature-based structure with an `@/` alias; Redux replaced by TanStack Query (server data) and Zustand (editor state).
-- Rebuilt the sticker editor around a unified selection model with a pure, unit-tested mask engine.
-- Forms use react-hook-form + zod; environment variables are validated at startup.
-- UI style brief for the redesign in `docs/ui-style-brief.md`.
+- Migrated to TypeScript (strict) with ESLint, Prettier and a feature-based structure (`@/` alias).
+- Redux replaced by TanStack Query (server data) and Zustand (editor state); forms use react-hook-form and zod; environment variables are validated at startup.
+- The sticker editor is rebuilt around a unified selection model with a pure, tested mask engine.
+- Data model for collage and journal pages (schema, operations, API, rules; no UI yet).
+- Local Firebase emulators (`npm run emulators`, `npm run dev:emulated`) and documented environments.
+- Tests: 94 unit and component tests, 21 security-rule tests and an end-to-end flow on the emulators, all in CI.
+- Docs: UI style brief, App Check and security setup guides.
 
 ## v0.2.0 – 2026-10-02
 
