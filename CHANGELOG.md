@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## v0.3.1 – 2026-10-03
+
+Image handling and the sticker gallery.
 
 ### Features
 
@@ -10,7 +12,9 @@
 
 ### Other
 
-- Storage rules now accept WebP or PNG stickers up to 2 MB and profile photos up to 2 MB (was 10 MB and 5 MB). Deploy the rules after releasing this version.
+- Storage rules now accept WebP or PNG stickers up to 2 MB and profile photos up to 2 MB (was 10 MB and 5 MB), deployed right after this release.
+- Uploads need the Firebase Blaze plan (Cloud Storage no longer works on the free Spark plan); documented in `docs/security-setup.md`.
+- Saving logs the real error in the browser console.
 
 ## v0.3.0 – 2026-10-03
 
