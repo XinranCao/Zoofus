@@ -11,7 +11,8 @@ Local runs need a `.env` with `VITE_APP_*` Firebase keys. Never read, print or c
 - `npm run build` – production build into `dist/`
 - `npm run preview` – serve the built app
 - `npm run deploy` – build, then `firebase deploy` to Hosting (needs user approval)
-- Tests: no working runner yet (`npm test` runs the invalid `vite test`). Once Vitest is set up, use `npx vitest run`.
+- `npm test` – Vitest (jsdom) single run; `npm run test:watch` for watch mode. Tests live next to the code as `*.test.js`.
+- Node 22 (`.nvmrc`); Vite 7 needs Node 20.19+. CI (`.github/workflows/ci.yml`) runs `npm ci`, `npm test`, `npm run build` on pushes and PRs to `dev`/`main`.
 
 ## Architecture map
 - `src/main.jsx` – providers: Redux `Provider` > `BrowserRouter` > `AuthProvider` > `App`
@@ -24,7 +25,7 @@ Local runs need a `.env` with `VITE_APP_*` Firebase keys. Never read, print or c
 - `src/components/ImageLasso/*` – the lasso tool: `ImageLassoPanel` (dialog), `PreviewBox` (Konva stage), `LassoControls`, `ShapeSelector`, `MaskedImage` (polygon-clipping union/difference + border), `hooks/` (state, drawing, transform), `shapeHandler/`, `utils/lassoUtils.js`
 - `src/components/navigation/NavBar.jsx` – top bar with avatar and menu
 - `src/utils/image.js` – `compressImage`, `useImageCustom`, `scalePoints`, `getFitSize`
-- `.github/workflows/` – Firebase Hosting preview on PRs (plus the Claude workflow once added)
+- `.github/workflows/` – `ci.yml` (test + build), Firebase Hosting preview on PRs, `claude.yml` (@claude)
 - Local-only (git-ignored): `.claude/` (settings + hooks) and `CLAUDE_SETUP_TASK.md`. `CLAUDE.md` itself is tracked so `@claude` on GitHub can read it.
 
 ## Conventions
@@ -60,12 +61,7 @@ Local runs need a `.env` with `VITE_APP_*` Firebase keys. Never read, print or c
 - Releases to `main` and Firebase deploys are never done from GitHub Actions.
 
 ## Known issues / backlog
-Confirmed in the Phase 4 health check (build passes; dev server starts; `npm audit` reports 17 vulns):
-- **Tests broken:** `npm test` runs `vite test` (not a command). No Vitest/jsdom installed. `src/App.test.js` is a CRA test looking for "learn react"; `src/setupTests.js` is Jest-style. Testing-library deps are present but unused.
-- **Profile update bug:** `AuthContext.updateProfile` (`src/context/AuthContext.jsx`) dispatches `updateUserProfile` without `await`/`unwrap`; `userSlice.js` has no `rejected` case. `SignUpPage.handleStep2` therefore navigates before the upload finishes and upload errors are silently swallowed.
-- **Analytics at import:** `src/services/firebase.js` calls `getAnalytics(app)` unguarded (no `isSupported()`), and the `analytics`/`googleProvider` values are unused.
-- **CRA leftovers:** `package.json` `eslintConfig` (ESLint not installed) and `browserslist`; `src/reportWebVitals.js` + call in `src/main.jsx` (`web-vitals` dep); unused `src/App.css` and `src/logo.svg`; `public/manifest.json` (CRA placeholder, not linked from `index.html`); `README.md` was CRA boilerplate (rewritten).
-- **No export:** the masked image can't be saved/downloaded yet (`MaskedImage.jsx`).
-- **CI/deploy:** no build/test check on pushes to `dev`; deploys are manual (`npm run deploy`). PR preview workflow needs the repo secret `FIREBASE_SERVICE_ACCOUNT_ZOOFUS_48264`, which is missing.
-- **Other:** single 1.5 MB JS bundle (Vite chunk warning); `npm audit` vulnerabilities; "Redo" button actually resets everything; a few commented-out blocks.
-- Not an issue: `UndoIcon` in `LassoControls.jsx` is used.
+- PR preview deploys need the repo secret `FIREBASE_SERVICE_ACCOUNT_ZOOFUS_48264` (issue #8, set up via `firebase init hosting:github`).
+- 4 high `npm audit` findings remain, all from Firebase's gRPC dependency; the only fix downgrades firebase to v9, so it is deferred until Firebase ships a patched release.
+- Do not upgrade `rollup` past 4.59.0 without checking: 4.64.0 made `vite build` hang (pinned via `overrides` in package.json).
+- "Redo" in the lasso panel resets everything (it is not a redo). No ESLint yet. Minor commented-out code remains in the lasso components.

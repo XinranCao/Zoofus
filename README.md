@@ -5,7 +5,7 @@ A React + Firebase web app. Sign up or log in (email/password or Google), then u
 Stack: React 19, Vite 7, MUI 7, Redux Toolkit, react-router 7, Konva/react-konva, polygon-clipping, Less modules, Firebase 12 (Auth, Firestore, Storage, Analytics, Hosting).
 
 ## Setup
-1. Node 20 or newer, then `npm install`.
+1. Node 22 (see `.nvmrc`; Vite needs 20.19+), then `npm install`.
 2. Create a `.env` in the repo root (never commit it) with your Firebase web config:
    `VITE_APP_API_KEY`, `VITE_APP_AUTH_DOMAIN`, `VITE_APP_PROJECT_ID`, `VITE_APP_STORAGE_BUCKET`, `VITE_APP_MESSAGING_SENDER_ID`, `VITE_APP_APP_ID`, `VITE_APP_MEASUREMENT_ID`.
 
@@ -14,6 +14,7 @@ Stack: React 19, Vite 7, MUI 7, Redux Toolkit, react-router 7, Konva/react-konva
 | --- | --- |
 | `npm run dev` | Vite dev server (http://localhost:5173) |
 | `npm run build` | Production build into `dist/` |
+| `npm test` | Run the Vitest suite |
 | `npm run preview` | Serve the production build |
 | `npm run deploy` | Build, then `firebase deploy` to Hosting |
 
