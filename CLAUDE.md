@@ -32,7 +32,7 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
   - `domain/` pure, tested logic: `types.ts` (unified `Selection` model), `geometry.ts` (selection → polygon, ring joining), `mask.ts` (polygon-clipping: select union minus deselect, clipped to image), `render.ts` (canvas cut-out + border)
   - `store/editorStore.ts` – Zustand store per editor instance with undo/redo history (`EditorStoreProvider`, `useEditor`)
   - `components/` Konva canvas, shapes, controls, result panel; `StickerEditor.tsx` is the entry
-  - `library/` saved stickers: `sticker.schema.ts`, `stickers.api.ts` (Firestore `users/{uid}/stickers/{id}` + Storage `{uid}/stickers/{id}.png`), `useStickers.ts`, `StickerBookPage.tsx`
+  - `library/` saved stickers: `sticker.schema.ts`, `stickers.api.ts` (Firestore `users/{uid}/stickers/{id}` + Storage `{uid}/stickers/{id}.png`), `useStickers.ts`, `StickerBookPage.tsx`, `StickerPreviewDialog.tsx` (zoom/pan preview via `react-zoom-pan-pinch`)
 - `firestore.rules`, `storage.rules`, `rules-tests/` – owner-only security rules and their emulator tests. **Deploying rules changes production: ask the user first** (`firebase deploy --only firestore:rules,storage`).
 - `e2e/` – Playwright tests; `src/**/*.test.tsx` – Testing Library component tests
 - `src/features/pages/` – collage page data model (schema, pure ops, API, hooks; no UI yet). `src/features/account/` – account page (export/delete), email verification banner
@@ -85,7 +85,13 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
 
 `dev` and `main` require the CI checks `build-and-test`, `security-rules` and `e2e`, and block force-push and deletion. Admins (the owner) can still push directly, which the auto-save hook and the release process rely on. To rewrite history on `dev`, lift the protection temporarily (`gh api -X DELETE repos/XinranCao/Zoofus/branches/dev/protection`), then restore it.
 
+## Image compression policy
+
+Stored images are compressed on save by `encodeWithin` + `COMPRESSION` in `src/lib/image.ts`: stickers max 1,280 px WebP (quality 0.82, floor 0.6, 400 KB target, PNG fallback where the browser cannot encode WebP), profile photos 512 px JPEG (no separate thumbnails: the gallery shows the full sticker, lazy-loaded). Editing keeps up to 2,048 px; "Download PNG" is the full-quality export. `storage.rules` caps uploads at 2 MB, which is the safety net, not the target. Change limits in one place (`COMPRESSION`) and keep the rules in step.
+
 ## Known issues / backlog
+
+- **Cloud Storage needs the Blaze plan.** On the free Spark plan every upload (stickers, profile photos) fails with HTTP 402. The emulators do not enforce this, so tests pass regardless. Upgrade the project to Blaze (pay-as-you-go; the Always Free quota covers small use) and set a budget alert, see `docs/security-setup.md`.
 
 - Do not upgrade `rollup` past 4.59.0 without checking: 4.64.0 made `vite build` hang (pinned via `overrides`). `@grpc/grpc-js` is overridden to ^1.14.5 to clear audit findings. `npm audit` is clean.
 - Workflows that build the app need the repo secrets `VITE_APP_*` plus `FIREBASE_SERVICE_ACCOUNT_ZOOFUS_48264`.

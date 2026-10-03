@@ -33,12 +33,12 @@ vi.mock("firebase/storage", () => ({
 import { deleteSticker, saveSticker } from "./stickers.api";
 import { MAX_STICKER_BYTES, MAX_STICKERS, StickerLimitError } from "./sticker.schema";
 
-const blob = (size = 10) => {
-  const b = new Blob(["x"]);
+const blob = (size = 10, type = "image/webp") => {
+  const b = new Blob(["x"], { type });
   Object.defineProperty(b, "size", { value: size });
   return b;
 };
-const input = { blob: blob(), thumbnail: blob(), name: "Froggo", width: 10, height: 10 };
+const input = { blob: blob(), name: "Froggo", width: 10, height: 10 };
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -52,14 +52,13 @@ beforeEach(() => {
 });
 
 describe("saveSticker", () => {
-  it("uploads the PNG and thumbnail, then writes the document", async () => {
+  it("uploads the image, then writes the document", async () => {
     const id = await saveSticker("u1", input);
-    expect(m.uploadBytes).toHaveBeenCalledTimes(2);
+    expect(m.uploadBytes).toHaveBeenCalledTimes(1);
     const data = m.setDoc.mock.calls[0]![1];
     expect(data).toMatchObject({
       name: "Froggo",
-      storagePath: `u1/stickers/${id}.png`,
-      thumbnailPath: `u1/stickers/${id}_thumb.png`,
+      storagePath: `u1/stickers/${id}.webp`,
       createdAt: "SERVER_TIME",
     });
   });
@@ -77,15 +76,12 @@ describe("saveSticker", () => {
     expect(m.uploadBytes).not.toHaveBeenCalled();
   });
 
-  it("removes uploaded files if writing the document fails", async () => {
+  it("removes the uploaded file if writing the document fails", async () => {
     m.setDoc.mockRejectedValue(new Error("firestore down"));
     await expect(saveSticker("u1", input)).rejects.toThrow("firestore down");
     const deleted = m.deleteObject.mock.calls.map((c) => c[0].path as string);
-    expect(deleted).toHaveLength(2);
-    expect(deleted.some((p) => p.endsWith(".png") && !p.endsWith("_thumb.png"))).toBe(
-      true,
-    );
-    expect(deleted.some((p) => p.endsWith("_thumb.png"))).toBe(true);
+    expect(deleted).toHaveLength(1);
+    expect(deleted[0]).toMatch(/\.webp$/);
   });
 
   it("still reports the original error when cleanup itself fails", async () => {
@@ -113,7 +109,15 @@ describe("deleteSticker", () => {
     await expect(deleteSticker("u1", sticker)).resolves.toBeUndefined();
   });
 
-  it("works for older stickers without a thumbnail", async () => {
+  it("stores PNG output (browsers without WebP encoding) with a .png extension", async () => {
+    await saveSticker("u1", { ...input, blob: blob(10, "image/png") });
+    expect(m.setDoc.mock.calls[0]![1]).toMatchObject({
+      storagePath: expect.stringMatching(/\.png$/),
+    });
+    expect(m.uploadBytes.mock.calls[0]![2]).toEqual({ contentType: "image/png" });
+  });
+
+  it("still deletes legacy stickers that have no thumbnail", async () => {
     await deleteSticker("u1", { id: "s1", storagePath: "u1/stickers/s1.png" });
     expect(m.deleteObject).toHaveBeenCalledTimes(1);
   });

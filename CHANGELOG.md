@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.3.1 – 2026-10-03
+
+Image handling and the sticker gallery.
+
+### Features
+
+- Click a sticker in My Stickers to preview it full size in a pop-up: zoom with the buttons, mouse wheel, double click or pinch, drag to move around, Escape to close. Transparent areas show on a checkerboard.
+- Saved stickers are compressed: scaled to at most 1,280 px and stored as WebP (quality 82, stepping down to 60 if needed, 400 KB target), so each sticker is typically under 100 KB. The My Stickers grid shows this full-size image (lazy-loaded) instead of a tiny thumbnail, so stickers look sharp; old thumbnails are no longer used. "Download PNG" is still full quality.
+- Profile photos are scaled to 512 px and compressed to JPEG before upload (they used to keep their full dimensions).
+
+### Other
+
+- Storage rules now accept WebP or PNG stickers up to 2 MB and profile photos up to 2 MB (was 10 MB and 5 MB), deployed right after this release.
+- Uploads need the Firebase Blaze plan (Cloud Storage no longer works on the free Spark plan); documented in `docs/security-setup.md`.
+- Saving logs the real error in the browser console.
+
 ## v0.3.0 – 2026-10-03
 
 Architecture rewrite and app foundations. The visual redesign moves to v0.4.0.

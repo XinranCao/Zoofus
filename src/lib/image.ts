@@ -1,35 +1,5 @@
 import { useEffect, useState } from "react";
 
-/** Re-encode an image file as JPEG at the given quality (0..1). */
-export function compressImage(file: File, quality = 0.2): Promise<File> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const img = new window.Image();
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return reject(new Error("Canvas is not supported"));
-      ctx.drawImage(img, 0, 0);
-      canvas.toBlob(
-        (blob) =>
-          blob
-            ? resolve(new File([blob], file.name, { type: "image/jpeg" }))
-            : reject(new Error("Compression failed")),
-        "image/jpeg",
-        quality,
-      );
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Could not read image"));
-    };
-    img.src = url;
-  });
-}
-
 /** Load an image element from a URL; returns null until loaded (or if it fails). */
 export function useLoadedImage(src: string | null, crossOrigin?: "anonymous") {
   const [image, setImage] = useState<HTMLImageElement | null>(null);
@@ -106,14 +76,8 @@ export function canvasToBlob(
 
 export class UnsupportedImageError extends Error {}
 
-/**
- * Decode a user-picked photo (honouring EXIF rotation), downscale it, and return an object URL.
- * The caller owns the URL and must revoke it.
- */
-export async function prepareImage(
-  file: File,
-  maxSide = MAX_EDITOR_SIDE,
-): Promise<string> {
+/** Decode a user-picked photo (honouring EXIF rotation) onto a canvas of at most `maxSide` px. */
+async function decodeToCanvas(file: File, maxSide: number): Promise<HTMLCanvasElement> {
   if (!file.type.startsWith("image/"))
     throw new UnsupportedImageError("That file is not an image.");
   if (file.size > MAX_SOURCE_BYTES)
@@ -135,24 +99,143 @@ export async function prepareImage(
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Canvas is not supported");
     ctx.drawImage(bitmap, 0, 0, width, height);
-    // Keep transparency for formats that can have it; photos become high-quality JPEG.
-    const hasAlpha = /png|webp|gif/.test(file.type);
-    const blob = await canvasToBlob(canvas, hasAlpha ? "image/png" : "image/jpeg", 0.92);
-    return URL.createObjectURL(blob);
+    return canvas;
   } finally {
     bitmap.close();
   }
 }
 
-/** A PNG thumbnail of a canvas, `maxSide` px on the longest side (transparency kept). */
-export function makeThumbnail(source: HTMLCanvasElement, maxSide = 256): Promise<Blob> {
-  const { width, height } = limitSize(source.width, source.height, maxSide);
+/**
+ * Decode a user-picked photo for editing and return an object URL. The photo is downscaled to
+ * keep memory in check; photos become high-quality JPEG, formats that can have transparency
+ * stay PNG. The caller owns the URL and must revoke it.
+ */
+export async function prepareImage(
+  file: File,
+  maxSide = MAX_EDITOR_SIDE,
+): Promise<string> {
+  const canvas = await decodeToCanvas(file, maxSide);
+  const hasAlpha = /png|webp|gif/.test(file.type);
+  const blob = await canvasToBlob(canvas, hasAlpha ? "image/png" : "image/jpeg", 0.92);
+  return URL.createObjectURL(blob);
+}
+
+/**
+ * Storage compression policy. Web-photo norms are a long side of ~1,600 px at quality 75-85;
+ * stickers are shown small on collage pages, so 1,280 px still covers 2x screens. WebP keeps
+ * transparency at a fraction of PNG's size (typically 5-10x smaller).
+ */
+export interface CompressOptions {
+  format: "webp" | "jpeg";
+  /** Longest side in px. */
+  maxSide: number;
+  /** Starting quality, 0..1. */
+  quality: number;
+  /** Quality is never lowered below this. */
+  minQuality: number;
+  /** Dimensions are never reduced below this (longest side, px). */
+  minSide: number;
+  /** Target size; the encoder steps quality, then size, down until it fits. */
+  maxBytes: number;
+}
+
+export const COMPRESSION = {
+  sticker: {
+    format: "webp",
+    maxSide: 1280,
+    quality: 0.82,
+    minQuality: 0.6,
+    minSide: 480,
+    maxBytes: 400 * 1024,
+  },
+  avatar: {
+    format: "jpeg",
+    maxSide: 512,
+    quality: 0.85,
+    minQuality: 0.6,
+    minSide: 256,
+    maxBytes: 150 * 1024,
+  },
+} satisfies Record<string, CompressOptions>;
+
+export interface Encoded {
+  blob: Blob;
+  width: number;
+  height: number;
+}
+
+type Encoder = (
+  canvas: HTMLCanvasElement,
+  type: string,
+  quality: number,
+) => Promise<Blob>;
+
+function resize(
+  source: HTMLCanvasElement,
+  width: number,
+  height: number,
+  background?: string,
+) {
+  if (!background && width === source.width && height === source.height) return source;
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
-  if (!ctx) return Promise.reject(new Error("Canvas is not supported"));
+  if (!ctx) throw new Error("Canvas is not supported");
+  if (background) {
+    ctx.fillStyle = background; // JPEG has no alpha: flatten transparency onto a colour
+    ctx.fillRect(0, 0, width, height);
+  }
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(source, 0, 0, width, height);
-  return canvasToBlob(canvas);
+  return canvas;
+}
+
+/**
+ * Scale `source` to `maxSide` and encode it, stepping quality down by 0.1 (never below
+ * `minQuality`) and then the dimensions down by 15% (never below `minSide`) until it fits
+ * `maxBytes`. If the browser cannot encode the format (for example WebP on older Safari) it
+ * returns PNG, which has no quality setting, so only the dimensions are reduced.
+ */
+export async function encodeWithin(
+  source: HTMLCanvasElement,
+  options: CompressOptions,
+  encode: Encoder = canvasToBlob,
+): Promise<Encoded> {
+  const mime = options.format === "webp" ? "image/webp" : "image/jpeg";
+  const background = options.format === "jpeg" ? "#ffffff" : undefined;
+  let { width, height } = limitSize(source.width, source.height, options.maxSide);
+  let quality = options.quality;
+  let result: Encoded | null = null;
+
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const blob = await encode(resize(source, width, height, background), mime, quality);
+    result = { blob, width, height };
+    if (blob.size <= options.maxBytes) return result;
+
+    const canLowerQuality = blob.type === mime && quality - options.minQuality > 1e-6;
+    if (canLowerQuality) {
+      quality = Math.max(options.minQuality, Math.round((quality - 0.1) * 100) / 100);
+    } else if (Math.max(width, height) > options.minSide) {
+      const next = limitSize(
+        width,
+        height,
+        Math.max(options.minSide, Math.floor(Math.max(width, height) * 0.85)),
+      );
+      width = next.width;
+      height = next.height;
+    } else {
+      break; // at the floors: return the smallest we can make
+    }
+  }
+  return result!;
+}
+
+/** Compress a profile photo for upload: EXIF-rotated, max 512 px, JPEG. */
+export async function prepareAvatar(file: File): Promise<File> {
+  const canvas = await decodeToCanvas(file, COMPRESSION.avatar.maxSide);
+  const { blob } = await encodeWithin(canvas, COMPRESSION.avatar);
+  return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", {
+    type: "image/jpeg",
+  });
 }

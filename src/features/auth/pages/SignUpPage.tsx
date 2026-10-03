@@ -2,7 +2,7 @@ import { Box, Typography } from "@mui/material";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { compressImage } from "@/lib/image";
+import { prepareAvatar } from "@/lib/image";
 import { useSaveProfile } from "@/features/profile/useProfile";
 import { AuthForm } from "../components/AuthForm";
 import { ProfileSetupForm } from "../components/ProfileSetupForm";
@@ -18,7 +18,7 @@ export default function SignUpPage() {
   const handleProfile = async ({ name, photo }: { name: string; photo: File | null }) => {
     try {
       setError("");
-      const processed = photo ? await compressImage(photo, 0.2) : null;
+      const processed = photo ? await prepareAvatar(photo) : null;
       await saveProfile.mutateAsync({ displayName: name, photo: processed });
       navigate("/");
     } catch {

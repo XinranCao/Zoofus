@@ -4,6 +4,7 @@ import {
   Alert,
   Box,
   Card,
+  CardActionArea,
   CardActions,
   CardContent,
   CardMedia,
@@ -20,12 +21,14 @@ import {
 import { PageContainer } from "@/components/layout/PageContainer";
 import { useState } from "react";
 import { MAX_STICKER_NAME, type Sticker } from "./sticker.schema";
+import { StickerPreviewDialog } from "./StickerPreviewDialog";
 import { useDeleteSticker, useRenameSticker, useStickers } from "./useStickers";
 
 export default function StickerBookPage() {
   const { data: stickers, isPending, error } = useStickers();
   const remove = useDeleteSticker();
   const rename = useRenameSticker();
+  const [preview, setPreview] = useState<Sticker | null>(null);
   const [renaming, setRenaming] = useState<Sticker | null>(null);
   const [draft, setDraft] = useState("");
 
@@ -47,23 +50,31 @@ export default function StickerBookPage() {
           sx={{
             display: "grid",
             gap: 3,
-            gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
           }}
         >
           {stickers?.map((sticker) => (
             <Card key={sticker.id}>
-              <CardMedia
-                component="img"
-                image={sticker.thumbnailUrl ?? sticker.imageUrl}
-                alt={sticker.name}
-                sx={{ height: 160, objectFit: "contain", bgcolor: "action.hover" }}
-              />
-              <CardContent>
-                <Typography noWrap>{sticker.name}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {sticker.createdAt.toLocaleDateString()}
-                </Typography>
-              </CardContent>
+              <CardActionArea
+                aria-label={`Preview ${sticker.name}`}
+                onClick={() => setPreview(sticker)}
+              >
+                <CardMedia
+                  component="img"
+                  // Full-size image so the grid stays sharp on high-DPI screens; lazy so only visible ones load.
+                  loading="lazy"
+                  decoding="async"
+                  image={sticker.imageUrl}
+                  alt={sticker.name}
+                  sx={{ height: 200, objectFit: "contain", bgcolor: "action.hover" }}
+                />
+                <CardContent>
+                  <Typography noWrap>{sticker.name}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {sticker.createdAt.toLocaleDateString()}
+                  </Typography>
+                </CardContent>
+              </CardActionArea>
               <CardActions>
                 <IconButton
                   aria-label={`Rename ${sticker.name}`}
@@ -85,6 +96,7 @@ export default function StickerBookPage() {
             </Card>
           ))}
         </Box>
+        <StickerPreviewDialog sticker={preview} onClose={() => setPreview(null)} />
         <Dialog
           open={renaming !== null}
           onClose={() => setRenaming(null)}
