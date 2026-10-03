@@ -23,10 +23,10 @@ const useEmulators = env.VITE_USE_EMULATORS === "true";
 // Enabled when a site key is configured. See docs/app-check.md for the console setup.
 if (!useEmulators && env.VITE_APP_RECAPTCHA_SITE_KEY) {
   if (import.meta.env.DEV) {
-    // Local dev against the real backend: log a debug token to register in the console.
+    // Local dev against the real backend: use the registered debug token, or print a new one.
     (
-      self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: boolean }
-    ).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+      self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: string | boolean }
+    ).FIREBASE_APPCHECK_DEBUG_TOKEN = env.VITE_APPCHECK_DEBUG_TOKEN ?? true;
   }
   initializeAppCheck(app, {
     provider: new ReCaptchaEnterpriseProvider(env.VITE_APP_RECAPTCHA_SITE_KEY),

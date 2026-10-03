@@ -14,6 +14,11 @@ const schema = z.object({
     (v) => (v === "" ? undefined : v),
     z.string().optional(),
   ),
+  /** Fixed App Check debug token for local `npm run dev` (from .env.development.local). */
+  VITE_APPCHECK_DEBUG_TOKEN: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().optional(),
+  ),
   /** "true" connects the app to the local Firebase emulators (see `npm run dev:emulated`). */
   VITE_USE_EMULATORS: z.enum(["true", "false"]).optional(),
 });
