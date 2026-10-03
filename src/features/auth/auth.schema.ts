@@ -1,10 +1,22 @@
 import { z } from "zod";
 
-export const credentialsSchema = z.object({
+/** Existing accounts may predate today's rules, so login only checks that something was entered. */
+export const loginSchema = z.object({
   email: z.email("Enter a valid email"),
-  password: z.string().min(6, "At least 6 characters"),
+  password: z.string().min(1, "Enter your password"),
 });
-export type Credentials = z.infer<typeof credentialsSchema>;
+
+/** New passwords: keep in sync with the Password policy in the Firebase console (Authentication > Settings). */
+export const MIN_PASSWORD_LENGTH = 8;
+export const signupSchema = z.object({
+  email: z.email("Enter a valid email"),
+  password: z
+    .string()
+    .min(MIN_PASSWORD_LENGTH, `At least ${MIN_PASSWORD_LENGTH} characters`)
+    .max(128, "At most 128 characters"),
+});
+
+export type Credentials = z.infer<typeof loginSchema>;
 
 export const profileFormSchema = z.object({
   name: z.string().trim().min(1, "Enter a name").max(40),

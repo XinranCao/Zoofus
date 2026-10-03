@@ -3,15 +3,15 @@ import { Box, Button, TextField, Typography, useMediaQuery } from "@mui/material
 import { useTheme } from "@mui/material/styles";
 import type { ReactNode } from "react";
 import { useForm } from "react-hook-form";
-import { credentialsSchema, type Credentials } from "../auth.schema";
+import { loginSchema, signupSchema, type Credentials } from "../auth.schema";
 
 interface Props {
   title: string;
   submitLabel: string;
   error?: string;
   onSubmit: (values: Credentials) => Promise<void> | void;
-  /** "new-password" on sign-up so password managers suggest a new one. */
-  passwordAutoComplete?: "current-password" | "new-password";
+  /** Sign-up enforces the password rules and tells password managers to suggest a new password. */
+  mode?: "login" | "signup";
   children?: ReactNode;
 }
 
@@ -20,7 +20,7 @@ export function AuthForm({
   submitLabel,
   error,
   onSubmit,
-  passwordAutoComplete = "current-password",
+  mode = "login",
   children,
 }: Props) {
   const theme = useTheme();
@@ -29,7 +29,9 @@ export function AuthForm({
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<Credentials>({ resolver: zodResolver(credentialsSchema) });
+  } = useForm<Credentials>({
+    resolver: zodResolver(mode === "signup" ? signupSchema : loginSchema),
+  });
 
   return (
     <Box
@@ -68,7 +70,7 @@ export function AuthForm({
       <TextField
         label="Password"
         type="password"
-        autoComplete={passwordAutoComplete}
+        autoComplete={mode === "signup" ? "new-password" : "current-password"}
         fullWidth
         error={Boolean(errors.password)}
         helperText={errors.password?.message}

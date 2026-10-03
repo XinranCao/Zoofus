@@ -9,11 +9,31 @@ describe("AuthForm", () => {
     render(<AuthForm title="Login" submitLabel="Log In" onSubmit={onSubmit} />);
 
     await userEvent.type(screen.getByLabelText("Email"), "not-an-email");
-    await userEvent.type(screen.getByLabelText("Password"), "123");
     await userEvent.click(screen.getByRole("button", { name: "Log In" }));
 
     expect(await screen.findByText("Enter a valid email")).toBeInTheDocument();
-    expect(screen.getByText("At least 6 characters")).toBeInTheDocument();
+    expect(screen.getByText("Enter your password")).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("lets existing users with short passwords log in", async () => {
+    const onSubmit = vi.fn();
+    render(<AuthForm title="Login" submitLabel="Log In" onSubmit={onSubmit} />);
+    await userEvent.type(screen.getByLabelText("Email"), "old@example.com");
+    await userEvent.type(screen.getByLabelText("Password"), "abc123");
+    await userEvent.click(screen.getByRole("button", { name: "Log In" }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+  });
+
+  it("requires a strong enough password on sign-up", async () => {
+    const onSubmit = vi.fn();
+    render(
+      <AuthForm mode="signup" title="Sign Up" submitLabel="Next" onSubmit={onSubmit} />,
+    );
+    await userEvent.type(screen.getByLabelText("Email"), "new@example.com");
+    await userEvent.type(screen.getByLabelText("Password"), "short1");
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+    expect(await screen.findByText("At least 8 characters")).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
   });
 

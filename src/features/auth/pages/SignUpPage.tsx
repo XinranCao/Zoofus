@@ -33,7 +33,7 @@ export default function SignUpPage() {
           <AuthForm
             title="Sign Up"
             submitLabel="Next"
-            passwordAutoComplete="new-password"
+            mode="signup"
             error={error}
             onSubmit={async ({ email, password }) => {
               try {
