@@ -1,0 +1,12 @@
+/*
+ * The four Han characters that appear in the English interface ("中文" on the language switch,
+ * "昵称" in the nickname label) come from a 1.7 KB subset of Xiaolai Mono SC (OFL 1.1), declared
+ * under the same family name AFTER the package's own faces, so they win for these characters.
+ * Without it, an English page would download two or three 100 KB CJK slices for four glyphs.
+ */
+@font-face {
+  font-family: "Xiaolai Mono SC";
+  src: url("../assets/fonts/xiaolai-core.woff2") format("woff2");
+  unicode-range: U+4E2D, U+6587, U+6635, U+79F0;
+  font-display: swap;
+}

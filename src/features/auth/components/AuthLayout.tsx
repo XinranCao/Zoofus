@@ -34,7 +34,7 @@ export function AuthLayout({ seed, children }: { seed: string; children: ReactNo
         h={460}
         style={{ width: 440, maxWidth: "100%" }}
         tape={<Tape seed={"at" + seed} x="50%" y="2px" color="tape-pink" />}
-        faceStyle={{ padding: "30px 26px 26px" }}
+        faceStyle={{ padding: "34px 34px 30px" }}
       >
         {children}
       </Paper>

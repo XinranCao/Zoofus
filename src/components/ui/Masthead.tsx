@@ -52,7 +52,13 @@ function MenuContent({
           <div
             style={{ display: "flex", gap: 10, alignItems: "center", padding: "6px 8px" }}
           >
-            <Avatar name={user.name} src={user.avatar} size={34} asStatic />
+            <Avatar
+              name={user.name}
+              src={user.avatar}
+              size={34}
+              seed={user.name + "-card"}
+              asStatic
+            />
             <div style={{ minWidth: 0 }}>
               <div className="zf-h2" style={{ fontSize: 16 }}>
                 {user.name}
@@ -110,6 +116,8 @@ export function Masthead({
   const { t, i18n } = useTranslation();
   const zh = i18n.language.startsWith("zh");
   const other = LANGUAGES.find((l) => (zh ? l.code === "en" : l.code === "zh-CN"))!;
+  // the auth card already carries the page's one primary button
+  const onAuth = pathname === "/login" || pathname === "/signup";
   const toggleLanguage = () => void i18n.changeLanguage(other.code);
   const onBook = pathname.startsWith("/stickers") || pathname.startsWith("/tape");
 
@@ -217,7 +225,12 @@ export function Masthead({
               <ButtonLink variant="quiet" to="/login" seed="li">
                 {t("nav.logIn")}
               </ButtonLink>
-              <ButtonLink variant="primary" size="sm" to="/signup" seed="su">
+              <ButtonLink
+                variant={onAuth ? "secondary" : "primary"}
+                size="sm"
+                to="/signup"
+                seed="su"
+              >
                 {t("nav.signUp")}
               </ButtonLink>
             </div>

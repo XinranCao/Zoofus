@@ -19,17 +19,26 @@ const chunk = (type: string, data: Buffer) => {
   return Buffer.concat([len, body, crc]);
 };
 
+type RGB = [number, number, number];
+
 /** A solid-colour RGB PNG, so the tests need no binary fixtures. */
-export function solidPng(
+export function solidPng(width: number, height: number, colour: RGB) {
+  return patternPng(width, height, () => colour);
+}
+
+/** An RGB PNG whose pixels come from `pixel(x, y)`: gradients, checkers, noise. */
+export function patternPng(
   width: number,
   height: number,
-  [r, g, b]: [number, number, number],
+  pixel: (x: number, y: number) => RGB,
 ) {
-  const row = Buffer.concat([
-    Buffer.from([0]),
-    Buffer.from(Array(width).fill([r, g, b]).flat()),
-  ]);
-  const raw = Buffer.concat(Array(height).fill(row));
+  const rows: Buffer[] = [];
+  for (let y = 0; y < height; y++) {
+    const row = Buffer.alloc(1 + width * 3);
+    for (let x = 0; x < width; x++) row.set(pixel(x, y), 1 + x * 3);
+    rows.push(row);
+  }
+  const raw = Buffer.concat(rows);
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(width, 0);
   ihdr.writeUInt32BE(height, 4);

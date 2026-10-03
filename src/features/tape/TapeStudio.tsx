@@ -131,7 +131,10 @@ export function TapeStudio({
               {t("tape.stageTitle")}
             </div>
           </Paper>
-          <div style={{ position: "absolute", left: "50%", top: STAGE_TOP }}>
+          <div
+            data-user-tape
+            style={{ position: "absolute", left: "50%", top: STAGE_TOP }}
+          >
             <Tape
               pattern={draft.pattern}
               angle={draft.angle}

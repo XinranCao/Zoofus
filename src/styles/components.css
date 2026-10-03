@@ -1084,6 +1084,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* nothing moves: no transitions, no animations (loaders show their static state) */
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
   .zf-paper,
   .zf-btn,
   .zf-chip,

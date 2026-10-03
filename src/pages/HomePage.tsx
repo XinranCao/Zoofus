@@ -73,8 +73,8 @@ export default function HomePage() {
           style={{ flex: "1 1 320px", maxWidth: 660 }}
           tape={
             <>
-              <Tape seed="h1" x="10%" y="8px" angle={-14} color="tape-mustard" />
-              <Tape seed="h2" x="92%" y="6px" angle={10} color="tape-celery" />
+              <Tape seed="h1" x="10%" y="8px" angle={-8} color="tape-mustard" />
+              <Tape seed="h2" x="92%" y="6px" angle={8} color="tape-celery" />
             </>
           }
           faceStyle={{ padding: "30px 28px 28px" }}

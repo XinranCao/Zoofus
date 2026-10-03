@@ -34,8 +34,10 @@ export type Sticker = Omit<z.output<typeof stickerDocSchema>, "edge"> & {
   kind: StickerKind;
 };
 
-export const stickerKind = (doc: { sourceUrl?: string; sourcePath?: string }): StickerKind =>
-  doc.sourceUrl && doc.sourcePath ? "editable" : "legacy";
+export const stickerKind = (doc: {
+  sourceUrl?: string;
+  sourcePath?: string;
+}): StickerKind => (doc.sourceUrl && doc.sourcePath ? "editable" : "legacy");
 
 export const MAX_STICKER_NAME = 60;
 

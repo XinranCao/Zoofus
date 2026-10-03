@@ -1,6 +1,6 @@
 import * as RPopover from "@radix-ui/react-popover";
 import * as RRadio from "@radix-ui/react-radio-group";
-import type { ComponentProps, CSSProperties } from "react";
+import { useId, type ComponentProps, type CSSProperties } from "react";
 import { cn } from "@/lib/cn";
 import { hex, USER_COLORS } from "@/paper/pattern";
 import { seededRot } from "@/paper/random";
@@ -52,9 +52,11 @@ export function Swatch({
   className,
   ...rest
 }: SwatchProps) {
+  // the same colour appears in more than one picker at once: each swatch tears differently
+  const uid = useId();
   const css = {
     "--rot": seededRot(token, 3),
-    ...tornVars("sw" + token, { size: "xs", w: 32, h: 32, res: 2 }),
+    ...tornVars("sw" + token + uid, { size: "xs", w: 32, h: 32, res: 2 }),
     ...style,
   } as CSSProperties;
   return (
