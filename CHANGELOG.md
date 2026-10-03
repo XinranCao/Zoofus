@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.2.0 – 2026-10-02
 
 ### Features
 - Download the masked cut-out as a PNG from the Image Lasso confirm view.
