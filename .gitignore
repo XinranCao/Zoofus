@@ -39,3 +39,6 @@ CLAUDE_SETUP_TASK.md
 # Firebase CLI logs
 firebase-debug.log
 *-debug.log
+
+# Local emulator data
+.emulator-data

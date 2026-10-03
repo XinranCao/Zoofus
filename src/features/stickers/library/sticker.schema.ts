@@ -6,6 +6,9 @@ export const stickerDocSchema = z.object({
   name: z.string(),
   storagePath: z.string(),
   imageUrl: z.string(),
+  /** Small preview for grids; older stickers don't have one. */
+  thumbnailUrl: z.string().optional(),
+  thumbnailPath: z.string().optional(),
   width: z.number().int().positive(),
   height: z.number().int().positive(),
   createdAt: z.instanceof(Timestamp).transform((t) => t.toDate()),

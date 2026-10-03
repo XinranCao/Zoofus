@@ -3,6 +3,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import {
   deleteSticker,
   listStickers,
+  renameSticker,
   saveSticker,
   type NewSticker,
 } from "./stickers.api";
@@ -40,9 +41,21 @@ export function useDeleteSticker() {
   const uid = useUid();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (sticker: Pick<Sticker, "id" | "storagePath">) => {
+    mutationFn: (sticker: Pick<Sticker, "id" | "storagePath" | "thumbnailPath">) => {
       if (!uid) throw new Error("Not signed in");
       return deleteSticker(uid, sticker);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.all(uid ?? "") }),
+  });
+}
+
+export function useRenameSticker() {
+  const uid = useUid();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) => {
+      if (!uid) throw new Error("Not signed in");
+      return renameSticker(uid, id, name);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.all(uid ?? "") }),
   });

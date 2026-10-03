@@ -3,6 +3,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import { Alert, Box, Button, Slider, Stack, TextField, Typography } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { ChromePicker } from "react-color";
+import { makeThumbnail } from "@/lib/image";
 import { useSaveSticker } from "@/features/stickers/library/useStickers";
 import { MAX_STICKER_NAME } from "@/features/stickers/library/sticker.schema";
 import { computeMaskPolygons, isMaskEmpty } from "../domain/mask";
@@ -43,7 +44,7 @@ function useCutout() {
   }, [canvas]);
 
   if (!canvas || !result) return null;
-  return { ...result, width: canvas.width, height: canvas.height };
+  return { ...result, canvas, width: canvas.width, height: canvas.height };
 }
 
 export function ResultPanel() {
@@ -102,15 +103,16 @@ export function ResultPanel() {
             variant="contained"
             startIcon={<SaveIcon />}
             disabled={!cutout || !trimmed || save.isPending}
-            onClick={() =>
-              cutout &&
+            onClick={async () => {
+              if (!cutout) return;
               save.mutate({
                 blob: cutout.blob,
+                thumbnail: await makeThumbnail(cutout.canvas),
                 name: trimmed,
                 width: cutout.width,
                 height: cutout.height,
-              })
-            }
+              });
+            }}
           >
             Save
           </Button>

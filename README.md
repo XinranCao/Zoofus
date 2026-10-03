@@ -10,6 +10,17 @@ Stack: React 19, Vite 7, MUI 7, Redux Toolkit, react-router 7, Konva/react-konva
 2. Create a `.env` in the repo root (never commit it) with your Firebase web config:
    `VITE_APP_API_KEY`, `VITE_APP_AUTH_DOMAIN`, `VITE_APP_PROJECT_ID`, `VITE_APP_STORAGE_BUCKET`, `VITE_APP_MESSAGING_SENDER_ID`, `VITE_APP_APP_ID`, `VITE_APP_MEASUREMENT_ID`.
 
+## Environments
+
+| Environment          | Backend                                                             | How                                                                                                                                                             |
+| -------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Local (emulated)     | Firebase emulators: Auth, Firestore, Storage; no real data touched  | `npm run emulators` in one terminal, `npm run dev:emulated` in another. Emulator UI at http://localhost:4000. Data persists in `.emulator-data/` (git-ignored). |
+| Local (real backend) | Production Firebase project `zoofus-48264`                          | `.env` from `.env.example`, then `npm run dev`                                                                                                                  |
+| PR preview           | Production Firebase project (a preview channel only hosts the site) | Automatic on every PR                                                                                                                                           |
+| Production           | Firebase Hosting live channel                                       | Tag `vX.Y.Z` on `main` (release workflow)                                                                                                                       |
+
+Use the emulated setup for anything that writes data. PR previews talk to the production backend.
+
 ## Commands
 
 | Command                                       | What it does                              |

@@ -8,6 +8,8 @@ const schema = z.object({
   VITE_APP_MESSAGING_SENDER_ID: z.string().min(1),
   VITE_APP_APP_ID: z.string().min(1),
   VITE_APP_MEASUREMENT_ID: z.string().optional(),
+  /** "true" connects the app to the local Firebase emulators (see `npm run dev:emulated`). */
+  VITE_USE_EMULATORS: z.enum(["true", "false"]).optional(),
 });
 
 const parsed = schema.safeParse(import.meta.env);

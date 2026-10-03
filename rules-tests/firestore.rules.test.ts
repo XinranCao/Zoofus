@@ -125,6 +125,23 @@ describe("users/{uid}/stickers/{id}", () => {
     await assertFails(setDoc(ref, { ...sticker("alice"), extra: 1 }));
   });
 
+  it("accepts optional thumbnail fields and rejects a thumbnail path in someone else's folder", async () => {
+    const db = env.authenticatedContext("alice").firestore();
+    await assertSucceeds(
+      setDoc(doc(db, "users/alice/stickers/t1"), {
+        ...sticker("alice"),
+        thumbnailUrl: "https://example.com/t.png",
+        thumbnailPath: "alice/stickers/t1_thumb.png",
+      }),
+    );
+    await assertFails(
+      setDoc(doc(db, "users/alice/stickers/t2"), {
+        ...sticker("alice"),
+        thumbnailPath: "bob/stickers/t2_thumb.png",
+      }),
+    );
+  });
+
   it("allows only renaming after creation", async () => {
     const db = env.authenticatedContext("alice").firestore();
     const ref = doc(db, "users/alice/stickers/s1");

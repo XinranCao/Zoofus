@@ -9,6 +9,8 @@
 
 ### Other
 
+- Local emulator environment (`npm run emulators`, `npm run dev:emulated`); `.env.example`; environments documented.
+- Image pipeline: EXIF rotation, downscaling of large photos, friendly errors for unsupported files, sticker thumbnails, rename stickers.
 - Firestore and Storage security rules (owner-only, validated fields, size and type limits) with emulator tests and a CI job. Not deployed yet.
 - Error boundary and a 404 page.
 - Migrated to TypeScript (strict) with ESLint, Prettier, typecheck and lint in CI.

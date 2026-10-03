@@ -1,4 +1,5 @@
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import {
   Alert,
   Box,
@@ -6,16 +7,27 @@ import {
   CardActions,
   CardContent,
   CardMedia,
+  Button,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
+  TextField,
   Typography,
 } from "@mui/material";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { useDeleteSticker, useStickers } from "./useStickers";
+import { useState } from "react";
+import { MAX_STICKER_NAME, type Sticker } from "./sticker.schema";
+import { useDeleteSticker, useRenameSticker, useStickers } from "./useStickers";
 
 export default function StickerBookPage() {
   const { data: stickers, isPending, error } = useStickers();
   const remove = useDeleteSticker();
+  const rename = useRenameSticker();
+  const [renaming, setRenaming] = useState<Sticker | null>(null);
+  const [draft, setDraft] = useState("");
 
   return (
     <PageContainer>
@@ -42,7 +54,7 @@ export default function StickerBookPage() {
             <Card key={sticker.id}>
               <CardMedia
                 component="img"
-                image={sticker.imageUrl}
+                image={sticker.thumbnailUrl ?? sticker.imageUrl}
                 alt={sticker.name}
                 sx={{ height: 160, objectFit: "contain", bgcolor: "action.hover" }}
               />
@@ -54,6 +66,15 @@ export default function StickerBookPage() {
               </CardContent>
               <CardActions>
                 <IconButton
+                  aria-label={`Rename ${sticker.name}`}
+                  onClick={() => {
+                    setRenaming(sticker);
+                    setDraft(sticker.name);
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
+                <IconButton
                   aria-label={`Delete ${sticker.name}`}
                   disabled={remove.isPending}
                   onClick={() => remove.mutate(sticker)}
@@ -64,6 +85,41 @@ export default function StickerBookPage() {
             </Card>
           ))}
         </Box>
+        <Dialog
+          open={renaming !== null}
+          onClose={() => setRenaming(null)}
+          fullWidth
+          maxWidth="xs"
+        >
+          <DialogTitle>Rename sticker</DialogTitle>
+          <DialogContent>
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Name"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              slotProps={{ htmlInput: { maxLength: MAX_STICKER_NAME } }}
+            />
+            {rename.isError && <Alert severity="error">Could not rename.</Alert>}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setRenaming(null)}>Cancel</Button>
+            <Button
+              variant="contained"
+              disabled={!draft.trim() || rename.isPending}
+              onClick={() =>
+                renaming &&
+                rename.mutate(
+                  { id: renaming.id, name: draft.trim() },
+                  { onSuccess: () => setRenaming(null) },
+                )
+              }
+            >
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </PageContainer>
   );

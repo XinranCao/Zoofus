@@ -75,3 +75,84 @@ export function scalePoints(
   }
   return scaled;
 }
+
+/** Longest side, in px, that photos are downscaled to before editing (keeps memory in check). */
+export const MAX_EDITOR_SIDE = 2048;
+/** Largest source file we accept. */
+export const MAX_SOURCE_BYTES = 30 * 1024 * 1024;
+
+/** Shrink to fit `maxSide` on the longest side, keeping the aspect ratio. Never upscales. */
+export function limitSize(width: number, height: number, maxSide: number) {
+  const scale = Math.min(1, maxSide / Math.max(width, height));
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+  };
+}
+
+export function canvasToBlob(
+  canvas: HTMLCanvasElement,
+  type = "image/png",
+  quality?: number,
+) {
+  return new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("Could not encode image"))),
+      type,
+      quality,
+    ),
+  );
+}
+
+export class UnsupportedImageError extends Error {}
+
+/**
+ * Decode a user-picked photo (honouring EXIF rotation), downscale it, and return an object URL.
+ * The caller owns the URL and must revoke it.
+ */
+export async function prepareImage(
+  file: File,
+  maxSide = MAX_EDITOR_SIDE,
+): Promise<string> {
+  if (!file.type.startsWith("image/"))
+    throw new UnsupportedImageError("That file is not an image.");
+  if (file.size > MAX_SOURCE_BYTES)
+    throw new UnsupportedImageError("That image is larger than 30 MB.");
+
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch {
+    throw new UnsupportedImageError(
+      "Your browser can't open that image format. Try a JPEG or PNG.",
+    );
+  }
+  try {
+    const { width, height } = limitSize(bitmap.width, bitmap.height, maxSide);
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas is not supported");
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    // Keep transparency for formats that can have it; photos become high-quality JPEG.
+    const hasAlpha = /png|webp|gif/.test(file.type);
+    const blob = await canvasToBlob(canvas, hasAlpha ? "image/png" : "image/jpeg", 0.92);
+    return URL.createObjectURL(blob);
+  } finally {
+    bitmap.close();
+  }
+}
+
+/** A PNG thumbnail of a canvas, `maxSide` px on the longest side (transparency kept). */
+export function makeThumbnail(source: HTMLCanvasElement, maxSide = 256): Promise<Blob> {
+  const { width, height } = limitSize(source.width, source.height, maxSide);
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return Promise.reject(new Error("Canvas is not supported"));
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(source, 0, 0, width, height);
+  return canvasToBlob(canvas);
+}

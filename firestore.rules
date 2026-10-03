@@ -29,11 +29,15 @@ service cloud.firestore {
       match /stickers/{stickerId} {
         allow read: if isOwner(uid);
         allow create: if isOwner(uid)
-          && request.resource.data.keys().hasOnly(['name', 'storagePath', 'imageUrl', 'width', 'height', 'createdAt'])
+          && request.resource.data.keys().hasOnly(['name', 'storagePath', 'imageUrl', 'thumbnailUrl', 'thumbnailPath', 'width', 'height', 'createdAt'])
           && isString(request.resource.data.name, 60)
           && request.resource.data.name.size() > 0
           && request.resource.data.storagePath.matches('^' + uid + '/stickers/.+')
           && isString(request.resource.data.imageUrl, 2048)
+          && (!('thumbnailUrl' in request.resource.data) || isString(request.resource.data.thumbnailUrl, 2048))
+          && (!('thumbnailPath' in request.resource.data)
+              || (isString(request.resource.data.thumbnailPath, 512)
+                  && request.resource.data.thumbnailPath.matches('^' + uid + '/stickers/.+')))
           && request.resource.data.width is int && request.resource.data.width > 0
           && request.resource.data.height is int && request.resource.data.height > 0
           && request.resource.data.createdAt == request.time;
