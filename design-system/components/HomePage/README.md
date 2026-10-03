@@ -1,0 +1,1 @@
+HomePage is the reference layout for Home: the hero entry into the sticker maker plus the recently cut row. See Screens → Home. The hero card, numbered kickers and sticker cluster are the Popeye layout habit.

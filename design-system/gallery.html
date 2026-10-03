@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Zoofus gallery</title>
+<style>body{margin:0;font-family:system-ui,sans-serif;background:#e8ddd0;color:#41470e}header{padding:16px 24px}h1{margin:0;font-size:20px}p{margin:4px 0 0;font-size:13px;color:#57620d}
+section{margin:0 24px 32px}h2{font-size:14px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 6px}iframe{width:100%;border:0;background:#e8ddd0;display:block}
+nav{padding:0 24px 16px;display:flex;flex-wrap:wrap;gap:6px 12px;font-size:13px}nav a{color:#6c4a3b}</style></head><body>
+<header><h1>Zoofus design system · offline gallery</h1><p>Every component preview, rendered with tokens.css + components/bundle.css + components/bundle.js. Serve this folder over http (e.g. <code>npx serve .</code>); React and fonts load from CDNs.</p></header>
+<nav id="nav"></nav><div id="list"></div>
+<script>
+const NAMES = ["Cover", "AuthPage", "Avatar", "AvatarMenu", "Button", "CJKSpecimen", "Chip", "ColorPicker", "Dialog", "EmptyState", "HomePage", "LassoCanvas", "Loader", "Masthead", "NotFoundPage", "Paper", "PatternEditor", "Scribble", "Slider", "Sticker", "StickerBookPage", "StickerEdgeStudio", "StickerMakerPage", "StickerTile", "Tape", "TapeStudio", "TextField", "Toast", "ToggleGroup", "Tooltip", "Wordmark"];
+const HEAD = '<link rel="stylesheet" href="../../tokens.css"><link rel="stylesheet" href="../bundle.css">' +
+ '<script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"><\/script>' +
+ '<script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"><\/script>' +
+ '<script src="../bundle.js"><\/script>';
+(async () => {
+  const root = location.href.replace(/[^/]*$/, '');
+  for (const n of NAMES) {
+    const src = await (await fetch('components/' + n + '/preview.html')).text();
+    const m = /@dsCard[^>]*height=(\d+)/.exec(src); const hgt = m ? +m[1] : 300;
+    const doc = src.replace('<head>', '<head><base href="' + root + 'components/' + n + '/">' + HEAD).replace('<html lang="en">', '<html lang="en" data-theme="light">');
+    const s = document.createElement('section'); s.id = n; s.innerHTML = '<h2>' + n + '</h2>';
+    const f = document.createElement('iframe'); f.srcdoc = doc; f.style.height = Math.min(hgt + 80, 2400) + 'px'; s.appendChild(f);
+    document.getElementById('list').appendChild(s);
+    const a = document.createElement('a'); a.href = '#' + n; a.textContent = n; document.getElementById('nav').appendChild(a);
+  }
+})();
+</script></body></html>

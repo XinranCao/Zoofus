@@ -1,0 +1,20 @@
+<!-- @dsCard group="Foundations" height=330 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Paper — preview</title>
+<style>html,body{margin:0} body{min-height:100vh} .row{display:flex;flex-wrap:wrap;gap:22px;align-items:center} .col{display:grid;gap:10px;justify-items:start} .cap{font-family:var(--font-display);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted)}</style></head>
+<body class="zf-ground zf-root">
+<div id="root" style="padding:28px"></div>
+<script>
+var Z = window.Zoofus, h = React.createElement, F = React.Fragment;
+function L(label, el) { return h('div', { className: 'col' }, h('span', { className: 'cap' }, label), el); }
+ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'row',style:{alignItems:'flex-start',gap:34}},
+ L('xs · chip', h(Z.Paper,{seed:'a',size:'xs',inline:true,rotate:.8,tone:'sheet-50',fiberTone:'cream-100',faceStyle:{padding:'9px 15px'}},'tag')),
+ L('sm · control', h(Z.Paper,{seed:'b',size:'sm',inline:true,rotate:.8,tone:'celery-200',faceStyle:{padding:'14px 24px'}},'button-size')),
+ L('md · card (auto: one cut edge)', h(Z.Paper,{seed:'c4',size:'md',rotate:1.5,tone:'peach-100',style:{width:230},faceStyle:{padding:22,height:160}},'A scrap torn from a magazine page. Each edge has its own character.')),
+ L('lg · panel', h(Z.Paper,{seed:'d',size:'lg',rotate:.4,tone:'cream-100',edges:'trbl',style:{width:300},faceStyle:{padding:26,height:190}, tape:h(Z.Tape,{seed:'t1',x:'30%',y:'2px',color:'tape-pink'})},'All four edges torn. Pale fibre lip comes and goes.')),
+ L('brick · same recipe', h(Z.Paper,{seed:'f',size:'md',rotate:-1,tone:'brick-600',style:{width:200},faceStyle:{padding:22,height:120,color:'var(--sheet-50)'}},'Coloured stock shows the lip best.')),
+ L('xl · masthead edge (bottom only)', h(Z.Paper,{seed:'e',size:'xl',edges:'b',flush:true,rotate:0,tone:'peach-100',style:{width:420},w:420,faceStyle:{padding:'18px 20px 30px'}},'edges: "b", flush'))));
+</script>
+</body>
+</html>

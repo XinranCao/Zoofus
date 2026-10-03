@@ -1,0 +1,18 @@
+<!-- @dsCard group="Foundations" height=200 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Scribble — preview</title>
+<style>html,body{margin:0} body{min-height:100vh} .row{display:flex;flex-wrap:wrap;gap:22px;align-items:center} .col{display:grid;gap:10px;justify-items:start} .cap{font-family:var(--font-display);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted)}</style></head>
+<body class="zf-ground zf-root">
+<div id="root" style="padding:28px"></div>
+<script>
+var Z = window.Zoofus, h = React.createElement, F = React.Fragment;
+function L(label, el) { return h('div', { className: 'col' }, h('span', { className: 'cap' }, label), el); }
+ReactDOM.createRoot(document.getElementById('root')).render(h('div',{style:{display:'grid',gap:22,maxWidth:520}},
+ L('underline · 1.6px doodle @55%', h('div',{style:{width:300,opacity:.55}},h(Z.Scribble,{seed:'u1'}))),
+ L('focus · plum 100%', h('div',{style:{width:300,color:'var(--plum-900)'}},h(Z.Scribble,{seed:'u1',weight:2}))),
+ L('error · wave, raspberry', h('div',{style:{width:300,color:'var(--raspberry-600)'}},h(Z.Scribble,{seed:'u2',variant:'wave'}))),
+ L('divider · irregular dashes', h('div',{style:{width:520}},h(Z.Divider,{seed:'dv'})))));
+</script>
+</body>
+</html>

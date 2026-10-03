@@ -1,0 +1,17 @@
+<!-- @dsCard group="Actions" height=330 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Button — preview</title>
+<style>html,body{margin:0} body{min-height:100vh} .row{display:flex;flex-wrap:wrap;gap:22px;align-items:center} .col{display:grid;gap:10px;justify-items:start} .cap{font-family:var(--font-display);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted)}</style></head>
+<body class="zf-ground zf-root">
+<div id="root" style="padding:28px"></div>
+<script>
+var Z = window.Zoofus, h = React.createElement, F = React.Fragment;
+function L(label, el) { return h('div', { className: 'col' }, h('span', { className: 'cap' }, label), el); }
+ReactDOM.createRoot(document.getElementById('root')).render(h('div',{style:{display:'grid',gap:26}},
+ h('div',{className:'row'}, L('primary',h(Z.Button,{variant:'primary',icon:'download',seed:'p'},'Download PNG')), L('secondary',h(Z.Button,{variant:'secondary',seed:'s'},'Save to book')), L('quiet',h(Z.Button,{variant:'quiet',seed:'q'},'Cancel')), L('danger',h(Z.Button,{variant:'danger',icon:'trash',seed:'d'},'Delete'))),
+ h('div',{className:'row'}, L('hover',h(Z.Button,{variant:'primary',state:'hover',seed:'p'},'Hover')), L('active',h(Z.Button,{variant:'primary',state:'active',seed:'p2'},'Pressed')), L('focus',h(Z.Button,{variant:'secondary',state:'focus',seed:'s2'},'Focused')), L('quiet hover',h(Z.Button,{variant:'quiet',state:'hover',seed:'q2'},'How it works')), L('disabled',h(Z.Button,{variant:'primary',disabled:true,seed:'x'},'Cut it out')), L('loading',h(Z.Button,{variant:'primary',loading:true,seed:'l'},'Saving'))),
+ h('div',{className:'row',style:{alignItems:'end'}}, L('sm · 36',h(Z.Button,{variant:'secondary',size:'sm',seed:'s3'},'See all')), L('md · 44',h(Z.Button,{variant:'secondary',seed:'s4'},'Continue')), L('lg · 52',h(Z.Button,{variant:'primary',size:'lg',icon:'upload',seed:'s5'},'Upload a photo')))));
+</script>
+</body>
+</html>

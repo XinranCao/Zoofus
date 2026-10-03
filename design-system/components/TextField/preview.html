@@ -1,0 +1,19 @@
+<!-- @dsCard group="Forms" height=330 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>TextField — preview</title>
+<style>html,body{margin:0} body{min-height:100vh} .row{display:flex;flex-wrap:wrap;gap:22px;align-items:center} .col{display:grid;gap:10px;justify-items:start} .cap{font-family:var(--font-display);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted)}</style></head>
+<body class="zf-ground zf-root">
+<div id="root" style="padding:28px"></div>
+<script>
+var Z = window.Zoofus, h = React.createElement, F = React.Fragment;
+function L(label, el) { return h('div', { className: 'col' }, h('span', { className: 'cap' }, label), el); }
+ReactDOM.createRoot(document.getElementById('root')).render(h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',gap:'26px 32px',maxWidth:900}},
+ h(Z.TextField,{label:'Email',placeholder:'you@example.com',seed:'e1'}),
+ h(Z.TextField,{label:'Nickname · 昵称',value:'小梅',seed:'e2',hint:'Shown on your sticker book.'}),
+ h(Z.TextField,{label:'Focused',value:'mei@exa',seed:'e3',state:'focus'}),
+ h(Z.TextField,{label:'Password',type:'password',value:'hunter22',seed:'e4',error:'Password doesn’t match this email.'}),
+ h(Z.TextField,{label:'Disabled',value:'mei@example.com',seed:'e5',disabled:true})));
+</script>
+</body>
+</html>
