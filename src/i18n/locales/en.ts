@@ -28,6 +28,21 @@ export const en = {
     main: "Main",
     accountMenu: "Account menu for {{name}}",
   },
+  shell: {
+    skip: "Skip to content",
+  },
+  notFound: {
+    kicker: "Page missing",
+    title: "This page fell out of the book",
+    body: "The link may be old, or the sticker was deleted.",
+    action: "Back to the start",
+  },
+  error: {
+    kicker: "Something tore",
+    title: "That page didn’t load",
+    body: "Nothing was lost. Go back to the start and try again.",
+    action: "Back to the start",
+  },
   pageTitle: {
     home: "Make a sticker",
     book: "My sticker book",

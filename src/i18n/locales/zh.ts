@@ -30,6 +30,21 @@ export const zh: Messages = {
     main: "主导航",
     accountMenu: "{{name}} 的账号菜单",
   },
+  shell: {
+    skip: "跳到正文",
+  },
+  notFound: {
+    kicker: "页面不见了",
+    title: "这一页从本子里掉出来了",
+    body: "链接可能太旧了,或者这张贴纸已经删除。",
+    action: "回到开头",
+  },
+  error: {
+    kicker: "纸撕破了",
+    title: "这一页没能打开",
+    body: "什么都没有丢。回到开头再试一次。",
+    action: "回到开头",
+  },
   pageTitle: {
     home: "做贴纸",
     book: "我的贴纸本",

@@ -60,7 +60,7 @@ export default function DesignSystemPage() {
   const [open, setOpen] = useState(false);
 
   return (
-    <main className="zf-page" id="main">
+    <div className="zf-page">
       <div className="zf-kicker">No. 00 · Design system</div>
       <h1 className="zf-display" style={{ margin: "6px 0 28px" }}>
         Zoofus components
@@ -375,6 +375,6 @@ export default function DesignSystemPage() {
           ))}
         </Row>
       </Section>
-    </main>
+    </div>
   );
 }

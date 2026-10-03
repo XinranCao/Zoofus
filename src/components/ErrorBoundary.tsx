@@ -1,27 +1,52 @@
-import { Alert, Box, Button } from "@mui/material";
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { Sticker } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 
-interface State {
-  error: Error | null;
-}
-
-/** Catches render errors below it so one broken screen does not blank the whole app. */
 interface Props {
   children: ReactNode;
   /** When this value changes (e.g. the route), a shown error is cleared. */
   resetKey?: string;
 }
 
+interface State {
+  error: Error | null;
+}
+
+function Fallback() {
+  const { t } = useTranslation();
+  return (
+    <div className="zf-page" style={{ paddingTop: 56 }}>
+      <EmptyState
+        seed="error"
+        tone="scrap-pink"
+        kicker={t("error.kicker")}
+        title={t("error.title")}
+        art={<Sticker art="leaf" size={60} />}
+        action={
+          <Button variant="primary" seed="eb" onClick={() => window.location.assign("/")}>
+            {t("error.action")}
+          </Button>
+        }
+      >
+        {t("error.body")}
+      </EmptyState>
+    </div>
+  );
+}
+
+/** Catches render errors below it so one broken screen does not blank the whole app. */
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null };
+
+  static getDerivedStateFromError(error: Error): State {
+    return { error };
+  }
 
   componentDidUpdate(prev: Props) {
     if (this.state.error && prev.resetKey !== this.props.resetKey)
       this.setState({ error: null });
-  }
-
-  static getDerivedStateFromError(error: Error): State {
-    return { error };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
@@ -30,16 +55,6 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   render() {
-    if (!this.state.error) return this.props.children;
-    return (
-      <Box sx={{ p: 4, maxWidth: 560, mx: "auto" }}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          Something went wrong on this page.
-        </Alert>
-        <Button variant="contained" onClick={() => window.location.assign("/")}>
-          Back to home
-        </Button>
-      </Box>
-    );
+    return this.state.error ? <Fallback /> : this.props.children;
   }
 }

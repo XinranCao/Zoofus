@@ -1022,6 +1022,25 @@
     overflow: hidden;
   }
 
+  /* ---------- skip link ---------- */
+  .zf-skip {
+    position: absolute;
+    left: 8px;
+    top: -60px;
+    z-index: 100;
+    padding: 10px 14px;
+    background: var(--sheet-50);
+    color: var(--ink-deep);
+    font-family: var(--font-display);
+  }
+  .zf-skip:focus {
+    top: 8px;
+    outline: 2px solid var(--plum-900);
+  }
+  main:focus {
+    outline: none;
+  }
+
   /* ---------- drop zone ---------- */
   .zf-dropzone.is-over {
     background: var(--scrap-cool);
