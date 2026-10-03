@@ -267,6 +267,77 @@ describe("users/{uid}/pages/{id}", () => {
   });
 });
 
+describe("users/{uid}/tapes/{id}", () => {
+  const tape = () => ({
+    name: "Pink dots",
+    pattern: { kind: "dots", bg: "pink-200", ink: "sheet-50", scale: 9, weight: 0.35 },
+    thickness: 20,
+    opacity: 0.82,
+    ends: "torn",
+    createdAt: serverTimestamp(),
+  });
+
+  it("lets the owner create, read, rename and delete a tape", async () => {
+    const db = env.authenticatedContext("alice").firestore();
+    const ref = doc(db, "users/alice/tapes/t1");
+    await assertSucceeds(setDoc(ref, tape()));
+    await assertSucceeds(getDoc(ref));
+    await assertSucceeds(updateDoc(ref, { name: "Renamed" }));
+    await assertSucceeds(deleteDoc(ref));
+  });
+
+  it("denies other users and anonymous visitors", async () => {
+    await assertFails(
+      setDoc(
+        doc(env.authenticatedContext("bob").firestore(), "users/alice/tapes/t1"),
+        tape(),
+      ),
+    );
+    await assertFails(
+      getDoc(doc(env.unauthenticatedContext().firestore(), "users/alice/tapes/t1")),
+    );
+  });
+
+  it("rejects invalid tapes", async () => {
+    const ref = doc(
+      env.authenticatedContext("alice").firestore(),
+      "users/alice/tapes/t1",
+    );
+    await assertFails(setDoc(ref, { ...tape(), name: "" }));
+    await assertFails(setDoc(ref, { ...tape(), name: "x".repeat(41) }));
+    await assertFails(setDoc(ref, { ...tape(), thickness: 5 }));
+    await assertFails(setDoc(ref, { ...tape(), thickness: 50 }));
+    await assertFails(setDoc(ref, { ...tape(), opacity: 0.2 }));
+    await assertFails(setDoc(ref, { ...tape(), ends: "zigzag" }));
+    await assertFails(
+      setDoc(ref, { ...tape(), pattern: { kind: "plaid", bg: "cream-100" } }),
+    );
+    await assertFails(
+      setDoc(ref, {
+        ...tape(),
+        pattern: { kind: "pixels", bg: "cream-100", pixels: ["00000000"] },
+      }),
+    );
+    await assertFails(
+      setDoc(ref, {
+        ...tape(),
+        pattern: { kind: "doodle", bg: "cream-100", strokes: new Array(41).fill("M1 1") },
+      }),
+    );
+    await assertFails(setDoc(ref, { ...tape(), extra: 1 }));
+  });
+
+  it("allows only renaming after creation", async () => {
+    const ref = doc(
+      env.authenticatedContext("alice").firestore(),
+      "users/alice/tapes/t1",
+    );
+    await setDoc(ref, tape());
+    await assertFails(updateDoc(ref, { thickness: 30 }));
+    await assertFails(updateDoc(ref, { ends: "cut" }));
+  });
+});
+
 describe("everything else", () => {
   it("is denied", async () => {
     const db = env.authenticatedContext("alice").firestore();

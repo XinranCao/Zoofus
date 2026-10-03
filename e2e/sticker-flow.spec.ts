@@ -72,6 +72,20 @@ test("sign up, cut and save a sticker, then delete the account", async ({ page }
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(page.getByText("Blue square")).toBeVisible();
 
+  // Tape studio: turn with the keyboard, pick a preset direction, add to the roll
+  await page.getByRole("link", { name: "Tape" }).click();
+  await expect(page.getByRole("heading", { name: "Tape studio" })).toBeVisible();
+  const handle = page.getByRole("slider", { name: /Turn tape/ });
+  await handle.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByText("Direction · -9°")).toBeVisible();
+  await page.getByRole("button", { name: "45 degrees", exact: true }).click();
+  await expect(page.getByText("Direction · 45°")).toBeVisible();
+  await page.getByLabel("Name").fill("E2E tape");
+  await page.getByRole("button", { name: "Add to my tape roll" }).click();
+  await expect(page.getByText("Added to your tape roll.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Use E2E tape" })).toBeVisible();
+
   // Delete the account: everything is removed and we land on a public page
   await page.goto("/account");
   await page.getByRole("button", { name: "Delete my account" }).click();

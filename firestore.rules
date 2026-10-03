@@ -13,6 +13,16 @@ service cloud.firestore {
     function isString(value, maxLen) {
       return value is string && value.size() <= maxLen;
     }
+    // A user-designed print (tape prints and sticker-edge fills). Keep in sync with
+    // src/paper/patternSchema.ts: rules cannot loop, so per-cell content is checked by the client.
+    function validPattern(p) {
+      return p is map
+        && p.kind in ['solid', 'stripes', 'dots', 'gingham', 'check', 'wave', 'pixels', 'doodle']
+        && isString(p.bg, 32)
+        && (!('ink' in p) || isString(p.ink, 32))
+        && (!('pixels' in p) || (p.pixels is list && p.pixels.size() == 8))
+        && (!('strokes' in p) || (p.strokes is list && p.strokes.size() <= 40));
+    }
 
     // users/{uid}: the owner's profile
     match /users/{uid} {
@@ -49,6 +59,27 @@ service cloud.firestore {
         allow delete: if isOwner(uid);
       }
 
+      // users/{uid}/tapes/{tapeId}: "My tape roll" (a TapeSpec: name, print, width, see-through, ends).
+      // Angle and length belong to each placement on a page, not to the saved tape.
+      match /tapes/{tapeId} {
+        function validTape(d) {
+          return d.keys().hasOnly(['name', 'pattern', 'thickness', 'opacity', 'ends', 'createdAt'])
+            && isString(d.name, 40) && d.name.size() > 0
+            && validPattern(d.pattern)
+            && d.thickness is number && d.thickness >= 12 && d.thickness <= 36
+            && d.opacity is number && d.opacity >= 0.5 && d.opacity <= 1
+            && d.ends in ['torn', 'cut', 'pinked'];
+        }
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid)
+          && validTape(request.resource.data)
+          && request.resource.data.createdAt == request.time;
+        allow update: if isOwner(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
+          && validTape(request.resource.data);
+        allow delete: if isOwner(uid);
+      }
+
       // users/{uid}/stickers/{stickerId}: the owner's saved stickers
       match /stickers/{stickerId} {
         function validEdge(e) {
@@ -56,10 +87,7 @@ service cloud.firestore {
             && e.keys().hasOnly(['shape', 'scale', 'fill'])
             && e.shape in ['smooth', 'wobbly', 'torn']
             && e.scale is number && e.scale >= 0 && e.scale <= 1.6
-            && e.fill is map
-            && e.fill.kind in ['solid', 'stripes', 'dots', 'gingham', 'check', 'wave', 'pixels', 'doodle']
-            && (!('pixels' in e.fill) || (e.fill.pixels is list && e.fill.pixels.size() == 8))
-            && (!('strokes' in e.fill) || (e.fill.strokes is list && e.fill.strokes.size() <= 40));
+            && validPattern(e.fill);
         }
         function ownFile(path) {
           return isString(path, 512) && path.matches('^' + uid + '/stickers/.+');
