@@ -54,5 +54,10 @@ Local runs need a `.env` with `VITE_APP_*` Firebase keys. Never read, print or c
 9. `git switch dev`.
 - `git log --first-parent main --oneline` lists the releases.
 
+## Working from GitHub
+- Mention `@claude` in an issue or PR comment to have Claude work on it in GitHub Actions (`.github/workflows/claude.yml`, auth secret `CLAUDE_CODE_OAUTH_TOKEN`).
+- Claude opens PRs into `dev`, and follows this same `CLAUDE.md`.
+- Releases to `main` and Firebase deploys are never done from GitHub Actions.
+
 ## Known issues / backlog
 (To be filled in during Phase 4.)
