@@ -9,7 +9,10 @@ import { Skeleton } from "@/components/ui/Loader";
 import { Paper } from "@/components/ui/Paper";
 import { Sticker as DemoSticker } from "@/components/ui/Sticker";
 import { Tape } from "@/components/ui/Tape";
-import { StickerMakerDialog } from "@/features/stickers/editor/StickerMakerDialog";
+import {
+  preloadStickerMaker,
+  StickerMakerDialog,
+} from "@/features/stickers/editor/LazyStickerMaker";
 import { StickerTile } from "@/features/stickers/library/StickerTile";
 import { useStickers } from "@/features/stickers/library/useStickers";
 
@@ -92,6 +95,8 @@ export default function HomePage() {
               size="lg"
               icon="upload"
               seed="hu"
+              onPointerEnter={preloadStickerMaker}
+              onFocus={preloadStickerMaker}
               onClick={() => input.current?.click()}
             >
               {t("home.upload")}

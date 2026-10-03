@@ -4,6 +4,7 @@ import { Link, NavLink } from "react-router-dom";
 import { tornClip } from "@/paper/torn";
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { LANGUAGES } from "@/i18n";
+import { ensureFontsFor } from "@/lib/cjkFonts";
 import { Avatar } from "./Avatar";
 import { Button, ButtonLink } from "./Button";
 import { Icon, type IconName } from "./Icon";
@@ -148,6 +149,7 @@ export function Masthead({
 }) {
   const { t, i18n } = useTranslation();
   const zh = i18n.language.startsWith("zh");
+  ensureFontsFor(user?.name);
   const other = LANGUAGES.find((l) => (zh ? l.code === "en" : l.code === "zh-CN"))!;
   // the auth card already carries the page's one primary button
   const onAuth = pathname === "/login" || pathname === "/signup";

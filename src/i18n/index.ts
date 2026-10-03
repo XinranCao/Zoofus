@@ -1,6 +1,7 @@
 import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
+import { ensureCjkFonts } from "@/lib/cjkFonts";
 import { en } from "./locales/en";
 import { zh } from "./locales/zh";
 
@@ -15,6 +16,7 @@ export type LanguageCode = (typeof LANGUAGES)[number]["code"];
 function syncHtmlLang(lng: string) {
   if (typeof document !== "undefined")
     document.documentElement.lang = lng.startsWith("zh") ? "zh-CN" : "en";
+  if (lng.startsWith("zh")) ensureCjkFonts(); // the Chinese interface needs them; English does not
 }
 
 void i18n

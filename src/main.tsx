@@ -5,8 +5,6 @@ import { Providers } from "@/app/providers";
 import "@fontsource/special-elite/400.css";
 import "@fontsource/courier-prime/400.css";
 import "@fontsource/courier-prime/700.css";
-import "cn-fontsource-xiaolai-mono-sc-regular/font.css"; // Chinese, split by unicode-range
-import "@fontsource/lxgw-wenkai/500.css"; // fallback for any glyph Xiaolai lacks (package has no 400 weight)
 import "@/styles/index.css";
 import "@/i18n";
 

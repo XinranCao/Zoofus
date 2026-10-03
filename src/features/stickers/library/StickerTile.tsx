@@ -1,3 +1,4 @@
+import { ensureFontsFor } from "@/lib/cjkFonts";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
@@ -105,6 +106,7 @@ export function StickerTile({
   renaming?: boolean;
   onRenameDone?: (name: string | null) => void;
 }) {
+  ensureFontsFor(sticker.name);
   const { t } = useTranslation();
   const body = (
     <>

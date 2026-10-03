@@ -1,3 +1,4 @@
+import { ensureFontsFor } from "@/lib/cjkFonts";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
@@ -104,6 +105,7 @@ export function TapeStudio({
     });
   };
 
+  roll.forEach((r) => ensureFontsFor(r.name));
   const defaultName = t("tape.defaultName", { n: roll.filter((r) => r.id).length + 1 });
 
   return (

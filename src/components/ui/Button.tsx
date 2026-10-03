@@ -45,7 +45,9 @@ export function Button({
 }: ButtonProps) {
   const id = useSeed(seed);
   const off = Boolean(disabled || loading);
-  const vars = tornVars(id, {
+  // a quiet button has no visible face, so all of one size share a single tear: a sticker book
+  // of 60 tiles then generates two tears for its Rename and Delete buttons instead of 120
+  const vars = tornVars(variant === "quiet" ? `quiet-${size}` : id, {
     size: size === "lg" ? "md" : "sm",
     w: size === "sm" ? 110 : 160,
     h: 44,
@@ -101,7 +103,9 @@ export function ButtonLink({
   onClick,
 }: LinkButtonProps) {
   const id = useSeed(seed);
-  const vars = tornVars(id, {
+  // a quiet button has no visible face, so all of one size share a single tear: a sticker book
+  // of 60 tiles then generates two tears for its Rename and Delete buttons instead of 120
+  const vars = tornVars(variant === "quiet" ? `quiet-${size}` : id, {
     size: size === "lg" ? "md" : "sm",
     w: size === "sm" ? 110 : 160,
     h: 44,

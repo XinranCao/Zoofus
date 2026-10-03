@@ -30,7 +30,6 @@ export default defineConfig({
             "@radix-ui/react-tooltip",
             "@radix-ui/react-radio-group",
           ],
-          konva: ["konva", "react-konva", "polygon-clipping"],
         },
       },
     },

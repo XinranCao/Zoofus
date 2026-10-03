@@ -347,6 +347,8 @@ export async function tornProblems(page: Page, screen: string): Promise<Problem[
     // 1. no two visible torn elements share a tear
     const seen = new Map<string, HTMLElement>();
     for (const el of torn) {
+      // quiet buttons have no visible face and share one tear per size
+      if (el.classList.contains("quiet")) continue;
       const clip = getComputedStyle(el).getPropertyValue("--clip").trim();
       if (!clip) continue;
       const other = seen.get(clip);

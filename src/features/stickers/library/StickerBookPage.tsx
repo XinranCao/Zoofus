@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/Loader";
 import { Scribble } from "@/components/ui/Scribble";
 import { Sticker as DemoSticker } from "@/components/ui/Sticker";
 import { ToastNote, useToast } from "@/components/ui/Toast";
-import { StickerMakerDialog } from "../editor/StickerMakerDialog";
+import { preloadStickerMaker, StickerMakerDialog } from "../editor/LazyStickerMaker";
 import { EditEdgeDialog } from "./EditEdgeDialog";
 import { StickerDetailDialog } from "./StickerDetailDialog";
 import { StickerTile } from "./StickerTile";
@@ -182,6 +182,8 @@ export default function StickerBookPage() {
             variant="primary"
             icon="plus"
             seed="nw"
+            onPointerEnter={preloadStickerMaker}
+            onFocus={preloadStickerMaker}
             onClick={() => setMakerOpen(true)}
           >
             {t("book.newSticker")}
@@ -217,6 +219,8 @@ export default function StickerBookPage() {
                 variant="primary"
                 icon="upload"
                 seed="eu"
+                onPointerEnter={preloadStickerMaker}
+                onFocus={preloadStickerMaker}
                 onClick={() => setMakerOpen(true)}
               >
                 {t("book.makeFirst")}

@@ -152,6 +152,12 @@ export function cutEdge(R: Rng, len: number, o: ResolvedOptions): EdgePoint[] {
 }
 
 const clipCache = new Map<string, TornPair>();
+const stats = { generated: 0, ms: 0 };
+
+/** How many tears were generated (cache misses) and the time they took: for performance checks. */
+export function tornStats(): { generated: number; ms: number } {
+  return { ...stats };
+}
 
 export interface TornPair {
   face: string;
@@ -174,6 +180,7 @@ export function tornPair(seed: string, opts: TornOptions = {}): TornPair {
   ].join("|");
   const hit = clipCache.get(key);
   if (hit) return hit;
+  const t0 = typeof performance !== "undefined" ? performance.now() : 0;
 
   const R = rng(hash(key));
   let E = o.edges;
@@ -188,6 +195,14 @@ export function tornPair(seed: string, opts: TornOptions = {}): TornPair {
   const B = edge("b", o.w);
   const L = edge("l", o.h);
 
+  // The along-the-edge positions are the same for the face and the lip, so they are formatted once.
+  const pos = (E: EdgePoint[], flip: boolean) =>
+    E.map((p) => f1((flip ? 1 - p.t : p.t) * 100) + "%");
+  const Tx = pos(T, false);
+  const Ry = pos(Rt, false);
+  const Bx = pos(B, true);
+  const Ly = pos(L, true);
+
   const build = (k: "d" | "f") => {
     const P: string[] = [];
     let i: number;
@@ -198,31 +213,30 @@ export function tornPair(seed: string, opts: TornOptions = {}): TornPair {
           ? f1(L[L.length - 1]![k]) + "px"
           : i === T.length - 1
             ? "calc(100% - " + f1(Rt[0]![k]) + "px)"
-            : f1(T[i]!.t * 100) + "%";
+            : Tx[i]!;
       P.push(x + " " + f1(T[i]![k]) + "px");
     }
     for (i = 1; i < Rt.length; i++) {
       // right: top → bottom
-      const y =
-        i === Rt.length - 1
-          ? "calc(100% - " + f1(B[0]![k]) + "px)"
-          : f1(Rt[i]!.t * 100) + "%";
+      const y = i === Rt.length - 1 ? "calc(100% - " + f1(B[0]![k]) + "px)" : Ry[i]!;
       P.push("calc(100% - " + f1(Rt[i]![k]) + "px) " + y);
     }
     for (i = 1; i < B.length; i++) {
       // bottom: right → left
-      const bx = i === B.length - 1 ? f1(L[0]![k]) + "px" : f1(100 - B[i]!.t * 100) + "%";
+      const bx = i === B.length - 1 ? f1(L[0]![k]) + "px" : Bx[i]!;
       P.push(bx + " calc(100% - " + f1(B[i]![k]) + "px)");
     }
     for (i = 1; i < L.length - 1; i++) {
       // left: bottom → top
-      P.push(f1(L[i]![k]) + "px " + f1(100 - L[i]!.t * 100) + "%");
+      P.push(f1(L[i]![k]) + "px " + Ly[i]!);
     }
     return "polygon(" + P.join(",") + ")";
   };
 
   const out = { face: build("d"), fiber: build("f") };
   clipCache.set(key, out);
+  stats.generated++;
+  if (typeof performance !== "undefined") stats.ms += performance.now() - t0;
   return out;
 }
 
