@@ -9,7 +9,11 @@ const schema = z.object({
   VITE_APP_APP_ID: z.string().min(1),
   VITE_APP_MEASUREMENT_ID: z.string().optional(),
   /** reCAPTCHA Enterprise site key for Firebase App Check; App Check is off when unset. */
-  VITE_APP_RECAPTCHA_SITE_KEY: z.string().min(1).optional(),
+  VITE_APP_RECAPTCHA_SITE_KEY: z.preprocess(
+    // A missing GitHub secret arrives as an empty string.
+    (v) => (v === "" ? undefined : v),
+    z.string().optional(),
+  ),
   /** "true" connects the app to the local Firebase emulators (see `npm run dev:emulated`). */
   VITE_USE_EMULATORS: z.enum(["true", "false"]).optional(),
 });
