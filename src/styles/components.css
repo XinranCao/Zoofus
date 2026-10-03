@@ -1028,6 +1028,8 @@
     gap: 1px;
     background: rgb(108 74 59 / 0.18); /* the gap shows this colour as the grid lines */
     width: max-content;
+    touch-action: none; /* dragging paints, it must not scroll the page */
+    user-select: none;
   }
   .zf-pixel {
     all: unset;

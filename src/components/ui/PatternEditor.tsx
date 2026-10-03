@@ -40,18 +40,73 @@ export function PixelGrid({
   onChange: (rows: string[]) => void;
 }) {
   const { t } = useTranslation();
+  // Press on a cell and drag: every cell the pointer crosses is set to what the first one became
+  // (paint or erase), so a stroke colours a whole area.
+  const paint = useRef<{ to: "0" | "1"; rows: string[] } | null>(null);
+  const pressed = useRef(false);
+
+  const cellOf = (el: Element | null) => {
+    const cell = el?.closest<HTMLElement>("[data-cell]");
+    if (!cell) return null;
+    const [y, x] = cell.dataset.cell!.split(",").map(Number) as [number, number];
+    return { x, y };
+  };
+  const setCell = (x: number, y: number) => {
+    const st = paint.current;
+    if (!st || st.rows[y]![x] === st.to) return;
+    st.rows = st.rows.slice();
+    st.rows[y] = st.rows[y]!.slice(0, x) + st.to + st.rows[y]!.slice(x + 1);
+    onChange(st.rows);
+  };
+  const down = (e: React.PointerEvent) => {
+    const c = cellOf(e.target as Element);
+    if (!c || e.button > 0) return;
+    pressed.current = true;
+    paint.current = { to: value[c.y]![c.x] === "1" ? "0" : "1", rows: value };
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    setCell(c.x, c.y);
+  };
+  const move = (e: React.PointerEvent) => {
+    if (!paint.current) return;
+    const at =
+      typeof document.elementFromPoint === "function"
+        ? document.elementFromPoint(e.clientX, e.clientY)
+        : null;
+    const c = cellOf(at);
+    if (c) setCell(c.x, c.y);
+  };
+  const up = () => {
+    paint.current = null;
+    // the click that follows a press is swallowed; clear the flag once it has had its chance
+    setTimeout(() => (pressed.current = false), 0);
+  };
+
   return (
-    <div className="zf-pixels" role="group" aria-label={t("pattern.pixelGrid")}>
+    <div
+      className="zf-pixels"
+      role="group"
+      aria-label={t("pattern.pixelGrid")}
+      onPointerDown={down}
+      onPointerMove={move}
+      onPointerUp={up}
+      onPointerCancel={up}
+    >
       {value.map((row, y) =>
         row.split("").map((c, x) => (
           <button
             key={`${y}-${x}`}
             type="button"
             className="zf-pixel"
+            data-cell={`${y},${x}`}
             aria-pressed={c === "1"}
             aria-label={t("pattern.cell", { row: y + 1, col: x + 1 })}
             style={{ background: c === "1" ? hex(ink) : hex(bg) }}
             onClick={() => {
+              // a mouse or touch press was already handled on pointer down; this is the keyboard
+              if (pressed.current) {
+                pressed.current = false;
+                return;
+              }
               const rows = value.slice();
               rows[y] = row.slice(0, x) + (c === "1" ? "0" : "1") + row.slice(x + 1);
               onChange(rows);

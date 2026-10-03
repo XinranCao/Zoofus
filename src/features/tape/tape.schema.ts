@@ -38,7 +38,7 @@ export const tapeDocSchema = z.object({
   createdAt: z.instanceof(Timestamp).transform((t) => t.toDate()),
 });
 
-/** Starter tapes shown until the user saves their own. */
+/** Starter tapes, always shown after the user's own. */
 export const STARTER_TAPES: TapeSpec[] = [
   {
     name: "Pink dots",

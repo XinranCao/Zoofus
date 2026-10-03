@@ -16,7 +16,7 @@ export default function TapePage() {
   const remove = useDeleteTape();
   const [draft, setDraft] = useState<TapeDraft>(DEFAULT_DRAFT);
 
-  const roll = tapes && tapes.length > 0 ? tapes : STARTER_TAPES;
+  const roll = [...(tapes ?? []), ...STARTER_TAPES];
   const patch = (p: Partial<TapeDraft>) => setDraft((d) => ({ ...d, ...p }));
   const use = (tape: TapeSpec) =>
     patch({

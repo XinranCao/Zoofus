@@ -81,28 +81,62 @@ export function LassoStage({ width, height }: { width: number; height: number })
   const onPointerDown = (e: KonvaEventObject<PointerEvent>) => {
     if (!drawing || stroke) return;
     const p = pointer(e);
-    if (p) setStroke([p[0], p[1]]);
-  };
-  const onPointerMove = (e: KonvaEventObject<PointerEvent>) => {
-    if (!stroke) return;
-    const p = pointer(e);
-    if (p && (p[0] !== stroke[stroke.length - 2] || p[1] !== stroke[stroke.length - 1])) {
-      setStroke((prev) => (prev ? [...prev, p[0], p[1]] : prev));
+    if (p) {
+      live.current = [p[0], p[1]];
+      setStroke(live.current);
     }
   };
-  const onPointerUp = () => {
-    if (stroke && stroke.length >= 4) {
-      // Within a few pixels of the start, the loop is closed exactly.
-      const closeEnough =
-        Math.hypot(
-          stroke[0]! - stroke[stroke.length - 2]!,
-          stroke[1]! - stroke[stroke.length - 1]!,
-        ) < SNAP;
-      const points = closeEnough ? [...stroke, stroke[0]!, stroke[1]!] : stroke;
-      addSelection(createFreehand(points, mode, crypto.randomUUID()));
-    }
-    setStroke(null);
-  };
+  const stageRef = useRef<Konva.Stage>(null);
+  const live = useRef<number[] | null>(null);
+  const drawingNow = stroke !== null;
+  const modeRef = useRef(mode);
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
+
+  // While a stroke is under way the pointer is tracked on the window, so leaving the photo does not
+  // break the line: outside points are clamped to the photo's border. Going out on one side and
+  // coming back on another therefore runs along the border, round the corner, and the corner ends
+  // up inside the selection.
+  useEffect(() => {
+    if (!drawingNow) return;
+    const toPoint = (e: PointerEvent) => {
+      const box = stageRef.current?.container().getBoundingClientRect();
+      if (!box || box.width === 0) return null;
+      const x = Math.min(Math.max((e.clientX - box.left) / scale, 0), fit.width);
+      const y = Math.min(Math.max((e.clientY - box.top) / scale, 0), fit.height);
+      return [x, y] as const;
+    };
+    const move = (e: PointerEvent) => {
+      const p = toPoint(e);
+      const pts = live.current;
+      if (!p || !pts) return;
+      if (p[0] === pts[pts.length - 2] && p[1] === pts[pts.length - 1]) return;
+      live.current = [...pts, p[0], p[1]];
+      setStroke(live.current);
+    };
+    const up = () => {
+      const pts = live.current;
+      live.current = null;
+      if (pts && pts.length >= 4) {
+        // Within a few pixels of the start, the loop is closed exactly.
+        const closeEnough =
+          Math.hypot(pts[0]! - pts[pts.length - 2]!, pts[1]! - pts[pts.length - 1]!) <
+          SNAP;
+        const points = closeEnough ? [...pts, pts[0]!, pts[1]!] : pts;
+        addSelection(createFreehand(points, modeRef.current, crypto.randomUUID()));
+      }
+      setStroke(null);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+    };
+  }, [drawingNow, scale, fit.width, fit.height, addSelection]);
 
   const active = selections.find((s) => s.id === activeId);
   const startOf = stroke ?? (active?.kind === "freehand" ? active.points : null);
@@ -122,13 +156,12 @@ export function LassoStage({ width, height }: { width: number; height: number })
       }}
     >
       <Stage
+        ref={stageRef}
         width={stageW}
         height={stageH}
         scaleX={scale}
         scaleY={scale}
         onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
       >
         <Layer>
           {image && (
