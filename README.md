@@ -2,7 +2,7 @@
 
 A React + Firebase web app. Sign up or log in (email/password or Google), then use the **Image Lasso** tool: upload an image, select regions with a freehand lasso or rectangle/triangle/star shapes (with select and deselect modes), and preview the masked cut-out with an adjustable border color and width.
 
-Stack: React 19, Vite 7, MUI 7, Redux Toolkit, react-router 7, Konva/react-konva, polygon-clipping, Less modules, Firebase 12 (Auth, Firestore, Storage, Analytics, Hosting).
+Stack: React 19, Vite 7, Tailwind CSS v4, Radix UI, react-router 7, Konva/react-konva, polygon-clipping, react-i18next, Firebase 12 (Auth, Firestore, Storage, Analytics, Hosting).
 
 ## Setup
 

@@ -3,7 +3,7 @@
 ## Project summary
 
 Zoofus is a React + Firebase web app. Users sign up / log in (email+password or Google), then use the **Image Lasso** tool on the Home page: upload an image, select regions with freehand lasso or rectangle/triangle/star shapes (select vs deselect), and preview the masked cut-out with an adjustable border.
-Stack: React 19, Vite 7, MUI 7, Redux Toolkit, react-router 7, Konva/react-konva, polygon-clipping, react-color, Less modules, Firebase 12 (Auth, Firestore, Storage, Analytics, Hosting). Firebase project id: `zoofus-48264`.
+Stack: React 19, Vite 7, Tailwind CSS v4 + Radix UI (design system in `design-system/`), react-router 7, Konva/react-konva, polygon-clipping, Zustand, TanStack Query, react-i18next (en, zh-CN), Firebase 12 (Auth, Firestore, Storage, Analytics, Hosting). Firebase project id: `zoofus-48264`.
 Local runs need a `.env` with `VITE_APP_*` Firebase keys. Never read, print or commit it.
 
 ## Commands
@@ -39,14 +39,16 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
 - `docs/app-check.md` – one-time App Check console setup
 - `src/components/ErrorBoundary.tsx`, `src/pages/NotFoundPage.tsx` – error and 404 handling
 - `src/pages/HomePage.tsx` – opens the editor in a dialog
-- `docs/ui-style-brief.md` – brief for the UI redesign (Tailwind + Radix, hand-torn scrapbook style)
+- `design-system/` – the Zoofus design system (reference docs and code, never imported); `ADOPTION_PLAN.md`, `ADOPTION_REPORT.md`, `verification/` screenshots
+- `src/paper/` – ported paper primitives (torn clip pairs, patterns, dieCut, renderSticker) with tests; `src/styles/` – Tailwind theme, tokens, components.css; `src/components/ui/` – Radix-based UI kit, gallery at `/dev/design-system` (dev only); `src/i18n/` – locales; `src/features/tape/` – tape studio (`/tape`)
+- `e2e/design-system.spec.ts` – screenshots at 390 and 1280px plus axe, flat/no-radius and title checks
 
 ## Conventions
 
-- Server data (Firebase) goes through TanStack Query hooks; Redux is gone. Editor state lives in the Zustand store, never in components.
+- Server data (Firebase) goes through TanStack Query hooks; Redux and MUI are gone. Editor state lives in the Zustand store, never in components.
 - Keep geometry and mask logic in `domain/` as pure functions with unit tests; Konva/React code only renders and forwards events.
 - Validate external data with zod schemas (env, Firestore docs, forms via react-hook-form + zod).
-- UI is MUI for now and will be replaced by Tailwind + Radix in the redesign (issue #16): do not invest in new MUI-specific styling.
+- All user-facing copy goes through i18n (`src/i18n/locales/en.ts` and `zh.ts`); add keys to both.
 - Object URLs are revoked by the component that owns them (the editor owns the image URL).
 - Fix `useEffect` setState lint errors by deriving state, not by disabling the rule.
 
@@ -95,8 +97,17 @@ Stored images are compressed on save by `encodeWithin` + `COMPRESSION` in `src/l
 
 - Do not upgrade `rollup` past 4.59.0 without checking: 4.64.0 made `vite build` hang (pinned via `overrides`). `@grpc/grpc-js` is overridden to ^1.14.5 to clear audit findings. `npm audit` is clean.
 - Workflows that build the app need the repo secrets `VITE_APP_*` plus `FIREBASE_SERVICE_ACCOUNT_ZOOFUS_48264`.
-- v0.4.0 milestone: UI redesign (#16, needs `docs/ui-style-brief.md` design guide) and i18n (#15).
+- Redesign (#16) and i18n (#15) are implemented on `dev`, unreleased. Before releasing, deploy the new rules (tapes, sticker `edge`/`seed`/`sourcePath`, storage update): `firebase deploy --only firestore:rules,storage`.
 - App Check needs the one-time console setup in `docs/app-check.md`; until then it is inactive.
 - Not done yet: pinch-zoom on the canvas, HEIC support (non-Safari browsers), error monitoring (skipped by decision), thumbnails for pre-existing stickers.
 - PR previews use the production backend; do not test destructive flows there.
 - Freehand strokes can be moved with the arrow keys but have no resize handles (only shapes have a transformer).
+
+## Design system (Zoofus)
+
+- UI follows `design-system/` — read `design-system/README.md` first, then the component's `design-system/components/<Name>/README.md`.
+- Hard rules: one "Zoofus" wordmark, no tagline · flat, no shadows · every container is a seeded torn polygon pair (`src/paper/torn.ts`), no border-radius/borders on chrome · AA text contrast using the pairs in `design-system/01-tokens.md` · Special Elite + Courier Prime, Chinese in Xiaolai Mono SC · light theme only · reduced-motion respected · focus ring traced around the tear.
+- Tokens live in `src/styles/theme.css` (Tailwind v4 `@theme`); never hard-code hex values in components.
+- Sticker preview and PNG export both come from `dieCut()` (`src/paper/dieCut.ts`); never add a shadow to stickers.
+- Tape and sticker-edge prints use `PatternSpec` (`src/paper/pattern.ts`); user colours are the 16 `USER_COLORS`.
+- Visual reference: `npx serve design-system` → `gallery.html`.

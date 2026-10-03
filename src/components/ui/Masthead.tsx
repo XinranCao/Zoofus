@@ -175,7 +175,7 @@ export function Masthead({
                   </NavLink>
                 ))}
                 <span style={{ width: 8 }} />
-                <RMenu.Root>
+                <RMenu.Root modal={false}>
                   <RMenu.Trigger asChild>
                     <Avatar
                       name={user.name}
@@ -187,7 +187,7 @@ export function Masthead({
                 </RMenu.Root>
               </nav>
               <span className="zf-menu-btn">
-                <RMenu.Root>
+                <RMenu.Root modal={false}>
                   <RMenu.Trigger asChild>
                     <Button
                       variant="quiet"

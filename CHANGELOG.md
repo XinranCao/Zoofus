@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Full UI redesign on the Zoofus design system (Tailwind v4 + Radix, torn-paper look, MUI removed), English and Chinese.
+- Sticker edge studio (shape, width, pattern fill), editable edges for saved stickers, and a tape studio at /tape.
+
 ## v0.3.1 – 2026-10-03
 
 Image handling and the sticker gallery.
