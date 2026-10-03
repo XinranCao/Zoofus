@@ -126,14 +126,7 @@ export function ResultPanel() {
             startIcon={<SaveIcon />}
             disabled={!cutout || !trimmed || save.isPending}
             onClick={() =>
-              cutout &&
-              save.mutate({
-                blob: cutout.blob,
-                canvas: cutout.canvas,
-                name: trimmed,
-                width: cutout.width,
-                height: cutout.height,
-              })
+              cutout && save.mutate({ canvas: cutout.canvas, name: trimmed })
             }
           >
             Save

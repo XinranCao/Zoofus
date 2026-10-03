@@ -85,6 +85,10 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
 
 `dev` and `main` require the CI checks `build-and-test`, `security-rules` and `e2e`, and block force-push and deletion. Admins (the owner) can still push directly, which the auto-save hook and the release process rely on. To rewrite history on `dev`, lift the protection temporarily (`gh api -X DELETE repos/XinranCao/Zoofus/branches/dev/protection`), then restore it.
 
+## Image compression policy
+
+Stored images are compressed on save by `encodeWithin` + `COMPRESSION` in `src/lib/image.ts`: stickers max 1,280 px WebP (quality 0.82, floor 0.6, 400 KB target, PNG fallback where the browser cannot encode WebP), thumbnails 256 px, profile photos 512 px JPEG. Editing keeps up to 2,048 px; "Download PNG" is the full-quality export. `storage.rules` caps uploads at 2 MB, which is the safety net, not the target. Change limits in one place (`COMPRESSION`) and keep the rules in step.
+
 ## Known issues / backlog
 
 - **Cloud Storage needs the Blaze plan.** On the free Spark plan every upload (stickers, profile photos) fails with HTTP 402. The emulators do not enforce this, so tests pass regardless. Upgrade the project to Blaze (pay-as-you-go; the Always Free quota covers small use) and set a budget alert, see `docs/security-setup.md`.

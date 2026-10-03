@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Saved stickers are compressed: scaled to at most 1,280 px and stored as WebP (quality 82, stepping down to 60 if needed, 400 KB target) with a 256 px thumbnail, so each sticker is typically under 100 KB. "Download PNG" is still full quality.
+- Profile photos are scaled to 512 px and compressed to JPEG before upload (they used to keep their full dimensions).
+
+### Other
+
+- Storage rules now accept WebP or PNG stickers up to 2 MB and profile photos up to 2 MB (was 10 MB and 5 MB). Deploy the rules after releasing this version.
+
 ## v0.3.0 – 2026-10-03
 
 Architecture rewrite and app foundations. The visual redesign moves to v0.4.0.

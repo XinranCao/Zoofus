@@ -18,8 +18,8 @@ export type Sticker = z.output<typeof stickerDocSchema> & { id: string };
 
 export const MAX_STICKER_NAME = 60;
 
-/** Per-account limits. The size limit mirrors storage.rules; the count is enforced by the client. */
+/** Per-account limits. The size limit sits just under storage.rules (2 MB); the count is enforced by the client. */
 export const MAX_STICKERS = 200;
-export const MAX_STICKER_BYTES = 9.5 * 1024 * 1024;
+export const MAX_STICKER_BYTES = 1.9 * 1024 * 1024;
 
 export class StickerLimitError extends Error {}

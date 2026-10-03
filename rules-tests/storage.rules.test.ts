@@ -53,7 +53,16 @@ describe("stickers", () => {
     );
   });
 
-  it("rejects non-PNG and oversized files", async () => {
+  it("accepts WebP stickers", async () => {
+    const storage = env.authenticatedContext("alice").storage();
+    await assertSucceeds(
+      uploadBytes(ref(storage, "alice/stickers/w.webp"), bytes(100), {
+        contentType: "image/webp",
+      }),
+    );
+  });
+
+  it("rejects non-image and oversized files", async () => {
     const storage = env.authenticatedContext("alice").storage();
     await assertFails(
       uploadBytes(ref(storage, "alice/stickers/d.png"), bytes(10), {
@@ -61,7 +70,7 @@ describe("stickers", () => {
       }),
     );
     await assertFails(
-      uploadBytes(ref(storage, "alice/stickers/e.png"), bytes(11 * 1024 * 1024), png),
+      uploadBytes(ref(storage, "alice/stickers/e.png"), bytes(3 * 1024 * 1024), png),
     );
   });
 });

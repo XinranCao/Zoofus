@@ -33,8 +33,8 @@ vi.mock("firebase/storage", () => ({
 import { deleteSticker, saveSticker } from "./stickers.api";
 import { MAX_STICKER_BYTES, MAX_STICKERS, StickerLimitError } from "./sticker.schema";
 
-const blob = (size = 10) => {
-  const b = new Blob(["x"]);
+const blob = (size = 10, type = "image/webp") => {
+  const b = new Blob(["x"], { type });
   Object.defineProperty(b, "size", { value: size });
   return b;
 };
@@ -58,8 +58,8 @@ describe("saveSticker", () => {
     const data = m.setDoc.mock.calls[0]![1];
     expect(data).toMatchObject({
       name: "Froggo",
-      storagePath: `u1/stickers/${id}.png`,
-      thumbnailPath: `u1/stickers/${id}_thumb.png`,
+      storagePath: `u1/stickers/${id}.webp`,
+      thumbnailPath: `u1/stickers/${id}_thumb.webp`,
       createdAt: "SERVER_TIME",
     });
   });
@@ -82,10 +82,10 @@ describe("saveSticker", () => {
     await expect(saveSticker("u1", input)).rejects.toThrow("firestore down");
     const deleted = m.deleteObject.mock.calls.map((c) => c[0].path as string);
     expect(deleted).toHaveLength(2);
-    expect(deleted.some((p) => p.endsWith(".png") && !p.endsWith("_thumb.png"))).toBe(
+    expect(deleted.some((p) => p.endsWith(".webp") && !p.endsWith("_thumb.webp"))).toBe(
       true,
     );
-    expect(deleted.some((p) => p.endsWith("_thumb.png"))).toBe(true);
+    expect(deleted.some((p) => p.endsWith("_thumb.webp"))).toBe(true);
   });
 
   it("still reports the original error when cleanup itself fails", async () => {
@@ -111,6 +111,18 @@ describe("deleteSticker", () => {
   it("succeeds even when the files are already gone", async () => {
     m.deleteObject.mockRejectedValue({ code: "storage/object-not-found" });
     await expect(deleteSticker("u1", sticker)).resolves.toBeUndefined();
+  });
+
+  it("stores PNG output (browsers without WebP encoding) with a .png extension", async () => {
+    await saveSticker("u1", {
+      ...input,
+      blob: blob(10, "image/png"),
+      thumbnail: blob(10, "image/png"),
+    });
+    expect(m.setDoc.mock.calls[0]![1]).toMatchObject({
+      storagePath: expect.stringMatching(/\.png$/),
+    });
+    expect(m.uploadBytes.mock.calls[0]![2]).toEqual({ contentType: "image/png" });
   });
 
   it("works for older stickers without a thumbnail", async () => {

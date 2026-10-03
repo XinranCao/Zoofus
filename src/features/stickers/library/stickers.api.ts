@@ -21,6 +21,9 @@ import {
   type Sticker,
 } from "./sticker.schema";
 
+/** File extension for a stored image, from its MIME type (WebP preferred, PNG as fallback). */
+const extensionFor = (blob: Blob) => (blob.type === "image/webp" ? "webp" : "png");
+
 const stickersRef = (uid: string) => collection(db, "users", uid, "stickers");
 
 export async function listStickers(uid: string): Promise<Sticker[]> {
@@ -51,18 +54,20 @@ export async function saveSticker(uid: string, input: NewSticker): Promise<strin
   }
 
   const id = crypto.randomUUID();
-  const storagePath = `${uid}/stickers/${id}.png`;
-  const thumbnailPath = input.thumbnail ? `${uid}/stickers/${id}_thumb.png` : undefined;
+  const storagePath = `${uid}/stickers/${id}.${extensionFor(input.blob)}`;
+  const thumbnailPath = input.thumbnail
+    ? `${uid}/stickers/${id}_thumb.${extensionFor(input.thumbnail)}`
+    : undefined;
 
   try {
     const fileRef = ref(storage, storagePath);
-    await uploadBytes(fileRef, input.blob, { contentType: "image/png" });
+    await uploadBytes(fileRef, input.blob, { contentType: input.blob.type });
     const imageUrl = await getDownloadURL(fileRef);
 
     let thumbnailUrl: string | undefined;
     if (input.thumbnail && thumbnailPath) {
       const thumbRef = ref(storage, thumbnailPath);
-      await uploadBytes(thumbRef, input.thumbnail, { contentType: "image/png" });
+      await uploadBytes(thumbRef, input.thumbnail, { contentType: input.thumbnail.type });
       thumbnailUrl = await getDownloadURL(thumbRef);
     }
 

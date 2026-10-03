@@ -1,13 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/features/auth/useAuth";
-import { makeThumbnail } from "@/lib/image";
-import {
-  deleteSticker,
-  listStickers,
-  renameSticker,
-  saveSticker,
-  type NewSticker,
-} from "./stickers.api";
+import { COMPRESSION, encodeWithin } from "@/lib/image";
+import { deleteSticker, listStickers, renameSticker, saveSticker } from "./stickers.api";
 import type { Sticker } from "./sticker.schema";
 
 const keys = { all: (uid: string) => ["stickers", uid] as const };
@@ -30,14 +24,21 @@ export function useSaveSticker() {
   const uid = useUid();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      canvas,
-      ...input
-    }: Omit<NewSticker, "thumbnail"> & { canvas?: HTMLCanvasElement }) => {
+    mutationFn: async ({ canvas, name }: { canvas: HTMLCanvasElement; name: string }) => {
       if (!uid) throw new Error("Not signed in");
-      // Built inside the mutation so a failure surfaces as a normal save error.
-      const thumbnail = canvas ? await makeThumbnail(canvas) : undefined;
-      return saveSticker(uid, { ...input, thumbnail });
+      // Whatever the original photo size, what we store is compressed to the policy in
+      // COMPRESSION (max 1280 px, WebP ~q82, small thumbnail), so storage stays cheap.
+      const [sticker, thumb] = await Promise.all([
+        encodeWithin(canvas, COMPRESSION.sticker),
+        encodeWithin(canvas, COMPRESSION.thumbnail),
+      ]);
+      return saveSticker(uid, {
+        name,
+        blob: sticker.blob,
+        thumbnail: thumb.blob,
+        width: sticker.width,
+        height: sticker.height,
+      });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.all(uid ?? "") }),
     // The UI shows a generic message; keep the real cause (e.g. HTTP 402 when the project is on
