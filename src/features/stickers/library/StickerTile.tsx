@@ -9,6 +9,9 @@ import { seededRot } from "@/paper/random";
 import { MAX_STICKER_NAME, type Sticker } from "./sticker.schema";
 
 /** The finished sticker as saved: the cut-out with its edge baked in, shown as an image. */
+/** Height of a tile with its name, date and actions: the loading skeleton reserves the same room, so nothing shifts when stickers arrive. */
+export const TILE_HEIGHT = 234;
+
 export function StickerImage({
   sticker,
   size,

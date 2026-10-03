@@ -13,7 +13,7 @@ import {
   preloadStickerMaker,
   StickerMakerDialog,
 } from "@/features/stickers/editor/LazyStickerMaker";
-import { StickerTile } from "@/features/stickers/library/StickerTile";
+import { StickerTile, TILE_HEIGHT } from "@/features/stickers/library/StickerTile";
 import { useStickers } from "@/features/stickers/library/useStickers";
 
 /**
@@ -154,7 +154,7 @@ export default function HomePage() {
         <div className="zf-grid-book" aria-busy="true">
           {Array.from({ length: 5 }, (_, i) => (
             <div key={i} className={i > 3 ? "zf-hide-m" : ""}>
-              <Skeleton seed={"hsk" + i} width="100%" height={120} />
+              <Skeleton seed={"hsk" + i} width="100%" height={TILE_HEIGHT} />
             </div>
           ))}
         </div>

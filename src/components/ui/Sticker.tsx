@@ -1,5 +1,6 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 import { cn } from "@/lib/cn";
+import { dieCutPad, edgeWidth } from "@/paper/dieCut";
 import { seededRot } from "@/paper/random";
 import {
   DEFAULT_EDGE,
@@ -83,12 +84,26 @@ export function Sticker({
     };
   }, [source, url, size, edgeKey, id, crossOrigin]);
 
+  // Reserve the finished size before the first render, so nothing below it moves when it lands
+  // (a bare canvas is 300 × 150): the cut-out's long side plus the edge's padding on both sides.
+  const dpr =
+    typeof window === "undefined" ? 1 : Math.min(2, window.devicePixelRatio || 1);
+  const pad = dieCutPad(edgeWidth(size * dpr, edge.scale)) / dpr;
+  const aspect = source && source.width > 0 ? source.height / source.width : 1;
+  const reserveW = (aspect > 1 ? size / aspect : size) + pad * 2;
+  const reserveH = (aspect > 1 ? size : size * aspect) + pad * 2;
+
   return (
     <span
       className={cn("zf-sticker", interactive && "is-interactive")}
       style={{ "--rot": rotate === 0 ? "0deg" : seededRot(id, rotate) } as CSSProperties}
     >
-      <canvas ref={ref} role="img" aria-label={label ?? "Sticker"} />
+      <canvas
+        ref={ref}
+        role="img"
+        aria-label={label ?? "Sticker"}
+        style={{ width: reserveW, height: reserveH }}
+      />
     </span>
   );
 }

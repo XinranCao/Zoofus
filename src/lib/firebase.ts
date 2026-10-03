@@ -1,5 +1,4 @@
 import { initializeApp } from "firebase/app";
-import { getAnalytics, isSupported } from "firebase/analytics";
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
 import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
@@ -45,10 +44,16 @@ if (useEmulators) {
 }
 
 // Analytics is only available in supported browsers, and is skipped against the emulators.
+// It is also loaded after the page is up (its own chunk), so it never delays the first paint.
 if (!useEmulators) {
-  isSupported()
-    .then((ok) => {
-      if (ok) getAnalytics(app);
-    })
-    .catch(() => {});
+  const start = () =>
+    import("firebase/analytics")
+      .then(async ({ getAnalytics, isSupported }) => {
+        if (await isSupported()) getAnalytics(app);
+      })
+      .catch(() => {});
+  if (typeof window !== "undefined") {
+    if (document.readyState === "complete") setTimeout(start, 1000);
+    else window.addEventListener("load", () => setTimeout(start, 1000), { once: true });
+  }
 }

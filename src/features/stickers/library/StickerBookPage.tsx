@@ -11,7 +11,7 @@ import { ToastNote, useToast } from "@/components/ui/Toast";
 import { preloadStickerMaker, StickerMakerDialog } from "../editor/LazyStickerMaker";
 import { EditEdgeDialog } from "./EditEdgeDialog";
 import { StickerDetailDialog } from "./StickerDetailDialog";
-import { StickerTile } from "./StickerTile";
+import { StickerTile, TILE_HEIGHT } from "./StickerTile";
 import type { Sticker } from "./sticker.schema";
 import { useDeleteSticker, useRenameSticker, useStickers } from "./useStickers";
 
@@ -203,7 +203,7 @@ export default function StickerBookPage() {
       {isPending && (
         <div className="zf-grid-book" aria-busy="true">
           {Array.from({ length: 5 }, (_, i) => (
-            <Skeleton key={i} seed={"bsk" + i} width="100%" height={130} />
+            <Skeleton key={i} seed={"bsk" + i} width="100%" height={TILE_HEIGHT} />
           ))}
         </div>
       )}
