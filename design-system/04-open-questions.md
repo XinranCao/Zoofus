@@ -20,3 +20,22 @@ Places where the brief conflicts with itself or leaves a decision open. The syst
 16. **User colours.** Homemade prints are limited to 16 palette colours, with the four near-fluorescent tones removed. Should users get a free colour picker? It would let homemade tape break the faded look.
 17. **Pinked tape ends.** These are allowed as a user choice even though UI chrome bans regular zigzags. Confirm, or drop them.
 18. **Torn sticker edges.** The torn shape shows a pale lip (kraft-coloured when the fill is white). Should the lip colour be user-settable too?
+
+---
+
+## Decided (round 2)
+
+The owner's answers, applied in the app. Everything below is **Decided**.
+
+| # | Question | Decision | In the app |
+| --- | --- | --- | --- |
+| 1 | Navy vs plum | **Decided.** Plum (`plum-900`) stays the deep accent. No navy. | No navy anywhere in `src/`. |
+| 7 | Xiaolai family name | **Decided.** The exact `font-family` in the installed `font.css` is `Xiaolai Mono SC`. | Written into `01-tokens.md`, `src/styles/theme.css`, and the report. Verified by the CDP font check in `e2e/design-system.spec.ts`. |
+| 7 | LXGW WenKai weight | **Decided.** Regular only. The `@fontsource/lxgw-wenkai` package ships 300, 500 and 700 and **no 400**, so the nearest, 500, is imported as the only weight, as a fallback for glyphs Xiaolai lacks. No screen needs bold CJK. | `src/lib/cjkFonts.ts` |
+| 9 | Export size choice | **Decided.** Not in v1. Export at source resolution. | No size UI. |
+| 16 | Free colour picker | **Decided.** Not in v1. The 16 palette colours only (zod, Firestore rules and UI). | `USER_COLORS`, `firestore.rules` |
+| 17 | Pinked tape ends | **Decided.** Kept as a user-only option; never used in UI chrome. | Only the tape studio offers it; every UI `Tape` is torn. |
+| 18 | Torn lip colour | **Decided.** A fixed `fiber` token, not user-settable in v1. | `--fiber`; `renderSticker` chooses the sticker lip itself. |
+| – | Google sign-in button | **Decided.** Follow Google's current Sign in with Google branding guidelines exactly (light theme, official label, unmodified "G"). **An intentional exception** to "everything is torn": it is not torn, clipped, rotated or recoloured, and it also has the white fill and 1px border Google specifies. It sits inside the torn auth card with normal spacing. | `src/components/ui/GoogleButton.tsx` |
+| – | Language switch | **Decided.** Same placement. In the account menu a segmented "EN · 中文"; signed out, a quiet button reading "中文" or "English". | `src/components/ui/Masthead.tsx` |
+| – | Legacy stickers | **Decided.** Typed `kind: 'legacy'`; they display, download and rename; "Edit edge" is replaced by a note. No bulk migration. | `sticker.schema.ts`, `StickerDetailDialog.tsx` |

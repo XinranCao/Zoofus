@@ -27,6 +27,7 @@ export const zh: Messages = {
     logIn: "登录",
     signUp: "注册",
     logOut: "退出登录",
+    language: "语言",
     main: "主导航",
     accountMenu: "{{name}} 的账号菜单",
   },

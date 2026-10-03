@@ -25,6 +25,7 @@ export const en = {
     logIn: "Log in",
     signUp: "Sign up",
     logOut: "Log out",
+    language: "Language",
     main: "Main",
     accountMenu: "Account menu for {{name}}",
   },

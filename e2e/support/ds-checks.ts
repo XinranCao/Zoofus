@@ -23,7 +23,8 @@ export interface ContrastRow {
 }
 
 /** Elements the design allows a radius on: avatar images (round), the photo, canvases and images. */
-const RADIUS_OK = ".zf-avatar__img, .zf-photo, .zf-dropzone, canvas, img";
+// .zf-google is Google's own button spec: the one deliberate exception (see GoogleButton.tsx)
+const RADIUS_OK = ".zf-avatar__img, .zf-photo, .zf-dropzone, canvas, img, .zf-google";
 
 export async function flatnessProblems(page: Page, screen: string): Promise<Problem[]> {
   const found = await page.evaluate((radiusOk) => {
@@ -60,7 +61,8 @@ export async function flatnessProblems(page: Page, screen: string): Promise<Prob
           ) > 0 &&
           (cs as unknown as Record<string, string>)[`border${s}Style`] !== "none",
       );
-      if (border) out.push({ rule: "no border on chrome", detail: label(el) });
+      if (border && !el.matches(".zf-google"))
+        out.push({ rule: "no border on chrome", detail: label(el) });
     }
     return out;
   }, RADIUS_OK);
@@ -164,6 +166,8 @@ export async function cjkProblems(
         continue;
       const el = node.parentElement;
       if (!el || el.closest("script,style")) continue;
+      // Google's button is set in Google's own type (system font stack for Chinese)
+      if (el.closest(".zf-google")) continue;
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) continue;
       el.setAttribute("data-cjk", String(n++));

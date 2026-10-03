@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
+import { GoogleButton } from "@/components/ui/GoogleButton";
 import { Button } from "@/components/ui/Button";
 import { Divider } from "@/components/ui/Scribble";
 import { TextField } from "@/components/ui/TextField";
@@ -126,9 +127,7 @@ export default function LoginPage() {
       <Divider seed="auth" />
       <div style={{ display: "grid", gap: 14 }}>
         <div>
-          <Button variant="secondary" seed="goog" onClick={onGoogle}>
-            {t("auth.login.google")}
-          </Button>
+          <GoogleButton onClick={onGoogle}>{t("auth.login.google")}</GoogleButton>
         </div>
         <p style={{ margin: 0, fontSize: 15 }}>
           {t("auth.login.newHere")}{" "}

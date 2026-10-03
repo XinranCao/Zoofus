@@ -1153,6 +1153,13 @@
   .zf-wordmark::after {
     inset: -10px 0;
   }
+  /* the tear takes a few px off a button's tappable face: win them back */
+  .zf-btn::after,
+  .zf-chip::after {
+    content: "";
+    position: absolute;
+    inset: -8px 0;
+  }
   .zf-slider__thumb::after {
     inset: -12px;
   }
@@ -1185,5 +1192,82 @@
     width: auto;
     height: auto;
     aspect-ratio: 1;
+  }
+}
+
+/* Continue with Google: Google's own button spec, not a torn scrap (see GoogleButton.tsx). */
+.zf-google {
+  all: unset;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 12px;
+  background: #ffffff;
+  border: 1px solid #747775;
+  border-radius: 4px;
+  color: #1f1f1f;
+  font:
+    500 14px/20px "Google Sans",
+    Roboto,
+    Arial,
+    sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.zf-google:hover {
+  background: #f5f5f5;
+}
+.zf-google:focus-visible {
+  outline: 2px solid var(--plum-900);
+  outline-offset: 2px;
+}
+.zf-google:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+@media (max-width: 759px) {
+  .zf-google {
+    height: 44px;
+  }
+}
+
+/* the language switch in the account menu: "EN · 中文" */
+.zf-menu__lang {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+}
+.zf-menu__langopt {
+  all: unset;
+  cursor: pointer;
+  padding: 6px 12px;
+  min-height: 32px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--ink);
+  position: relative;
+  clip-path: var(--clip-item);
+}
+.zf-menu__langopt[aria-checked="true"] {
+  color: var(--ink-deep);
+  background: var(--selected);
+}
+.zf-menu__langopt[data-highlighted] {
+  background: var(--selected);
+}
+.zf-menu__langopt:focus-visible {
+  outline: 2px solid var(--plum-900);
+}
+@media (max-width: 759px) {
+  .zf-menu__langopt {
+    min-height: 44px;
+    min-width: 44px;
+    justify-content: center;
   }
 }

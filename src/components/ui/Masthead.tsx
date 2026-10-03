@@ -36,6 +36,8 @@ function MenuContent({
   items: MenuItem[];
   seed: string;
 }) {
+  const { t, i18n } = useTranslation();
+  const current = i18n.language.startsWith("zh") ? "zh-CN" : "en";
   const style = {
     "--clip-item": tornClip(seed + "i", { size: "xs", w: 200, h: 36 }),
   } as CSSProperties;
@@ -75,25 +77,68 @@ function MenuContent({
             </div>
           </div>
           <Divider seed={seed} />
-          {items.map((it) => (
-            <RMenu.Item key={it.label} asChild onSelect={it.onSelect}>
-              {it.to ? (
-                <Link
-                  to={it.to}
-                  className={"zf-menu__item" + (it.current ? " is-active" : "")}
-                  aria-current={it.current ? "page" : undefined}
-                >
-                  <Icon name={it.icon} />
-                  {it.label}
-                </Link>
-              ) : (
-                <button type="button" className="zf-menu__item">
-                  <Icon name={it.icon} />
-                  {it.label}
-                </button>
-              )}
-            </RMenu.Item>
-          ))}
+          {items
+            .filter((it) => it.icon !== "logout")
+            .map((it) => (
+              <RMenu.Item key={it.label} asChild onSelect={it.onSelect}>
+                {it.to ? (
+                  <Link
+                    to={it.to}
+                    className={"zf-menu__item" + (it.current ? " is-active" : "")}
+                    aria-current={it.current ? "page" : undefined}
+                  >
+                    <Icon name={it.icon} />
+                    {it.label}
+                  </Link>
+                ) : (
+                  <button type="button" className="zf-menu__item">
+                    <Icon name={it.icon} />
+                    {it.label}
+                  </button>
+                )}
+              </RMenu.Item>
+            ))}
+          <Divider seed={seed + "l"} />
+          {/* "EN · 中文": two radio items in a group, set as one segmented control */}
+          <RMenu.RadioGroup
+            value={current}
+            onValueChange={(code) => void i18n.changeLanguage(code)}
+            aria-label={t("nav.language")}
+            className="zf-menu__lang"
+          >
+            <Icon name="globe" />
+            {LANGUAGES.map((l) => (
+              <RMenu.RadioItem
+                key={l.code}
+                value={l.code}
+                className="zf-menu__langopt"
+                lang={l.code}
+              >
+                {l.code === "en" ? "EN" : l.label}
+              </RMenu.RadioItem>
+            ))}
+          </RMenu.RadioGroup>
+          {items
+            .filter((it) => it.icon === "logout")
+            .map((it) => (
+              <RMenu.Item key={it.label} asChild onSelect={it.onSelect}>
+                {it.to ? (
+                  <Link
+                    to={it.to}
+                    className={"zf-menu__item" + (it.current ? " is-active" : "")}
+                    aria-current={it.current ? "page" : undefined}
+                  >
+                    <Icon name={it.icon} />
+                    {it.label}
+                  </Link>
+                ) : (
+                  <button type="button" className="zf-menu__item">
+                    <Icon name={it.icon} />
+                    {it.label}
+                  </button>
+                )}
+              </RMenu.Item>
+            ))}
         </Paper>
       </RMenu.Content>
     </RMenu.Portal>
@@ -169,7 +214,6 @@ export function Masthead({
           label: t("nav.profile"),
           current: pathname.startsWith("/account"),
         },
-        { icon: "globe", label: other.label, onSelect: toggleLanguage },
         { icon: "logout", label: t("nav.logOut"), onSelect: onLogout },
       ]
     : [];
@@ -183,7 +227,6 @@ export function Masthead({
           label: t("nav.profile"),
           current: pathname.startsWith("/account"),
         },
-        { icon: "globe", label: other.label, onSelect: toggleLanguage },
         { icon: "logout", label: t("nav.logOut"), onSelect: onLogout },
       ]
     : [];

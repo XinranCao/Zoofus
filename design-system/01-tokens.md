@@ -188,10 +188,10 @@ import "@fontsource/special-elite/400.css";
 import "@fontsource/courier-prime/400.css";
 import "@fontsource/courier-prime/700.css";
 import "cn-fontsource-xiaolai-mono-sc-regular/font.css"; // 小赖字体 等宽 SC, split by unicode-range
-import "@fontsource/lxgw-wenkai/400.css";               // fallback for any glyph Xiaolai lacks
+import "@fontsource/lxgw-wenkai/500.css";               // fallback for any glyph Xiaolai lacks (the package has no 400)
 ```
 
-Both CJK packages ship unicode-range slices, so a Latin-only page downloads no CJK bytes, and a Chinese page downloads only the slices it uses. Verify the family name the `cn-fontsource` CSS declares (expected `"Xiaolai Mono SC"`) when installing.
+Both CJK packages ship unicode-range slices, so a Latin-only page downloads no CJK bytes, and a Chinese page downloads only the slices it uses. The family name the installed `cn-fontsource` CSS declares is exactly `"Xiaolai Mono SC"` (verified).
 
 ### Chinese pairing
 
