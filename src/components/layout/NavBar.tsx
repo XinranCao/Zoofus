@@ -49,6 +49,11 @@ export function NavBar() {
             </Link>
           </li>
           <li>
+            <Link to="/account" onClick={() => setMenuOpen(false)}>
+              Account
+            </Link>
+          </li>
+          <li>
             <button className={styles.signOut} onClick={handleLogout}>
               Sign Out
             </button>

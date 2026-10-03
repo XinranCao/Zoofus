@@ -23,7 +23,8 @@ service cloud.firestore {
         && isString(request.resource.data.nickname, 40)
         && isString(request.resource.data.profilePictureUrl, 2048)
         && isString(request.resource.data.email, 320);
-      allow delete: if false;
+      // Deleting the profile is part of deleting the account (the app removes the rest first).
+      allow delete: if isOwner(uid);
 
       // users/{uid}/pages/{pageId}: collage / journal pages (stickers placed on a canvas).
       // Rules cannot loop over `items`, so per-item shape is validated by the client (zod);

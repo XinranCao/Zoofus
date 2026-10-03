@@ -2,6 +2,7 @@ import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -15,6 +16,8 @@ import { AuthContext, type AuthContextValue } from "./authContext";
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  // `User` objects are mutated in place by reload(); this counter makes the context update.
+  const [version, setVersion] = useState(0);
 
   useEffect(
     () =>
@@ -28,13 +31,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       currentUser,
-      signup: (email, password) => createUserWithEmailAndPassword(auth, email, password),
+      signup: async (email, password) => {
+        const credential = await createUserWithEmailAndPassword(auth, email, password);
+        // Best effort: a failed email must not block sign-up.
+        sendEmailVerification(credential.user).catch(() => {});
+        return credential;
+      },
       login: (email, password) => signInWithEmailAndPassword(auth, email, password),
       loginWithGoogle: () => signInWithPopup(auth, new GoogleAuthProvider()),
       logout: () => signOut(auth),
       resetPassword: (email) => sendPasswordResetEmail(auth, email),
+      sendVerification: async () => {
+        if (auth.currentUser) await sendEmailVerification(auth.currentUser);
+      },
+      refreshUser: async () => {
+        await auth.currentUser?.reload();
+        setVersion((v) => v + 1);
+      },
     }),
-    [currentUser],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `version` forces a refresh after reload()
+    [currentUser, version],
   );
 
   return (

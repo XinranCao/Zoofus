@@ -4,6 +4,7 @@ import {
   createShape,
   joinOpenPathsToClosedRings,
   selectionToPoints,
+  translateSelection,
 } from "./geometry";
 
 describe("selectionToPoints", () => {
@@ -73,5 +74,22 @@ describe("joinOpenPathsToClosedRings", () => {
     const { rings, used } = joinOpenPathsToClosedRings([a, b], 10);
     expect(rings).toHaveLength(1);
     expect(used).toEqual([true, true]);
+  });
+});
+
+describe("translateSelection", () => {
+  it("shifts every point of a freehand stroke", () => {
+    const moved = translateSelection(createFreehand([0, 0, 10, 5], "select", "a"), 3, -2);
+    expect(moved).toMatchObject({ points: [3, -2, 13, 3] });
+  });
+
+  it("shifts a shape's origin and keeps its other properties", () => {
+    const rect = { ...createShape("rectangle", "select", "r"), x: 10, y: 20, width: 5 };
+    expect(translateSelection(rect, 1, 2)).toMatchObject({
+      x: 11,
+      y: 22,
+      width: 5,
+      kind: "rectangle",
+    });
   });
 });

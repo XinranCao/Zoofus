@@ -2,11 +2,13 @@ import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { NavBar } from "@/components/layout/NavBar";
+import { VerifyEmailBanner } from "@/features/account/VerifyEmailBanner";
 import { ProtectedRoute } from "@/features/auth/ProtectedRoute";
 
 const LoginPage = lazy(() => import("@/features/auth/pages/LoginPage"));
 const SignUpPage = lazy(() => import("@/features/auth/pages/SignUpPage"));
 const HomePage = lazy(() => import("@/pages/HomePage"));
+const AccountPage = lazy(() => import("@/features/account/AccountPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const StickerBookPage = lazy(() => import("@/features/stickers/library/StickerBookPage"));
 
@@ -14,6 +16,7 @@ export default function App() {
   return (
     <div id="app">
       <NavBar />
+      <VerifyEmailBanner />
       <main>
         <ErrorBoundary>
           <Suspense fallback={null}>
@@ -25,6 +28,14 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <StickerBookPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/account"
+                element={
+                  <ProtectedRoute>
+                    <AccountPage />
                   </ProtectedRoute>
                 }
               />

@@ -81,10 +81,13 @@ describe("users/{uid}", () => {
     );
   });
 
-  it("never allows deleting a profile", async () => {
+  it("lets only the owner delete their profile", async () => {
     const db = env.authenticatedContext("alice").firestore();
     await setDoc(doc(db, "users/alice"), profile("alice"));
-    await assertFails(deleteDoc(doc(db, "users/alice")));
+    await assertFails(
+      deleteDoc(doc(env.authenticatedContext("bob").firestore(), "users/alice")),
+    );
+    await assertSucceeds(deleteDoc(doc(db, "users/alice")));
   });
 });
 

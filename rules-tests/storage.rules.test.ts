@@ -4,7 +4,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { getBytes, ref, uploadBytes } from "firebase/storage";
+import { deleteObject, getBytes, listAll, ref, uploadBytes } from "firebase/storage";
 import { readFileSync } from "node:fs";
 import { afterAll, beforeAll, describe, it } from "vitest";
 
@@ -62,6 +62,27 @@ describe("stickers", () => {
     );
     await assertFails(
       uploadBytes(ref(storage, "alice/stickers/e.png"), bytes(11 * 1024 * 1024), png),
+    );
+  });
+});
+
+describe("listing and deleting (account deletion)", () => {
+  it("lets the owner list and delete their files, but not list someone else's", async () => {
+    const alice = env.authenticatedContext("alice").storage();
+    await uploadBytes(ref(alice, "alice/stickers/x.png"), bytes(10), png);
+    await uploadBytes(ref(alice, "alice/profile/profile_pic/me.jpg"), bytes(10), {
+      contentType: "image/jpeg",
+    });
+    await assertSucceeds(listAll(ref(alice, "alice/stickers")));
+    await assertSucceeds(listAll(ref(alice, "alice/profile/profile_pic")));
+    await assertSucceeds(deleteObject(ref(alice, "alice/stickers/x.png")));
+    await assertFails(
+      listAll(ref(env.authenticatedContext("bob").storage(), "alice/stickers")),
+    );
+    await assertFails(
+      deleteObject(
+        ref(env.authenticatedContext("bob").storage(), "alice/stickers/x.png"),
+      ),
     );
   });
 });

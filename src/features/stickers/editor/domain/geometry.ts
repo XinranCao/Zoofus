@@ -126,3 +126,11 @@ export function joinOpenPathsToClosedRings(paths: number[][], threshold: number)
   }
   return { rings, used };
 }
+
+/** The same selection shifted by (dx, dy) in display coordinates. */
+export function translateSelection(sel: Selection, dx: number, dy: number): Selection {
+  if (sel.kind === "freehand") {
+    return { ...sel, points: sel.points.map((v, i) => v + (i % 2 === 0 ? dx : dy)) };
+  }
+  return { ...sel, x: sel.x + dx, y: sel.y + dy };
+}
