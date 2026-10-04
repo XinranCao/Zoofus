@@ -13,7 +13,8 @@ import { cn } from "@/lib/cn";
 import { useInviteFriends, usePublicProfiles } from "./useTogether";
 import type { Presence, Workspace } from "./workspace.schema";
 
-const ONLINE_MS = 70_000;
+/** "Here now" means seen within this long: two and a half heartbeats (a minute apart). */
+const ONLINE_MS = 150_000;
 
 /** Who is on the shared page (and who is here right now), and a way to ask more friends in. */
 export function MembersPanel({

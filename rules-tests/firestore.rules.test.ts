@@ -145,6 +145,27 @@ describe("users/{uid}/stickers/{id}", () => {
     );
   });
 
+  it("keeps a lasso outline and where the cut-out sits, instead of a source file", async () => {
+    const db = env.authenticatedContext("alice").firestore();
+    const ok = {
+      ...sticker("alice"),
+      outline: "300x200|0,0 300,0 300,200 0,200",
+      cut: { x: 12, y: 12, w: 300, h: 200 },
+    };
+    await assertSucceeds(setDoc(doc(db, "users/alice/stickers/o1"), ok));
+    const bad = (id: string, over: object) =>
+      setDoc(doc(db, `users/alice/stickers/${id}`), { ...ok, ...over });
+    await assertFails(bad("o2", { outline: "x".repeat(30001) }));
+    await assertFails(bad("o3", { cut: { x: 1, y: 1, w: 0, h: 5 } }));
+    await assertFails(bad("o4", { cut: { x: 1, y: 1, w: 5, h: 5, z: 1 } }));
+    await assertFails(bad("o5", { cut: { x: -1, y: 1, w: 5, h: 5 } }));
+    // redoing the edge moves the cut-out; the outline itself never changes
+    const ref = doc(db, "users/alice/stickers/o1");
+    await assertSucceeds(updateDoc(ref, { cut: { x: 20, y: 20, w: 300, h: 200 } }));
+    await assertFails(updateDoc(ref, { outline: "1x1|0,0 1,0 1,1" }));
+    await assertFails(updateDoc(ref, { cut: { x: 0, y: 0, w: 0, h: 0 } }));
+  });
+
   it("accepts a source file, an edge and a seed, and validates the edge", async () => {
     const db = env.authenticatedContext("alice").firestore();
     const edge = {

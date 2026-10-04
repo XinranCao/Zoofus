@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
@@ -11,6 +11,7 @@ import {
   type EdgeSpec,
 } from "@/paper/renderSticker";
 import { readPicture } from "@/lib/storage";
+import { decodeOutline, rebuildSource } from "../editor/domain/outline";
 import { StickerEdgeStudio } from "../studio/StickerEdgeStudio";
 import type { Sticker } from "./sticker.schema";
 import { useUpdateStickerEdge } from "./useStickers";
@@ -51,9 +52,30 @@ function EditEdgeBody({ sticker, onClose }: { sticker: Sticker; onClose: () => v
   const [source, setSource] = useState<HTMLCanvasElement | null>(null);
   const [edge, setEdge] = useState<EdgeSpec>(sticker.edge ?? DEFAULT_EDGE);
   const sourceUrl = sticker.sourceUrl;
-  const [failed, setFailed] = useState(!sourceUrl);
+  const outline = useMemo(() => decodeOutline(sticker.outline), [sticker.outline]);
+  const cut = sticker.cut;
+  // older stickers keep the cut-out as a second picture; newer ones keep only its outline
+  const [failed, setFailed] = useState(!sourceUrl && !(outline && cut));
   const [reason, setReason] = useState<string | null>(null);
   const seed = sticker.seed ?? sticker.id;
+
+  useEffect(() => {
+    if (sourceUrl || !outline || !cut) return;
+    let alive = true;
+    loadWithFallback(sticker.imageUrl)
+      .then((img) => {
+        if (alive) setSource(rebuildSource(img, cut, outline));
+      })
+      .catch(() => {
+        if (!alive) return;
+        console.error("Could not open the sticker", sticker.imageUrl);
+        setReason("source");
+        setFailed(true);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [sourceUrl, outline, cut, sticker.imageUrl]);
 
   useEffect(() => {
     if (!sourceUrl) return;
@@ -82,7 +104,15 @@ function EditEdgeBody({ sticker, onClose }: { sticker: Sticker; onClose: () => v
     if (!source) return;
     try {
       const canvas = await renderSticker(source, edge, seed);
-      await update.mutateAsync({ sticker, canvas, edge, seed });
+      await update.mutateAsync({
+        sticker,
+        canvas,
+        edge,
+        seed,
+        ...(!sourceUrl && outline
+          ? { cutSize: { w: outline.width, h: outline.height } }
+          : {}),
+      });
       toast.push({ kind: "success", title: t("book.editEdgeSaved") });
       onClose();
     } catch (err) {

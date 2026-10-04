@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.5.0 – 2026-10-04
+
+### Features
+
+- New stickers keep their lasso outline as a few KB of text instead of a second picture: one stored file per sticker instead of two. "Edit edge" rebuilds the cut-out from the sticker itself. Older stickers keep working. Shared stickers carry the outline, so a sticker you receive can have its edge edited.
+- When a friend keeps or puts away a share, the files you made for them are removed from your storage the next time you are in the app.
+
+### Fixes
+
+- Together costs less: edits to an object are written at most every quarter of a second (a drag was dozens of writes a second), and "I am here" is written once a minute while the tab is on screen instead of every 20 seconds.
+
+### Other
+
+- New security rules (`shareDone`, sticker `outline` and `cut`): **deploy them before releasing**.
+- Docs: data model and architecture notes updated.
+
 ## v1.4.0 – 2026-10-04
 
 ### Features

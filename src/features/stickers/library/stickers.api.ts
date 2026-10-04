@@ -49,6 +49,8 @@ export async function listStickers(uid: string): Promise<Sticker[]> {
       seed: _seed,
       sourcePath: _sp,
       sourceUrl: _su,
+      outline: _ol,
+      cut: _cut,
       ...rest
     } = d.data();
     const plain = stickerDocSchema.safeParse(rest);
@@ -69,6 +71,9 @@ export interface NewSticker {
   sticker: Blob;
   /** The edge-less cut-out, kept so "Edit edge" can redo the edge later. Missing for stickers that never had one. */
   source?: Blob;
+  /** The lasso outline (text) and where the cut-out sits in the stored picture: replaces `source`. */
+  outline?: string;
+  cut?: { x: number; y: number; w: number; h: number };
   width: number;
   height: number;
   edge: EdgeSpec;
@@ -118,6 +123,7 @@ export async function saveSticker(uid: string, input: NewSticker): Promise<strin
       storagePath,
       imageUrl,
       ...(sourcePath && sourceUrl ? { sourcePath, sourceUrl } : {}),
+      ...(input.outline && input.cut ? { outline: input.outline, cut: input.cut } : {}),
       // only the edge is cleaned: the timestamp below is a sentinel object that must stay intact
       edge: cleanForFirestore(input.edge),
       seed: input.seed,
@@ -143,6 +149,8 @@ export interface EdgeUpdate {
   height: number;
   edge: EdgeSpec;
   seed: string;
+  /** Where the cut-out now sits in the stored picture (stickers that keep an outline). */
+  cut?: { x: number; y: number; w: number; h: number };
 }
 
 /**
@@ -165,6 +173,7 @@ export async function updateStickerEdge(
       seed: input.seed,
       width: input.width,
       height: input.height,
+      ...(input.cut ? { cut: input.cut } : {}),
     });
   } catch (err) {
     await deleteFileIfExists(ref(storage, storagePath));

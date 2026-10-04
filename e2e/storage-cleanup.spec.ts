@@ -2,8 +2,7 @@ import { dragOnPhoto } from "./support/draw";
 import { expect, test } from "@playwright/test";
 import { solidPng } from "./png";
 
-// Deleting a sticker must remove every stored object (the rendered image and the edge-less
-// source), so nothing is orphaned in Cloud Storage. Counts objects through the emulator's REST API.
+// Deleting a sticker must remove every stored object, so nothing is orphaned in Cloud Storage. Counts objects through the emulator's REST API.
 const BUCKETS = [
   "demo-zoofus.appspot.com",
   "zoofus-48264.firebasestorage.app",
@@ -26,7 +25,9 @@ async function stickerObjects(): Promise<string[]> {
   return names;
 }
 
-test("deleting a sticker removes its image and source from Storage", async ({ page }) => {
+test("a sticker is one stored file (its outline is text), and deleting it removes that file", async ({
+  page,
+}) => {
   const before = await stickerObjects();
 
   await page.goto("/signup");
@@ -51,14 +52,14 @@ test("deleting a sticker removes its image and source from Storage", async ({ pa
   await page.getByRole("button", { name: "Save to book" }).click();
   await expect(page.getByText("Saved to your book.", { exact: true })).toBeVisible();
 
-  await expect.poll(async () => (await stickerObjects()).length - before.length).toBe(2);
+  await expect.poll(async () => (await stickerObjects()).length - before.length).toBe(1); // only the picture: the lasso outline lives in the document
 
   await page.goto("/stickers");
   await page.getByRole("button", { name: /^Delete: Cut / }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Delete" }).click();
   await expect(page.getByText("No stickers yet")).toBeVisible();
 
-  // the delete is deferred a few seconds (for Undo), then both files must be gone
+  // the delete is deferred a few seconds (for Undo), then the file must be gone
   await expect
     .poll(async () => (await stickerObjects()).length, { timeout: 20_000 })
     .toBe(before.length);

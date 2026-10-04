@@ -16,10 +16,12 @@ import {
   useJournalStore,
 } from "@/features/journal/store/journalStore";
 import type { Op } from "@/features/journal/ops";
+import type { Item, PageSpec } from "@/features/journal/journal.schema";
 import { useProfile } from "@/features/profile/useProfile";
 import { toInlinePicture } from "@/lib/inlinePicture";
 import { downloadBlob } from "@/features/stickers/studio/export";
 import { BringInDialog, ShelfStickerPicker, ShelfTapePicker } from "./ShelfDialogs";
+import { createBatcher, type Batcher } from "./batcher";
 import { MembersPanel } from "./MembersPanel";
 import { usePublicProfiles } from "./useTogether";
 import {
@@ -38,6 +40,9 @@ import {
 } from "./workspace.api";
 import type { Presence, ShelfEntry, Workspace } from "./workspace.schema";
 import { useAcceptInvite } from "./useTogether";
+
+/** How often "I am here" is written while the page is on screen. */
+export const HEARTBEAT_MS = 60_000;
 
 const COLORS = [
   "pink-200",
@@ -139,6 +144,7 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
   const [copying, setCopying] = useState(false);
   const unsaved = useJournalState((s) => s.dirty);
   const exportRef = useRef<JournalExport>(null);
+  const batchRef = useRef<Batcher<Item, PageSpec> | null>(null);
   const latest = useRef(workspace);
   useEffect(() => {
     latest.current = workspace;
@@ -157,6 +163,7 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
   const keepPicture = async () => {
     clearTimeout(thumbTimer.current);
     thumbTimer.current = undefined;
+    batchRef.current?.flush(); // what I changed reaches everyone before the picture is kept
     const blob = await exportRef.current?.thumb();
     if (!blob) return;
     const small = await toInlinePicture(blob, { maxSide: 360, maxChars: 55000 });
@@ -194,23 +201,27 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
   // the page: what is already there, then every change anyone makes
   useEffect(() => {
     store.getState().load(workspace.page, []);
+    const batcher = createBatcher<Item, PageSpec>(
+      (id, item) =>
+        item ? putItem(workspace.id, me, item) : removeItem(workspace.id, id),
+      (page) => setWorkspacePage(workspace.id, page),
+      (err) => {
+        console.error("A change could not be shared", err);
+        toast.push({
+          kind: "error",
+          title: t("auth.errors.toastTitle"),
+          body: t("together.changeFailed"),
+        });
+      },
+    );
+    batchRef.current = batcher;
+    window.addEventListener("pagehide", batcher.flush);
     store.getState().bind((ops: Op[]) => {
       scheduleThumb();
       for (const op of ops) {
-        const run =
-          op.k === "put"
-            ? putItem(workspace.id, me, op.item)
-            : op.k === "del"
-              ? removeItem(workspace.id, op.id)
-              : setWorkspacePage(workspace.id, op.page);
-        run.catch((err) => {
-          console.error("A change could not be shared", err);
-          toast.push({
-            kind: "error",
-            title: t("auth.errors.toastTitle"),
-            body: t("together.changeFailed"),
-          });
-        });
+        if (op.k === "put") batcher.put(op.item.id, op.item);
+        else if (op.k === "del") batcher.put(op.id, null);
+        else batcher.page(op.page);
       }
     });
     const stopItems = watchItems(
@@ -221,7 +232,10 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
         const have = new Map(
           store.getState().items.map((i) => [i.id, JSON.stringify(i)]),
         );
-        const news = put.filter((item) => have.get(item.id) !== JSON.stringify(item));
+        // (an object I have changed but not yet written is mine: an older copy coming back is ignored)
+        const news = put.filter(
+          (item) => !batcher.has(item.id) && have.get(item.id) !== JSON.stringify(item),
+        );
         if (!news.length && !del.length) return;
         store
           .getState()
@@ -238,6 +252,9 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
     const stopShelf = watchShelf(workspace.id, setShelf);
     const stopPresence = watchPresence(workspace.id, setPresence);
     return () => {
+      window.removeEventListener("pagehide", batcher.flush);
+      batcher.stop();
+      batchRef.current = null;
       store.getState().bind(null);
       stopItems();
       stopShelf();
@@ -262,10 +279,16 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
     const name = profile?.nickname ?? "";
     const beat = () =>
       void heartbeat(workspace.id, me, name || "?", color).catch(() => {});
-    beat();
-    const timer = setInterval(beat, 20_000);
+    // one write on arriving, then one a minute and only while the tab is on screen (a tab in the
+    // background stops writing and simply fades from the list); coming back writes at once
+    const visible = () => document.visibilityState === "visible";
+    if (visible()) beat();
+    const timer = setInterval(() => visible() && beat(), HEARTBEAT_MS);
+    const onShow = () => visible() && beat();
+    document.addEventListener("visibilitychange", onShow);
     return () => {
       clearInterval(timer);
+      document.removeEventListener("visibilitychange", onShow);
       void leavePresence(workspace.id, me);
     };
   }, [workspace.id, me, profile?.nickname]);

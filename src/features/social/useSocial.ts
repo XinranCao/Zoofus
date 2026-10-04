@@ -5,7 +5,8 @@ import {
   acceptRequest,
   cancelRequest,
   declineRequest,
-  dismissShare,
+  finishShare,
+  markShareDone,
   ensurePublicProfile,
   listFriends,
   listIncoming,
@@ -175,7 +176,7 @@ export const useUnshare = () =>
   );
 export const useDismissShare = () =>
   useAct(
-    (uid, id: string) => dismissShare(uid, id),
+    (uid, share: { id: string; from: string }) => finishShare(uid, share),
     (u) => [keys.inbox(u)],
   );
 export const useMarkSeen = () =>
@@ -199,6 +200,7 @@ export function useSaveShared() {
       try {
         const id = await saveSharedToMine(uid, share, { journals });
         await markSaved(uid, share.id);
+        void markShareDone(uid, share.from, share.id);
         return id;
       } finally {
         keeping.delete(share.id);

@@ -55,6 +55,16 @@ export const stickerPayloadSchema = z.object({
   name: z.string().max(60),
   imageUrl: z.string(),
   sourceUrl: z.string().optional().catch(undefined),
+  outline: z.string().max(30000).optional().catch(undefined),
+  cut: z
+    .object({
+      x: z.number().int(),
+      y: z.number().int(),
+      w: z.number().int().positive(),
+      h: z.number().int().positive(),
+    })
+    .optional()
+    .catch(undefined),
   width: z.number().int().positive(),
   height: z.number().int().positive(),
   edge: edgeSpecSchema.optional().catch(undefined),

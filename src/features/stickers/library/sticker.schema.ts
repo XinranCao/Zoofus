@@ -14,6 +14,20 @@ export const stickerDocSchema = z.object({
   /** The edge-less cut-out, kept so "Edit edge" can redo the edge. Older stickers don't have one. */
   sourcePath: z.string().optional(),
   sourceUrl: z.string().optional(),
+  /**
+   * The lasso outline as text, and where the cut-out sits in the stored picture. Together they
+   * replace the second (edge-less) picture: the cut-out is rebuilt from the sticker itself.
+   */
+  outline: z.string().optional().catch(undefined),
+  cut: z
+    .object({
+      x: z.number().int(),
+      y: z.number().int(),
+      w: z.number().int().positive(),
+      h: z.number().int().positive(),
+    })
+    .optional()
+    .catch(undefined),
   edge: edgeSpecSchema.optional(),
   seed: z.string().optional(),
   width: z.number().int().positive(),
@@ -22,7 +36,7 @@ export const stickerDocSchema = z.object({
 });
 
 /**
- * `editable` stickers keep their edge-less cut-out, so the edge can be redone. `legacy` stickers
+ * `editable` stickers keep their edge-less cut-out (a second picture, in older ones) or its outline (newer ones), so the edge can be redone. `legacy` stickers
  * (saved before the edge editor) have the border baked into one image and nothing else: they
  * display, download and rename like any other, but cannot change their edge.
  */
@@ -37,7 +51,10 @@ export type Sticker = Omit<z.output<typeof stickerDocSchema>, "edge"> & {
 export const stickerKind = (doc: {
   sourceUrl?: string;
   sourcePath?: string;
-}): StickerKind => (doc.sourceUrl && doc.sourcePath ? "editable" : "legacy");
+  outline?: string;
+  cut?: unknown;
+}): StickerKind =>
+  (doc.sourceUrl && doc.sourcePath) || (doc.outline && doc.cut) ? "editable" : "legacy";
 
 export const MAX_STICKER_NAME = 60;
 
