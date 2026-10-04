@@ -12,6 +12,7 @@ Local runs need a `.env` with `VITE_APP_*` Firebase keys. Never read, print or c
 - `npm run dev` – Vite dev server; `npm run build` – production build into `dist/`; `npm run preview`
 - `npm run typecheck` (tsc, strict), `npm run lint` (ESLint), `npm run format` / `format:check` (Prettier)
 - `npm test` – Vitest (jsdom) single run; `npm run test:watch`. Tests live next to code as `*.test.ts(x)`.
+- `npm run test:noenv` – the unit tests as CI runs them, with no Firebase keys (your local `.env` hides this: a module that imports `src/lib/env.ts` or `firebase.ts` without a mock only fails in CI). Run it before a release.
 - `npm run test:rules` – Firestore/Storage security rules tests against the local emulators (needs Java 17+; CI job `security-rules`)
 - `npm run test:e2e` – Playwright end-to-end flow (sign up, cut, save, delete) against the emulators; uses your Chrome locally, Chromium in CI (job `e2e`)
 - `npm run emulators` + `npm run dev:emulated` – local Firebase emulators (Auth, Firestore, Storage) and an app wired to them (`.env.emulator`). Prefer this for anything that writes data.

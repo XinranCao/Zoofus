@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("./env", () => ({ env: { VITE_USE_EMULATORS: "true" } }));
+vi.stubEnv("VITE_USE_EMULATORS", "true");
 import { localizeUrl, localizeUrls } from "./emulatorUrl";
 
 describe("emulator links", () => {
