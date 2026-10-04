@@ -3,7 +3,6 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { SelectMark } from "@/components/ui/SelectMark";
-import { Tape } from "@/components/ui/Tape";
 import { TextField } from "@/components/ui/TextField";
 import { cn } from "@/lib/cn";
 import { seededRot } from "@/paper/random";
@@ -11,7 +10,7 @@ import { MAX_STICKER_NAME, type Sticker } from "./sticker.schema";
 
 /** The finished sticker as saved: the cut-out with its edge baked in, shown as an image. */
 /** Height of a tile with its name, date and actions: the loading skeleton reserves the same room, so nothing shifts when stickers arrive. */
-export const TILE_HEIGHT = 234;
+export const TILE_HEIGHT = 270;
 
 export function StickerImage({
   sticker,
@@ -92,11 +91,11 @@ function RenameField({
 export function StickerTile({
   sticker,
   size = 96,
-  tape,
   date,
   onOpen,
   onRename,
   onDelete,
+  onShare,
   renaming,
   onRenameDone,
   selecting,
@@ -105,11 +104,11 @@ export function StickerTile({
 }: {
   sticker: Sticker;
   size?: number;
-  tape?: boolean;
   date: string;
   onOpen?: () => void;
   onRename?: () => void;
   onDelete?: () => void;
+  onShare?: () => void;
   renaming?: boolean;
   onRenameDone?: (name: string | null) => void;
   /** Bulk-select mode: a tap picks the sticker instead of opening it. */
@@ -130,9 +129,6 @@ export function StickerTile({
           position: "relative",
         }}
       >
-        {tape && (
-          <Tape seed={"st" + sticker.id} x="50%" y="10px" length={50} thickness={16} />
-        )}
         <StickerImage sticker={sticker} size={size} interactive />
       </div>
       <div className="zf-tile__name">{sticker.name}</div>
@@ -175,12 +171,24 @@ export function StickerTile({
           {body}
         </div>
       )}
-      {(onRename || onDelete) && !renaming && !selecting && (
+      {(onRename || onDelete || onShare) && !renaming && !selecting && (
         <div
           className="zf-tile__actions"
           role="group"
           aria-label={t("book.actionsFor", { name: sticker.name })}
         >
+          {onShare && (
+            <Button
+              variant="quiet"
+              size="sm"
+              icon="send"
+              seed={"sh-b" + sticker.id}
+              onClick={onShare}
+              aria-label={`${t("bulk.share")}: ${sticker.name}`}
+            >
+              {t("bulk.share")}
+            </Button>
+          )}
           {onRename && (
             <Button
               variant="quiet"

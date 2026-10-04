@@ -135,6 +135,23 @@ describe("public profiles and friend codes", () => {
     updatedAt: serverTimestamp(),
     ...over,
   });
+  it("holds a small picture inside the profile, and a key for where it came from", async () => {
+    await assertSucceeds(
+      setDoc(
+        doc(as("alice"), "publicProfiles/alice"),
+        pub({
+          avatarUrl: "data:image/webp;base64," + "A".repeat(20000),
+          avatarKey: "1abc2d",
+        }),
+      ),
+    );
+    await assertFails(
+      setDoc(
+        doc(as("alice"), "publicProfiles/alice"),
+        pub({ avatarUrl: "data:image/webp;base64," + "A".repeat(50000) }),
+      ),
+    );
+  });
   it("lets anyone signed in read one profile, but nobody list them", async () => {
     await assertSucceeds(setDoc(doc(as("alice"), "publicProfiles/alice"), pub()));
     await assertSucceeds(getDoc(doc(as("bob"), "publicProfiles/alice")));
@@ -288,6 +305,13 @@ describe("sharing", () => {
     await assertSucceeds(setDoc(doc(as("alice"), "users/bob/inbox/s1"), share()));
     await assertSucceeds(getDoc(doc(as("bob"), "users/bob/inbox/s1")));
     await assertSucceeds(updateDoc(doc(as("bob"), "users/bob/inbox/s1"), { seen: true }));
+    // keeping it is remembered, but nothing else about it can be edited
+    await assertSucceeds(
+      updateDoc(doc(as("bob"), "users/bob/inbox/s1"), { seen: true, saved: true }),
+    );
+    await assertFails(
+      updateDoc(doc(as("bob"), "users/bob/inbox/s1"), { name: "Mine now" }),
+    );
     await assertFails(getDoc(doc(as("alice"), "users/bob/inbox/s1")));
     await assertSucceeds(deleteDoc(doc(as("bob"), "users/bob/inbox/s1")));
   });
@@ -503,6 +527,19 @@ describe("workspaces (working together)", () => {
       }),
     );
     await assertSucceeds(setDoc(doc(as("bob"), "workspaces/w1/items/i1"), item("bob")));
+    // a sticker may be stretched (sy), within bounds
+    await assertSucceeds(
+      setDoc(
+        doc(as("bob"), "workspaces/w1/items/st"),
+        item("bob", { t: "s", ref: "a:x", sc: 1, sy: 1.6 }),
+      ),
+    );
+    await assertFails(
+      setDoc(
+        doc(as("bob"), "workspaces/w1/items/st2"),
+        item("bob", { t: "s", ref: "a:x", sc: 1, sy: 99 }),
+      ),
+    );
     await assertSucceeds(
       setDoc(doc(as("alice"), "workspaces/w1/items/i1"), item("alice", { x: 50 })),
     );
@@ -567,6 +604,18 @@ describe("workspaces (working together)", () => {
       ...over,
     });
     await assertSucceeds(setDoc(doc(as("bob"), "workspaces/w1/assets/a1"), asset("bob")));
+    // the picture itself can be kept in the entry (a data URL), with no file behind it
+    const inline: Record<string, unknown> = asset("bob", {
+      url: "data:image/webp;base64," + "A".repeat(60000),
+    });
+    delete inline.path;
+    await assertSucceeds(setDoc(doc(as("bob"), "workspaces/w1/assets/inline"), inline));
+    await assertFails(
+      setDoc(
+        doc(as("bob"), "workspaces/w1/assets/huge"),
+        asset("bob", { url: "data:image/webp;base64," + "A".repeat(170000) }),
+      ),
+    );
     await assertFails(setDoc(doc(as("bob"), "workspaces/w1/assets/a2"), asset("alice")));
     await assertFails(
       setDoc(

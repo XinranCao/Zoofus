@@ -6,7 +6,10 @@ import { VerifyEmailBanner } from "@/features/account/VerifyEmailBanner";
 import { useAuth } from "@/features/auth/useAuth";
 import { ProfileSetupDialog } from "@/features/profile/ProfileSetupDialog";
 import { useProfile } from "@/features/profile/useProfile";
+import { useRealtimeSync } from "@/features/social/useRealtime";
 import { useMyPublicProfile, usePending } from "@/features/social/useSocial";
+import { useInviteCount } from "@/features/together/useTogether";
+import { MakeHost } from "./MakeHost";
 
 const TITLE_KEYS: [string, string][] = [
   ["/stickers", "pageTitle.book"],
@@ -35,7 +38,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { currentUser, logout } = useAuth();
   const { data: profile } = useProfile(currentUser?.uid);
   useMyPublicProfile(); // publish my nickname, picture and friend code for friends
+  useRealtimeSync(); // requests, shares and invitations arrive without a refresh
   const pending = usePending();
+  const invites = useInviteCount();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -62,6 +67,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 avatar: profile?.profilePictureUrl || null,
                 avatarKind: profile?.avatarKind,
                 pending,
+                invites,
               }
             : null
         }
@@ -70,6 +76,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       />
       <VerifyEmailBanner />
       <ProfileSetupDialog />
+      {currentUser && <MakeHost />}
       <main id="main" tabIndex={-1}>
         {children}
       </main>

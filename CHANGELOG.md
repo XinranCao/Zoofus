@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.1.0 – 2026-10-04
+
+### Features
+
+- Journal studio: the eraser now rubs out only the part of a line it passes over, not whole lines. Stickers and tapes can be stretched freely (any handle, any direction; "Undo stretching" restores the shape). Clicking where objects overlap picks the one you pointed at (see-through corners of a sticker are ignored), and clicking the chosen one again picks the next one underneath.
+- Fonts are a drop-down, grouped, with each font shown in its own style: many more Chinese handwriting fonts (刘建毛草, 志莽行书, 站酷小薇, 站酷庆科黄油 and more) and more handwritten English fonts. Page size and paper pattern are drop-downs too.
+- Newspaper and magazine paper are textures only (newsprint, aged newsprint, glossy, matte): no columns, headlines or boxes.
+- Share straight from a tile: hover a sticker, tape or journal and use Share. Something a friend shares can be kept only once; afterwards it shows "Added to yours".
+- Collections look like a folder with their stickers lying in it; point at one and they spring out.
+- Library pages: the tabs sit above the title, the title is in the same place on every tab and carries one small sticker beside it; stickers are larger and closer together; no more tape on some stickers; "Select" is now "Manage".
+- Friends: requests, accepted friends, shares and invitations appear live, without refreshing the page.
+- Friends' pictures show for everyone: a small copy is kept in the public profile.
+- Together: stickers a friend brings are visible to everyone (stored inside the shelf entry, no extra Storage); you choose which of your stickers and tapes to bring; Together gets a red dot when an invitation is waiting.
+- The Make menu opens its dialog over the page you are on instead of taking you to the library.
+
+### Other
+
+- New security rules for the above (stretch, kept shares, inline pictures, aged paper): **deploy them before releasing**.
+
 ## v1.0.1 – 2026-10-04
 
 ### Fixes

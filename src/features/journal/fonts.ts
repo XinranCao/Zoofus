@@ -6,11 +6,12 @@ export interface JournalFont {
   key: string;
   /** The CSS font-family stack. */
   family: string;
-  group: "type" | "hand" | "cjk" | "plain";
+  /** Which heading it is listed under. */
+  group: "type" | "hand" | "cjkhand" | "plain";
   load?: () => Promise<unknown>;
 }
 
-const sys = (stack: string) => stack;
+const CJK_HAND = '"Ma Shan Zheng", cursive';
 
 export const FONTS: JournalFont[] = [
   {
@@ -24,56 +25,110 @@ export const FONTS: JournalFont[] = [
     group: "type",
   },
   {
-    key: "caveat",
-    family: 'Caveat, "Ma Shan Zheng", cursive',
-    group: "hand",
-    load: () => import("@fontsource/caveat/500.css"),
+    key: "serif",
+    family: 'Georgia, "Songti SC", "Noto Serif SC", serif',
+    group: "plain",
   },
   {
-    key: "patrick",
-    family: '"Patrick Hand", "Ma Shan Zheng", cursive',
-    group: "hand",
-    load: () => import("@fontsource/patrick-hand/400.css"),
+    key: "sans",
+    family: 'system-ui, "PingFang SC", "Noto Sans SC", sans-serif',
+    group: "plain",
   },
   {
-    key: "indie",
-    family: '"Indie Flower", "Ma Shan Zheng", cursive',
-    group: "hand",
-    load: () => import("@fontsource/indie-flower/400.css"),
+    key: "wenkai",
+    family: '"LXGW WenKai", "Xiaolai Mono SC", serif',
+    group: "cjkhand",
+    load: () => import("@fontsource/lxgw-wenkai/500.css"),
   },
   {
     key: "mashan",
-    family: '"Ma Shan Zheng", cursive',
-    group: "cjk",
+    family: CJK_HAND,
+    group: "cjkhand",
     load: () => import("@fontsource/ma-shan-zheng/400.css"),
   },
   {
     key: "kuaile",
     family: '"ZCOOL KuaiLe", cursive',
-    group: "cjk",
+    group: "cjkhand",
     load: () => import("@fontsource/zcool-kuaile/400.css"),
   },
   {
     key: "longcang",
     family: '"Long Cang", cursive',
-    group: "cjk",
+    group: "cjkhand",
     load: () => import("@fontsource/long-cang/400.css"),
   },
   {
-    key: "wenkai",
-    family: '"LXGW WenKai", "Xiaolai Mono SC", serif',
-    group: "cjk",
-    load: () => import("@fontsource/lxgw-wenkai/500.css"),
+    key: "liujian",
+    family: '"Liu Jian Mao Cao", cursive',
+    group: "cjkhand",
+    load: () => import("@fontsource/liu-jian-mao-cao/400.css"),
   },
   {
-    key: "serif",
-    family: sys('Georgia, "Songti SC", "Noto Serif SC", serif'),
-    group: "plain",
+    key: "zhimang",
+    family: '"Zhi Mang Xing", cursive',
+    group: "cjkhand",
+    load: () => import("@fontsource/zhi-mang-xing/400.css"),
   },
   {
-    key: "sans",
-    family: sys('system-ui, "PingFang SC", "Noto Sans SC", sans-serif'),
-    group: "plain",
+    key: "xiaowei",
+    family: '"ZCOOL XiaoWei", serif',
+    group: "cjkhand",
+    load: () => import("@fontsource/zcool-xiaowei/400.css"),
+  },
+  {
+    key: "huangyou",
+    family: '"ZCOOL QingKe HuangYou", sans-serif',
+    group: "cjkhand",
+    load: () => import("@fontsource/zcool-qingke-huangyou/400.css"),
+  },
+  {
+    key: "caveat",
+    family: `Caveat, ${CJK_HAND}`,
+    group: "hand",
+    load: () => import("@fontsource/caveat/500.css"),
+  },
+  {
+    key: "patrick",
+    family: `"Patrick Hand", ${CJK_HAND}`,
+    group: "hand",
+    load: () => import("@fontsource/patrick-hand/400.css"),
+  },
+  {
+    key: "indie",
+    family: `"Indie Flower", ${CJK_HAND}`,
+    group: "hand",
+    load: () => import("@fontsource/indie-flower/400.css"),
+  },
+  {
+    key: "shadows",
+    family: `"Shadows Into Light", ${CJK_HAND}`,
+    group: "hand",
+    load: () => import("@fontsource/shadows-into-light/400.css"),
+  },
+  {
+    key: "kalam",
+    family: `Kalam, ${CJK_HAND}`,
+    group: "hand",
+    load: () => import("@fontsource/kalam/400.css"),
+  },
+  {
+    key: "gaegu",
+    family: `Gaegu, ${CJK_HAND}`,
+    group: "hand",
+    load: () => import("@fontsource/gaegu/400.css"),
+  },
+  {
+    key: "dancing",
+    family: `"Dancing Script", ${CJK_HAND}`,
+    group: "hand",
+    load: () => import("@fontsource/dancing-script/500.css"),
+  },
+  {
+    key: "marker",
+    family: `"Permanent Marker", ${CJK_HAND}`,
+    group: "hand",
+    load: () => import("@fontsource/permanent-marker/400.css"),
   },
 ];
 

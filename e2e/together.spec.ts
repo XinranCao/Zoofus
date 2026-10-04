@@ -43,7 +43,10 @@ test("two friends make a journal page together and each keeps a copy", async ({
   await expect(a).toHaveURL(/\/together\/.+/);
   await expect(a.getByText("Bobby")).toBeVisible({ timeout: 15000 });
 
-  // Bobby sees the invitation, joins and opens the page
+  // Bobby, wherever he is, sees a red dot on Together, then the invitation itself
+  await expect(b.getByRole("img", { name: /invitation waiting/ })).toBeVisible({
+    timeout: 20_000,
+  });
   await b.goto("/together");
   await expect(b.getByText("Trip page").first()).toBeVisible({ timeout: 15000 });
   await b.getByRole("button", { name: "Join" }).click();
@@ -58,11 +61,22 @@ test("two friends make a journal page together and each keeps a copy", async ({
   await a.goto(b.url().replace(/^.*\/together/, "/together"));
   await a.getByRole("button", { name: "Bring in" }).click();
   const bring = a.getByRole("dialog", { name: /Bring in/ });
-  await bring.getByRole("button", { name: /All my stickers/ }).click();
+  await bring.getByRole("button", { name: /^Cut / }).first().click();
+  await bring.getByRole("button", { name: "Bring in 1" }).click();
   await expect(a.getByText(/Brought in 1 piece/).first()).toBeVisible({ timeout: 20000 });
 
   await b.getByRole("button", { name: "Sticker" }).first().click();
-  await b.getByRole("dialog").getByRole("button", { name: /^Cut / }).first().click();
+  // the sticker Alice brought is visible to Bobby (it lives in the shelf entry, not in her files)
+  const brought = b.getByRole("dialog").getByRole("button", { name: /^Cut / }).first();
+  await expect(brought).toBeVisible({ timeout: 20_000 });
+  await expect
+    .poll(() =>
+      brought
+        .locator("img")
+        .evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0),
+    )
+    .toBe(true);
+  await brought.click();
 
   // Bobby saves a copy; it shows up in his journals
   await b.getByRole("button", { name: "Save a copy" }).click();

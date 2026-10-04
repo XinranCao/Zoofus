@@ -20,6 +20,7 @@ export function TapeTile({
   pickMode,
   onUse,
   onDelete,
+  onShare,
 }: {
   tape: TapeEntry;
   index: number;
@@ -31,6 +32,7 @@ export function TapeTile({
   pickMode?: boolean;
   onUse?: () => void;
   onDelete?: () => void;
+  onShare?: () => void;
 }) {
   const { t } = useTranslation();
   ensureFontsFor(tape.name);
@@ -95,6 +97,18 @@ export function TapeTile({
           role="group"
           aria-label={t("tape.actionsFor", { name: tape.name })}
         >
+          {!starter && onShare && (
+            <Button
+              variant="quiet"
+              size="sm"
+              icon="send"
+              seed={"shr" + key}
+              aria-label={`${t("bulk.share")}: ${tape.name}`}
+              onClick={onShare}
+            >
+              {t("bulk.share")}
+            </Button>
+          )}
           {onUse && (
             <Button
               variant="quiet"

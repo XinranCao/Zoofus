@@ -6,6 +6,7 @@ import "@/i18n";
 import { Button } from "./Button";
 import { Dialog } from "./Dialog";
 import { Paper } from "./Paper";
+import { Select } from "./Select";
 import { Slider } from "./Slider";
 import { TextField } from "./TextField";
 import { ToastProvider, useToast } from "./Toast";
@@ -260,5 +261,34 @@ describe("Toast", () => {
     );
     for (let i = 0; i < 5; i++) await userEvent.click(screen.getByText("bad"));
     expect(screen.getAllByText("Failed")).toHaveLength(3);
+  });
+});
+
+describe("Select", () => {
+  const options = [
+    { value: "a", label: "Alpha", group: "g1" },
+    { value: "b", label: "Beta", group: "g2" },
+  ];
+  it("shows the current option, lists them in groups and reports a pick", async () => {
+    const onChange = vi.fn();
+    render(
+      <Select
+        label="Letter"
+        value="a"
+        options={options}
+        groupLabels={{ g1: "First", g2: "Second" }}
+        onChange={onChange}
+      />,
+    );
+    const trigger = screen.getByRole("button", { name: "Letter: Alpha" });
+    await userEvent.click(trigger);
+    expect(screen.getByText("First")).toBeInTheDocument();
+    expect(screen.getByText("Second")).toBeInTheDocument();
+    expect(screen.getByRole("menuitemradio", { name: "Alpha" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    await userEvent.click(screen.getByRole("menuitemradio", { name: "Beta" }));
+    expect(onChange).toHaveBeenCalledWith("b");
   });
 });

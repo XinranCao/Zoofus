@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { LANGUAGES } from "@/i18n";
 import { ensureFontsFor } from "@/lib/cjkFonts";
+import { useMake, type MakeKey } from "@/lib/makeStore";
 import { tornClip } from "@/paper/torn";
 import { Avatar } from "./Avatar";
 import { Button, ButtonLink } from "./Button";
@@ -20,6 +21,8 @@ export interface MastheadUser {
   avatarKind?: "sticker" | "photo";
   /** Friend requests and shares waiting, shown as a small count on Friends. */
   pending?: number;
+  /** Invitations to a shared journal waiting, shown as a red dot on Together. */
+  invites?: number;
 }
 
 interface MenuItem {
@@ -28,14 +31,16 @@ interface MenuItem {
   label: string;
   onSelect?: () => void;
   current?: boolean;
+  /** A red dot: something here is waiting for you. */
+  dot?: string;
 }
 
 /** What "Make" offers: one place for everything that can be made. */
-export const MAKE_ITEMS: { key: string; to: string; icon: IconName }[] = [
-  { key: "sticker", to: "/stickers?make=1", icon: "lasso" },
-  { key: "tape", to: "/tapes?make=1", icon: "tape" },
-  { key: "journal", to: "/journals?make=1", icon: "journal" },
-  { key: "together", to: "/together?make=1", icon: "users" },
+export const MAKE_ITEMS: { key: MakeKey; icon: IconName }[] = [
+  { key: "sticker", icon: "lasso" },
+  { key: "tape", icon: "tape" },
+  { key: "journal", icon: "journal" },
+  { key: "together", icon: "users" },
 ];
 
 /**
@@ -89,6 +94,7 @@ function ItemRow({ it }: { it: MenuItem }) {
         >
           <Icon name={it.icon} />
           {it.label}
+          {it.dot && <span className="zf-dot" role="img" aria-label={it.dot} />}
         </Link>
       ) : (
         <button type="button" className="zf-menu__item">
@@ -221,15 +227,24 @@ export function Masthead({
   const onFriends = pathname.startsWith("/friends");
   const onTogether = pathname.startsWith("/together");
 
+  // Make opens its dialog right here: no page change
+  const show = useMake((s) => s.show);
   const makeItems: MenuItem[] = MAKE_ITEMS.map((m) => ({
-    to: m.to,
     icon: m.icon,
     label: t(`nav.makeItems.${m.key}`),
+    onSelect: () => show(m.key),
   }));
+  const invites = user?.invites ?? 0;
   const placeItems: MenuItem[] = [
     { to: "/stickers", icon: "folder", label: t("nav.library"), current: inLibrary },
     { to: "/friends", icon: "users", label: t("nav.friends"), current: onFriends },
-    { to: "/together", icon: "journal", label: t("nav.together"), current: onTogether },
+    {
+      to: "/together",
+      icon: "journal",
+      label: t("nav.together"),
+      current: onTogether,
+      dot: invites > 0 ? t("nav.invites", { count: invites }) : undefined,
+    },
   ];
   const accountItems: MenuItem[] = [
     {
@@ -288,6 +303,13 @@ export function Masthead({
                 </NavLink>
                 <NavLink to="/together" aria-current={onTogether ? "page" : undefined}>
                   {t("nav.together")}
+                  {invites > 0 && (
+                    <span
+                      className="zf-dot"
+                      role="img"
+                      aria-label={t("nav.invites", { count: invites })}
+                    />
+                  )}
                   {onTogether && <Scribble seed="nav-tg" weight={2} />}
                 </NavLink>
                 <span style={{ width: 8 }} />

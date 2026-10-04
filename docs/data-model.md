@@ -12,13 +12,13 @@ All paths are Firestore unless marked _Storage_. Reads are validated with zod an
 | `users/{uid}/journals/{id}`                       | a journal: page spec, `items` (stickers by reference to a sticker id, tapes inline, text, strokes as compact base36 delta strings), thumbnail URL, counts. One document keeps reads cheap; the gallery needs only the thumbnail and counts |
 | `users/{uid}/collections/{id}`                    | name and a list of references `{k: sticker \| tape \| journal, id}`; nothing is copied                                                                                                                                                     |
 | `users/{uid}/requests`, `sentRequests`, `friends` | friend requests (both directions) and friendships (two documents, written in one batch)                                                                                                                                                    |
-| `users/{uid}/inbox/{sid}`, `sent/{sid}`           | what friends shared with me, and what I shared (with the file paths, so a share can be taken back)                                                                                                                                         |
+| `users/{uid}/inbox/{sid}`, `sent/{sid}`           | what friends shared with me (with `seen` and `saved`: a share can be kept once), and what I shared (with the file paths, so a share can be taken back)                                                                                     |
 
-Public, get-only (no listing): `publicProfiles/{uid}` (nickname, avatar) and `friendCodes/{code}` (code → uid).
+Public, get-only (no listing): `publicProfiles/{uid}` (nickname, friend code, and a small copy of the picture kept inside the document as a `data:` URL, with `avatarKey` saying which picture it was made from: friends cannot read my files, so they are never asked to) and `friendCodes/{code}` (code → uid).
 
 ## Working together: `workspaces/{id}`
 
-`members`, `invited`, `ownerUid`, `title`, `page`. Subcollections: `items/{itemId}` (one document per object on the page, so two people editing different objects never collide), `assets/{aid}` (the shelf: a sticker copy stored in the contributor's own folder, or a tape's print), `presence/{uid}` (a heartbeat every 20 s; "online" means seen within 70 s).
+`members`, `invited`, `ownerUid`, `title`, `page`. Subcollections: `items/{itemId}` (one document per object on the page, so two people editing different objects never collide), `assets/{aid}` (the shelf: a sticker as a shrunk picture kept inside the entry as a `data:` URL, up to 150 KB, so it costs no Storage and members need no access to each other's files; or a tape's print), `presence/{uid}` (a heartbeat every 20 s; "online" means seen within 70 s).
 
 Members come in by accepting an invitation (a transaction that checks the limit of 8), and leave or decline in the same way. Ending a page removes everything; "Save a copy" copies the pictures into the saver's own journal folder, so a copy never depends on someone else's files.
 

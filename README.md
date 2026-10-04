@@ -6,7 +6,7 @@
 
 - **Stickers.** Upload a photo and draw around the part you want (freehand lasso, or drag out a rectangle, triangle or star; select and deselect). Choose the edge (smooth, wobbly, torn), its width and a print, then save it. "Edit edge" redoes it later; "Download PNG" exports it.
 - **Tapes.** Turn, size and print your own tape (stripes, dots, gingham, pixels you paint by dragging, a doodle, a plain colour). Four starter tapes come with the app.
-- **Journals (手账).** A page studio: pick a size, a paper (notebook, newspaper, magazine) and a style (lined, grid, dotted, blank, …) and a colour; place stickers and tapes freely (move, rotate, resize), add text in common and handwriting fonts, draw with pen, pencil, crayon and more, erase, undo and redo, save, export a PNG.
+- **Journals (手账).** A page studio: pick a size, a paper (notebook, newsprint, magazine; the last two are textures only) and a style and a colour; place stickers and tapes freely (move, rotate, stretch any way), add text in a drop-down of common, Chinese and handwriting fonts, draw with pen, pencil, crayon and more, rub out just part of a line, undo and redo, save, export a PNG.
 - **Collections.** Your own folders of stickers, tapes and journals, with bulk select, add, remove and delete everywhere.
 - **Friends.** Add friends with a friend code, give them nicknames only you see, and share stickers, tapes and journals. What a friend shares arrives in "Shared with you" and you can keep it.
 - **Together.** Start a shared page, invite friends, bring your own stickers and tapes onto a shelf everyone can use, edit at the same time (you see who is here), and each save your own copy.

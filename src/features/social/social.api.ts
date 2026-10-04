@@ -12,6 +12,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { toInlinePicture } from "@/lib/inlinePicture";
 import { isCode, makeFriendCode, normalizeCode } from "./friendCode";
 import {
   friendDocSchema,
@@ -48,8 +49,31 @@ export async function getPublicProfile(uid: string): Promise<PublicProfile | nul
 
 export interface PublicFields {
   nickname: string;
+  /** Where my picture is kept (my own storage). Friends are shown a small copy kept in the profile itself. */
   avatarUrl: string;
   avatarKind?: "sticker" | "photo";
+}
+
+const AVATAR_INLINE = { maxSide: 128, maxChars: 30_000 } as const;
+
+/** A short fingerprint of where the picture came from, to tell when the small copy is out of date. */
+const keyOf = (url: string) => {
+  let h = 5381;
+  for (let i = 0; i < url.length; i++) h = ((h << 5) + h + url.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+};
+
+/**
+ * Friends cannot read my files, and a link to one may not load for them. So what they see is a
+ * small copy of my picture inside my public profile. If the copy cannot be made the link is kept.
+ */
+async function publicAvatar(source: string): Promise<string> {
+  if (!source) return "";
+  try {
+    return (await toInlinePicture(source, AVATAR_INLINE)).url;
+  } catch {
+    return source.length <= 2048 ? source : "";
+  }
 }
 
 /**
@@ -61,25 +85,32 @@ export async function ensurePublicProfile(
   fields: PublicFields,
 ): Promise<PublicProfile> {
   const current = await getPublicProfile(uid);
-  const wanted = {
+  const avatarKey = keyOf(fields.avatarUrl);
+  const sameSource = current?.avatarKey === avatarKey;
+  const base = {
     nickname: fields.nickname,
-    avatarUrl: fields.avatarUrl,
     ...(fields.avatarKind ? { avatarKind: fields.avatarKind } : {}),
+    avatarKey,
   };
   if (current) {
     const same =
-      current.nickname === wanted.nickname &&
-      current.avatarUrl === wanted.avatarUrl &&
+      current.nickname === base.nickname &&
+      sameSource &&
       current.avatarKind === fields.avatarKind;
     if (same) return current;
+    const avatarUrl = sameSource
+      ? current.avatarUrl
+      : await publicAvatar(fields.avatarUrl);
     await setDoc(doc(db, "publicProfiles", uid), {
-      ...wanted,
+      ...base,
+      avatarUrl,
       friendCode: current.friendCode,
       updatedAt: serverTimestamp(),
     });
-    return { ...current, ...wanted };
+    return { ...current, ...base, avatarUrl };
   }
   // first time: claim a code (retrying if someone else has it), then publish
+  const avatarUrl = await publicAvatar(fields.avatarUrl);
   for (let attempt = 0; attempt < 8; attempt++) {
     const code = makeFriendCode();
     const taken = await getDoc(doc(db, "friendCodes", code));
@@ -87,12 +118,13 @@ export async function ensurePublicProfile(
     const batch = writeBatch(db);
     batch.set(doc(db, "friendCodes", code), { uid });
     batch.set(doc(db, "publicProfiles", uid), {
-      ...wanted,
+      ...base,
+      avatarUrl,
       friendCode: code,
       updatedAt: serverTimestamp(),
     });
     await batch.commit();
-    return { ...wanted, avatarUrl: wanted.avatarUrl, friendCode: code } as PublicProfile;
+    return { ...base, avatarUrl, friendCode: code } as PublicProfile;
   }
   throw new Error("Could not make a friend code");
 }
@@ -248,6 +280,11 @@ export async function listInbox(me: string): Promise<Share[]> {
 
 export async function markSeen(me: string, id: string): Promise<void> {
   await updateDoc(userDoc(me, "inbox", id), { seen: true });
+}
+
+/** Remember that a share has been kept, so it cannot be kept a second time. */
+export async function markSaved(me: string, id: string): Promise<void> {
+  await updateDoc(userDoc(me, "inbox", id), { seen: true, saved: true });
 }
 
 export async function dismissShare(me: string, id: string): Promise<void> {

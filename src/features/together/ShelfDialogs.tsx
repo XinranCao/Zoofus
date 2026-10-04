@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Icon } from "@/components/ui/Icon";
+import { SelectMark } from "@/components/ui/SelectMark";
 import { useToast } from "@/components/ui/Toast";
 import { useCollections } from "@/features/collections/useCollections";
 import { useStickers } from "@/features/stickers/library/useStickers";
@@ -148,7 +148,10 @@ export function ShelfTapePicker({
   );
 }
 
-/** Bring your own stickers and tapes onto the shared shelf: all of them, or a collection of yours. */
+/**
+ * Bring your own stickers and tapes onto the shared shelf. You choose which: tick the pieces, or
+ * use "All" and the collection shortcuts to tick many at once.
+ */
 export function BringInDialog({
   open,
   onClose,
@@ -166,14 +169,32 @@ export function BringInDialog({
   const { data: tapes = [] } = useTapes();
   const { data: collections = [] } = useCollections();
   const [busy, setBusy] = useState(false);
+  const [pickedStickers, setPickedStickers] = useState<Set<string>>(new Set());
+  const [pickedTapes, setPickedTapes] = useState<Set<string>>(new Set());
 
-  const bring = async (st: typeof stickers, tp: typeof tapes) => {
+  const total = pickedStickers.size + pickedTapes.size;
+  const flip = (set: Set<string>, id: string, limit: number) => {
+    const next = new Set(set);
+    if (next.has(id)) next.delete(id);
+    else if (next.size < limit) next.add(id);
+    return next;
+  };
+  const addMany = (set: Set<string>, ids: string[]) =>
+    new Set([...set, ...ids].slice(0, MAX_PER_BRING));
+
+  const close = () => {
+    if (busy) return;
+    setPickedStickers(new Set());
+    setPickedTapes(new Set());
+    onClose();
+  };
+
+  const bring = async () => {
     setBusy(true);
     let failed = 0;
-    const limited = st.slice(0, MAX_PER_BRING);
-    for (const s of limited)
+    for (const s of stickers.filter((x) => pickedStickers.has(x.id)))
       await addStickerToShelf(workspaceId, me, s).catch(() => failed++);
-    for (const tape of tp.slice(0, MAX_PER_BRING))
+    for (const tape of tapes.filter((x) => pickedTapes.has(x.id)))
       await addTapeToShelf(workspaceId, me, tape.name, tape).catch(() => failed++);
     setBusy(false);
     toast.push(
@@ -183,75 +204,171 @@ export function BringInDialog({
             title: t("auth.errors.toastTitle"),
             body: t("together.bringFailed"),
           }
-        : {
-            kind: "success",
-            title: t("together.brought", {
-              count: limited.length + Math.min(tp.length, MAX_PER_BRING),
-            }),
-          },
+        : { kind: "success", title: t("together.brought", { count: total }) },
     );
-    onClose();
+    if (!failed) {
+      setPickedStickers(new Set());
+      setPickedTapes(new Set());
+      onClose();
+    }
   };
-
-  const options: { key: string; label: string; count: number; run: () => void }[] = [
-    {
-      key: "all-stickers",
-      label: t("together.allStickers"),
-      count: stickers.length,
-      run: () => void bring(stickers, []),
-    },
-    {
-      key: "all-tapes",
-      label: t("together.allTapes"),
-      count: tapes.length,
-      run: () => void bring([], tapes),
-    },
-    ...collections.map((c) => {
-      const st = stickers.filter((s) =>
-        c.items.some((i) => i.k === "sticker" && i.id === s.id),
-      );
-      const tp = tapes.filter((x) =>
-        c.items.some((i) => i.k === "tape" && i.id === x.id),
-      );
-      return {
-        key: c.id,
-        label: c.name,
-        count: st.length + tp.length,
-        run: () => void bring(st, tp),
-      };
-    }),
-  ];
 
   return (
     <Dialog
       open={open}
-      onOpenChange={(o) => !o && !busy && onClose()}
-      width={460}
+      onOpenChange={(o) => !o && close()}
+      width={720}
+      sheet
       seed="bring-in"
       tapes={1}
       title={t("together.bringIn")}
+      actions={
+        <>
+          <Button variant="quiet" seed="bic" disabled={busy} onClick={close}>
+            {t("common.cancel")}
+          </Button>
+          <Button
+            variant="primary"
+            icon="check"
+            seed="big"
+            disabled={total === 0}
+            loading={busy}
+            onClick={() => void bring()}
+          >
+            {t("together.bringCount", { count: total })}
+          </Button>
+        </>
+      }
     >
-      <p style={{ margin: "6px 0 14px" }}>
+      <p style={{ margin: "6px 0 12px" }}>
         {t("together.bringInBody", { max: MAX_PER_BRING })}
       </p>
-      <ul className="zf-pick-list">
-        {options.map((o) => (
-          <li key={o.key}>
-            <button
-              type="button"
-              className="zf-menu__item"
-              disabled={busy || o.count === 0}
-              onClick={o.run}
-            >
-              <Icon name="folder" />
-              <span style={{ flex: 1 }}>{o.label}</span>
-              <span className="zf-muted" style={{ fontSize: 13 }}>
-                {o.count}
-              </span>
-            </button>
-          </li>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
+        <Button
+          variant="quiet"
+          size="sm"
+          seed="bi-all"
+          disabled={stickers.length + tapes.length === 0}
+          onClick={() => {
+            setPickedStickers(
+              addMany(
+                new Set(),
+                stickers.map((x) => x.id),
+              ),
+            );
+            setPickedTapes(
+              addMany(
+                new Set(),
+                tapes.map((x) => x.id),
+              ),
+            );
+          }}
+        >
+          {t("bulk.all")}
+        </Button>
+        <Button
+          variant="quiet"
+          size="sm"
+          seed="bi-none"
+          disabled={total === 0}
+          onClick={() => {
+            setPickedStickers(new Set());
+            setPickedTapes(new Set());
+          }}
+        >
+          {t("bulk.none")}
+        </Button>
+        {collections.map((c) => (
+          <Button
+            key={c.id}
+            variant="secondary"
+            size="sm"
+            icon="folder"
+            seed={"bi-c" + c.id}
+            disabled={c.items.length === 0}
+            onClick={() => {
+              setPickedStickers((p) =>
+                addMany(
+                  p,
+                  c.items.flatMap((i) => (i.k === "sticker" ? [i.id] : [])),
+                ),
+              );
+              setPickedTapes((p) =>
+                addMany(
+                  p,
+                  c.items.flatMap((i) => (i.k === "tape" ? [i.id] : [])),
+                ),
+              );
+            }}
+          >
+            {c.name}
+          </Button>
         ))}
-      </ul>
+      </div>
+      {stickers.length > 0 && (
+        <>
+          <div className="zf-label" style={{ marginBottom: 8 }}>
+            {t("library.stickers")}
+          </div>
+          <ul
+            className="zf-grid-picker"
+            style={{ listStyle: "none", margin: "0 0 18px", padding: 0 }}
+          >
+            {stickers.map((s) => (
+              <li key={s.id}>
+                <button
+                  type="button"
+                  className={cn("zf-picker__item", "zf-tile")}
+                  aria-pressed={pickedStickers.has(s.id)}
+                  aria-label={s.name}
+                  onClick={() => setPickedStickers((p) => flip(p, s.id, MAX_PER_BRING))}
+                >
+                  <SelectMark selected={pickedStickers.has(s.id)} />
+                  <span className="zf-sticker" style={{ ["--rot" as string]: "3deg" }}>
+                    <img
+                      className="zf-sticker-img"
+                      src={s.imageUrl}
+                      alt=""
+                      width={Math.round((72 * s.width) / Math.max(s.width, s.height))}
+                      height={Math.round((72 * s.height) / Math.max(s.width, s.height))}
+                      loading="lazy"
+                    />
+                  </span>
+                  <span className="zf-tile__meta">{s.name}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {tapes.length > 0 && (
+        <>
+          <div className="zf-label" style={{ marginBottom: 8 }}>
+            {t("library.tapes")}
+          </div>
+          <ul
+            className="zf-grid-tape"
+            style={{ listStyle: "none", margin: "0 0 6px", padding: 0 }}
+          >
+            {tapes.map((tape, i) => (
+              <li key={tape.id}>
+                <TapeTile
+                  tape={tape}
+                  index={i}
+                  selecting
+                  selected={pickedTapes.has(tape.id)}
+                  onToggle={() => setPickedTapes((p) => flip(p, tape.id, MAX_PER_BRING))}
+                />
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {stickers.length + tapes.length === 0 && (
+        <EmptyState seed="bring-empty" title={t("together.nothingToBring")}>
+          {t("together.nothingToBringBody")}
+        </EmptyState>
+      )}
     </Dialog>
   );
 }
