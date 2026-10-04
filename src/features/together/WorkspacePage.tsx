@@ -41,6 +41,9 @@ import {
 import type { Presence, ShelfEntry, Workspace } from "./workspace.schema";
 import { useAcceptInvite } from "./useTogether";
 
+/** How often "I am here" is written while the page is on screen. */
+export const HEARTBEAT_MS = 60_000;
+
 const COLORS = [
   "pink-200",
   "lime-300",
@@ -276,10 +279,16 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
     const name = profile?.nickname ?? "";
     const beat = () =>
       void heartbeat(workspace.id, me, name || "?", color).catch(() => {});
-    beat();
-    const timer = setInterval(beat, 20_000);
+    // one write on arriving, then one a minute and only while the tab is on screen (a tab in the
+    // background stops writing and simply fades from the list); coming back writes at once
+    const visible = () => document.visibilityState === "visible";
+    if (visible()) beat();
+    const timer = setInterval(() => visible() && beat(), HEARTBEAT_MS);
+    const onShow = () => visible() && beat();
+    document.addEventListener("visibilitychange", onShow);
     return () => {
       clearInterval(timer);
+      document.removeEventListener("visibilitychange", onShow);
       void leavePresence(workspace.id, me);
     };
   }, [workspace.id, me, profile?.nickname]);
