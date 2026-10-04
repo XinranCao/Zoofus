@@ -628,6 +628,9 @@ export const zh: Messages = {
     bringCount_other: "放进 {{count}} 个",
     nothingToBring: "还没有可带的东西",
     nothingToBringBody: "先做一张贴纸或一卷胶带，再带到这里来。",
+    saved: "已保存，列表里的页面缩略图已更新。",
+    saveHint: "大家的修改会实时同步。点“保存”可更新列表里的页面缩略图。",
+    savedAt: "{{time}} 已保存。",
     addFromLibrary: "从我的库里添加",
     bringIn: "放入我的贴纸和胶带",
     bringInBody:

@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Reel } from "@/components/ui/Loader";
 import { useToast } from "@/components/ui/Toast";
 import { downloadBlob } from "@/features/stickers/studio/export";
+import { AUTOSAVE_MS } from "./autosave";
 import { JournalStudio, type JournalExport } from "./JournalStudio";
 import type { Journal } from "./journal.schema";
 import {
@@ -53,8 +54,6 @@ export default function JournalPage() {
   );
 }
 
-const AUTOSAVE_MS = 4000;
-
 function Editor({ journal }: { journal: Journal }) {
   const { t } = useTranslation();
   const toast = useToast();
@@ -99,7 +98,8 @@ function Editor({ journal }: { journal: Journal }) {
     }
   };
 
-  // Autosave a few seconds after the last change (without a new picture), and when leaving.
+  // Autosave at most once a minute while there are changes (the timer is not pushed back by every
+  // edit, so a long session is still kept), and when leaving.
   const latest = useRef({ persist });
   useEffect(() => {
     latest.current = { persist };
@@ -108,11 +108,11 @@ function Editor({ journal }: { journal: Journal }) {
     let timer: ReturnType<typeof setTimeout> | null = null;
     const unsub = store.subscribe((s, prev) => {
       if (!s.dirty || (s.items === prev.items && s.page === prev.page)) return;
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(
-        () => void latest.current.persist(true).catch(() => {}),
-        AUTOSAVE_MS,
-      );
+      if (timer) return;
+      timer = setTimeout(() => {
+        timer = null;
+        void latest.current.persist(true).catch(() => {});
+      }, AUTOSAVE_MS);
     });
     return () => {
       unsub();

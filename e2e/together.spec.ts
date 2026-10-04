@@ -80,13 +80,25 @@ test("two friends make a journal page together and each keeps a copy", async ({
     .toBe(true);
   await brought.click();
 
+  // the tools sit two to a row, and Save is the main button (a copy is the second one)
+  const sticker = await b.getByRole("button", { name: "Sticker" }).first().boundingBox();
+  const tape = await b
+    .getByRole("button", { name: "Tape", exact: true })
+    .first()
+    .boundingBox();
+  expect(Math.abs(sticker!.y - tape!.y)).toBeLessThan(4);
+  expect(tape!.x).toBeGreaterThan(sticker!.x + 40);
+  await b.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(b.getByText(/Saved\. The page picture/).first()).toBeVisible({
+    timeout: 20000,
+  });
+
   // Bobby saves a copy; it shows up in his journals
   await b.getByRole("button", { name: "Save a copy" }).click();
   await expect(b.getByText("A copy is in your journals").first()).toBeVisible({
     timeout: 20000,
   });
   // the copy and the list both show the page as it looks, not bare paper
-  await b.waitForTimeout(3500);
   await b.goto("/journals");
   const copy = b.getByRole("link", { name: /Open Trip page/ });
   await expect(copy).toBeVisible();

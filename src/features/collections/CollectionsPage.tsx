@@ -107,7 +107,7 @@ export default function CollectionsPage() {
         />
       )}
       {isPending && (
-        <div className="zf-grid-journal" aria-busy="true">
+        <div className="zf-grid-book" aria-busy="true">
           {Array.from({ length: 3 }, (_, i) => (
             <Skeleton key={i} seed={"csk" + i} width="100%" height={170} />
           ))}
@@ -133,7 +133,7 @@ export default function CollectionsPage() {
         </EmptyState>
       )}
       {list.length > 0 && (
-        <div className="zf-grid-journal">
+        <div className="zf-grid-book">
           {list.map((c) => (
             <CollectionTile
               key={c.id}
