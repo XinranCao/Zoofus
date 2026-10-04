@@ -93,6 +93,26 @@ test("two people become friends, name each other, share and keep a sticker", asy
     timeout: 15000,
   });
 
+  // (Alice's record of what she sent, and the files made for Bobby, exist until he is done)
+  const sentLeft = async () => {
+    const res = await a.request.post(
+      "http://127.0.0.1:8080/v1/projects/demo-zoofus/databases/(default)/documents:runQuery",
+      {
+        headers: { Authorization: "Bearer owner" },
+        data: {
+          structuredQuery: {
+            from: [{ collectionId: "sent", allDescendants: true }],
+            limit: 5,
+          },
+        },
+      },
+    );
+    expect(res.ok()).toBe(true);
+    return ((await res.json()) as { document?: unknown }[]).filter((r) => r.document)
+      .length;
+  };
+  expect(await sentLeft()).toBe(1);
+
   // Bobby finds it in "Shared with you" and keeps it
   await b.goto("/friends");
   await b.getByRole("radio", { name: /Shared with you/ }).click();
@@ -106,6 +126,17 @@ test("two people become friends, name each other, share and keep a sticker", asy
   await expect(b.getByRole("radio", { name: /Shared with you · 0/ })).toBeVisible();
   await b.goto("/stickers");
   await expect(b.getByRole("button", { name: /^Open Cut / })).toBeVisible();
+
+  // Alice's copies made for Bobby are removed once he has kept his own: her record of the share
+  // goes, and so do the files in her shares folder
+  await a.goto("/stickers");
+  await expect.poll(sentLeft, { timeout: 20_000 }).toBe(0);
+  for (const bucket of ["demo-zoofus.firebasestorage.app", "demo-zoofus.appspot.com"]) {
+    const res = await a.request.get(`http://127.0.0.1:9199/v0/b/${bucket}/o`);
+    if (!res.ok()) continue;
+    const { items = [] } = (await res.json()) as { items?: { name: string }[] };
+    expect(items.filter((o) => o.name.includes("/shares/"))).toHaveLength(0);
+  }
 
   await ctxA.close();
   await ctxB.close();

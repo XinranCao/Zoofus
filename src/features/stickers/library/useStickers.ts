@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/features/auth/useAuth";
 import { COMPRESSION, encodeWithin } from "@/lib/image";
 import type { EdgeSpec } from "@/paper/renderSticker";
+import { cutRect, decodeOutline } from "../editor/domain/outline";
 import {
   deleteSticker,
   listStickers,
@@ -37,9 +38,10 @@ async function compress(canvas: HTMLCanvasElement) {
 
 export interface SaveStickerInput {
   name: string;
-  /** The finished sticker (edge baked in) and the edge-less source, as canvases. */
+  /** The finished sticker (edge baked in), as a canvas. */
   sticker: HTMLCanvasElement;
-  source: HTMLCanvasElement;
+  /** The lasso outline as text (see `domain/outline.ts`): what "Edit edge" rebuilds the cut-out from. */
+  outline: string;
   edge: EdgeSpec;
   seed: string;
 }
@@ -48,13 +50,26 @@ export function useSaveSticker() {
   const uid = useUid();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ name, sticker, source, edge, seed }: SaveStickerInput) => {
+    mutationFn: async ({ name, sticker, outline, edge, seed }: SaveStickerInput) => {
       if (!uid) throw new Error("Not signed in");
-      const [baked, raw] = await Promise.all([compress(sticker), compress(source)]);
+      const baked = await compress(sticker);
+      const o = decodeOutline(outline);
       return saveSticker(uid, {
         name,
         sticker: baked.blob,
-        source: raw.blob,
+        ...(o
+          ? {
+              outline,
+              cut: cutRect(
+                sticker.width,
+                sticker.height,
+                o.width,
+                o.height,
+                baked.width,
+                baked.height,
+              ),
+            }
+          : {}),
         width: baked.width,
         height: baked.height,
         edge,
@@ -76,11 +91,14 @@ export function useUpdateStickerEdge() {
       canvas,
       edge,
       seed,
+      cutSize,
     }: {
       sticker: Pick<Sticker, "id" | "storagePath">;
       canvas: HTMLCanvasElement;
       edge: EdgeSpec;
       seed: string;
+      /** The cut-out's size in px, for stickers that keep an outline (their cut-out has moved). */
+      cutSize?: { w: number; h: number };
     }) => {
       if (!uid) throw new Error("Not signed in");
       const baked = await compress(canvas);
@@ -90,6 +108,18 @@ export function useUpdateStickerEdge() {
         height: baked.height,
         edge,
         seed,
+        ...(cutSize
+          ? {
+              cut: cutRect(
+                canvas.width,
+                canvas.height,
+                cutSize.w,
+                cutSize.h,
+                baked.width,
+                baked.height,
+              ),
+            }
+          : {}),
       });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.all(uid ?? "") }),

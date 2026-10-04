@@ -28,14 +28,16 @@ import {
   removePublicProfile,
 } from "@/features/social/social.api";
 import { unshare } from "@/features/social/share.api";
+import { cleanFinishedShares } from "@/features/social/social.api";
 import {
   declineInvite,
   deleteWorkspace,
   leaveWorkspace,
   listWorkspaces,
 } from "@/features/together/workspace.api";
-import { db } from "@/lib/firebase";
-import { deleteFolder } from "@/lib/storage";
+import { ref } from "firebase/storage";
+import { db, storage } from "@/lib/firebase";
+import { deleteFileIfExists, deleteFolder } from "@/lib/storage";
 import { buildExport, type AccountExport } from "./account.export";
 
 export async function exportAccountData(uid: string): Promise<AccountExport> {
@@ -90,12 +92,11 @@ export async function deleteAccount(user: User): Promise<void> {
 
 /** Friends, requests, shares, shared pages and the public profile: everything that points at other people. */
 async function removeSocial(uid: string): Promise<void> {
-  const [friends, incoming, sentReq, inbox, sentShares, spaces] = await Promise.all([
+  const [friends, incoming, sentReq, inbox, spaces] = await Promise.all([
     listFriends(uid),
     listIncoming(uid),
     listSent(uid),
     listInbox(uid),
-    listSentShares(uid),
     listWorkspaces(uid),
   ]);
   await Promise.all(
@@ -104,7 +105,14 @@ async function removeSocial(uid: string): Promise<void> {
     ),
   );
   await Promise.all(spaces.invites.map((w) => declineInvite(uid, w.id)));
-  await Promise.all(sentShares.map((x) => unshare(uid, x.to, x.id, x.files)));
+  // shares a friend has already finished with: remove their files and markers first
+  await cleanFinishedShares(uid, (paths) =>
+    Promise.allSettled(paths.map((p) => deleteFileIfExists(ref(storage, p)))).then(
+      () => {},
+    ),
+  ).catch(() => {});
+  const stillSent = await listSentShares(uid);
+  await Promise.all(stillSent.map((x) => unshare(uid, x.to, x.id, x.files)));
   await Promise.all(inbox.map((x) => dismissShare(uid, x.id)));
   await Promise.all(incoming.map((r) => declineRequest(uid, r.from)));
   await Promise.all(sentReq.map((r) => cancelRequest(uid, r.to)));

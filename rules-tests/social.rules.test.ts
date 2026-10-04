@@ -301,6 +301,27 @@ describe("sharing", () => {
     seed((db) => setDoc(doc(db, "users/bob/friends/alice"), { since: new Date() })),
   );
 
+  it("the person I shared with can tell me they are done, and only them", async () => {
+    await seed((db) =>
+      setDoc(doc(db, "users/alice/sent/s1"), {
+        to: "bob",
+        kind: "sticker",
+        name: "x",
+        files: [],
+        createdAt: new Date(),
+      }),
+    );
+    const done = (by: string) => ({ by, at: serverTimestamp() });
+    await assertSucceeds(setDoc(doc(as("bob"), "users/alice/shareDone/s1"), done("bob")));
+    await assertFails(
+      setDoc(doc(as("carol"), "users/alice/shareDone/s1"), done("carol")),
+    );
+    await assertFails(setDoc(doc(as("bob"), "users/alice/shareDone/s1"), done("carol")));
+    await assertFails(setDoc(doc(as("bob"), "users/alice/shareDone/nope"), done("bob")));
+    await assertFails(getDoc(doc(as("bob"), "users/alice/shareDone/s1")));
+    await assertSucceeds(getDoc(doc(as("alice"), "users/alice/shareDone/s1")));
+    await assertSucceeds(deleteDoc(doc(as("alice"), "users/alice/shareDone/s1")));
+  });
   it("a friend can put something in my inbox, and I can read and delete it", async () => {
     await assertSucceeds(setDoc(doc(as("alice"), "users/bob/inbox/s1"), share()));
     await assertSucceeds(getDoc(doc(as("bob"), "users/bob/inbox/s1")));

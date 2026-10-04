@@ -291,6 +291,54 @@ export async function dismissShare(me: string, id: string): Promise<void> {
   await deleteDoc(userDoc(me, "inbox", id));
 }
 
+/**
+ * Tell the sender I am finished with a share (I kept it, or put it away): the copies of their
+ * pictures that were made for me are no longer needed, and they remove them next time they are
+ * here. Best effort: a share that is never marked only costs the sender a little space.
+ */
+export async function markShareDone(
+  me: string,
+  from: string,
+  sid: string,
+): Promise<void> {
+  await setDoc(userDoc(from, "shareDone", sid), { by: me, at: serverTimestamp() }).catch(
+    () => {},
+  );
+}
+
+/** Put a share away. Its sender is told, so they can free the files made for me. */
+export async function finishShare(
+  me: string,
+  share: { id: string; from: string },
+): Promise<void> {
+  await dismissShare(me, share.id);
+  await markShareDone(me, share.from, share.id);
+}
+
+/**
+ * For the sender: remove the files and the record of every share a friend has finished with.
+ * What the friend kept is their own copy by then, so nothing they have depends on these files.
+ */
+export async function cleanFinishedShares(
+  me: string,
+  removeFiles: (paths: string[]) => Promise<void>,
+): Promise<number> {
+  const done = await getDocs(userCol(me, "shareDone"));
+  let cleaned = 0;
+  for (const d of done.docs) {
+    const sent = await getDoc(userDoc(me, "sent", d.id));
+    if (sent.exists()) {
+      await removeFiles(
+        ((sent.data().files as string[] | undefined) ?? []).slice(0, 100),
+      );
+      await deleteDoc(sent.ref);
+      cleaned++;
+    }
+    await deleteDoc(d.ref);
+  }
+  return cleaned;
+}
+
 /** What I have shared, so I can take it back. */
 export async function listSentShares(me: string): Promise<
   {

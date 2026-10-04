@@ -75,6 +75,7 @@ export async function shareWith(
         name: s.name,
         imageUrl,
         ...(sourceUrl ? { sourceUrl } : {}),
+        ...(s.outline && s.cut ? { outline: s.outline, cut: s.cut } : {}),
         width: s.width,
         height: s.height,
         ...(s.edge ? { edge: s.edge } : {}),
@@ -197,6 +198,7 @@ export async function saveSharedToMine(
       name: p.name,
       sticker,
       ...(source ? { source } : {}),
+      ...(p.outline && p.cut ? { outline: p.outline, cut: p.cut } : {}),
       width: p.width,
       height: p.height,
       edge: p.edge ?? {

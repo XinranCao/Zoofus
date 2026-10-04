@@ -9,7 +9,10 @@ import {
 } from "firebase/firestore";
 import { useEffect } from "react";
 import { useAuth } from "@/features/auth/useAuth";
-import { db } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
+import { deleteFileIfExists } from "@/lib/storage";
+import { ref } from "firebase/storage";
+import { cleanFinishedShares } from "./social.api";
 
 /**
  * Keep the friends, requests, shares and invitations lists live. Each listens to the documents it
@@ -53,6 +56,25 @@ export function useRealtimeSync() {
       ["friends", uid],
     ]);
     watch(mine("inbox"), [["inbox", uid]]);
+    // what friends have finished with: the pictures I copied for them are no longer needed
+    stops.push(
+      onSnapshot(
+        mine("shareDone"),
+        (snap) => {
+          if (snap.empty) return;
+          void cleanFinishedShares(uid, async (paths) => {
+            await Promise.allSettled(
+              paths.map((p) => deleteFileIfExists(ref(storage, p))),
+            );
+          })
+            .then((n) => {
+              if (n) void qc.invalidateQueries({ queryKey: ["sentShares", uid] });
+            })
+            .catch(() => {});
+        },
+        () => {},
+      ),
+    );
     const workspaces = collection(db, "workspaces");
     watch(query(workspaces, where("invited", "array-contains", uid)), [
       ["workspaces", uid],

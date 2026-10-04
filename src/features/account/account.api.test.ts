@@ -21,6 +21,7 @@ const m = vi.hoisted(() => ({
       "listInbox",
       "listSent",
       "listSentShares",
+      "cleanFinishedShares",
       "removeFriend",
       "removePublicProfile",
       "unshare",

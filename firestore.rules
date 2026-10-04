@@ -184,6 +184,17 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seen', 'saved']);
         allow delete: if isOwner(uid) || resource.data.from == request.auth.uid;
       }
+      // users/{uid}/shareDone/{sid}: the person I shared with says they are finished with it (they
+      // kept it, or put it away), so I can remove the files I made for them.
+      match /shareDone/{sid} {
+        allow read, delete: if isOwner(uid);
+        allow create: if signedIn() && uid != request.auth.uid
+          && exists(/databases/$(database)/documents/users/$(uid)/sent/$(sid))
+          && get(/databases/$(database)/documents/users/$(uid)/sent/$(sid)).data.to == request.auth.uid
+          && request.resource.data.keys().hasOnly(['by', 'at'])
+          && request.resource.data.by == request.auth.uid
+          && request.resource.data.at == request.time;
+      }
       // users/{uid}/sent/{sid}: what I shared, so I can take it back and clean up its files.
       match /sent/{sid} {
         allow read, delete: if isOwner(uid);
@@ -222,17 +233,28 @@ service cloud.firestore {
             && e.scale is number && e.scale >= 0 && e.scale <= 1.6
             && validPattern(e.fill);
         }
+        // where the cut-out sits in the stored picture (pixels)
+        function validCut(c) {
+          return c is map
+            && c.keys().hasOnly(['x', 'y', 'w', 'h'])
+            && c.x is int && c.x >= 0 && c.x <= 4096
+            && c.y is int && c.y >= 0 && c.y <= 4096
+            && c.w is int && c.w > 0 && c.w <= 4096
+            && c.h is int && c.h > 0 && c.h <= 4096;
+        }
         function ownFile(path) {
           return isString(path, 512) && path.matches('^' + uid + '/stickers/.+');
         }
         // Fields shared by create and update. Older stickers have no source, edge or seed.
         function validSticker(d) {
-          return d.keys().hasOnly(['name', 'storagePath', 'imageUrl', 'sourcePath', 'sourceUrl', 'edge', 'seed', 'thumbnailUrl', 'thumbnailPath', 'width', 'height', 'createdAt'])
+          return d.keys().hasOnly(['name', 'storagePath', 'imageUrl', 'sourcePath', 'sourceUrl', 'outline', 'cut', 'edge', 'seed', 'thumbnailUrl', 'thumbnailPath', 'width', 'height', 'createdAt'])
             && isString(d.name, 60) && d.name.size() > 0
             && ownFile(d.storagePath)
             && isString(d.imageUrl, 2048)
             && (!('sourcePath' in d) || ownFile(d.sourcePath))
             && (!('sourceUrl' in d) || isString(d.sourceUrl, 2048))
+            && (!('outline' in d) || isString(d.outline, 30000))
+            && (!('cut' in d) || validCut(d.cut))
             && (!('edge' in d) || validEdge(d.edge))
             && (!('seed' in d) || isString(d.seed, 64))
             && (!('thumbnailUrl' in d) || isString(d.thumbnailUrl, 2048))
@@ -251,10 +273,11 @@ service cloud.firestore {
           return d.diff(resource.data).affectedKeys().hasAny([key]);
         }
         allow update: if isOwner(uid)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'storagePath', 'imageUrl', 'edge', 'seed', 'width', 'height'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'storagePath', 'imageUrl', 'edge', 'seed', 'width', 'height', 'cut'])
           && (!touched(request.resource.data, 'name') || (isString(request.resource.data.name, 60) && request.resource.data.name.size() > 0))
           && (!touched(request.resource.data, 'storagePath') || ownFile(request.resource.data.storagePath))
           && (!touched(request.resource.data, 'imageUrl') || isString(request.resource.data.imageUrl, 2048))
+          && (!touched(request.resource.data, 'cut') || validCut(request.resource.data.cut))
           && (!touched(request.resource.data, 'edge') || validEdge(request.resource.data.edge))
           && (!touched(request.resource.data, 'seed') || isString(request.resource.data.seed, 64))
           && (!touched(request.resource.data, 'width') || (request.resource.data.width is int && request.resource.data.width > 0))

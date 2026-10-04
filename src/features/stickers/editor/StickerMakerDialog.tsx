@@ -13,6 +13,7 @@ import { renderSticker } from "@/paper/renderSticker";
 import { StickerEdgeStudio } from "../studio/StickerEdgeStudio";
 import { canvasToPng, downloadBlob } from "../studio/export";
 import { renderCutoutSource } from "./domain/cutout";
+import { encodeOutline } from "./domain/outline";
 import { computeMaskPolygons, isMaskEmpty } from "./domain/mask";
 import { LassoCanvas } from "./components/LassoCanvas";
 import { MakerTools } from "./components/MakerTools";
@@ -105,15 +106,19 @@ function MakerBody({
   );
   const canCut = !isMaskEmpty(mask);
 
-  // The edge-less cut-out, cropped to the selection, for step 2.
-  const source = useMemo(() => {
+  // The edge-less cut-out, cropped to the selection, for step 2, and its outline (kept with the
+  // sticker instead of a second picture).
+  const cutout = useMemo(() => {
     if (view !== "result" || !image) return null;
     const imageMask = computeMaskPolygons(selections, fit, {
       width: image.naturalWidth,
       height: image.naturalHeight,
     });
-    return renderCutoutSource(image, imageMask);
+    const canvas = renderCutoutSource(image, imageMask);
+    if (!canvas) return null;
+    return { canvas, outline: encodeOutline(imageMask, canvas.width, canvas.height) };
   }, [view, image, selections, fit]);
+  const source = cutout?.canvas ?? null;
 
   const editKey = JSON.stringify([edge, seed, selections.map((s) => s.id)]);
   const saved = savedKey === editKey;
@@ -142,7 +147,7 @@ function MakerBody({
       await save.mutateAsync({
         name: name.trim() || t("maker.edge.defaultName", { date }),
         sticker,
-        source,
+        outline: cutout?.outline ?? "",
         edge,
         seed,
       });

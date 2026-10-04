@@ -28,7 +28,7 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
 - `src/components/layout/` – app chrome: `NavBar`, `PageContainer`
 - `src/features/auth/` – `AuthProvider` + `useAuth` (Firebase Auth wrapper), `ProtectedRoute`, `auth.schema.ts` (zod), `components/` forms, `pages/` Login and SignUp
 - `src/features/profile/` – `profile.schema.ts` (zod), `profile.api.ts` (Firestore `users/{uid}` + Storage `{uid}/profile/profile_pic/`), `useProfile.ts` (TanStack Query hooks)
-- `src/features/stickers/editor/` – the sticker maker
+- `src/features/stickers/editor/` – the sticker maker (`domain/outline.ts`: the lasso outline kept as text with each sticker, from which "Edit edge" rebuilds the cut-out; no second picture is stored any more)
   - `domain/` pure, tested logic: `types.ts` (unified `Selection` model), `geometry.ts` (selection → polygon, ring joining), `mask.ts` (polygon-clipping: select union minus deselect, clipped to image), `render.ts` (canvas cut-out + border)
   - `store/editorStore.ts` – Zustand store per editor instance with undo/redo history (`EditorStoreProvider`, `useEditor`)
   - `components/` Konva canvas, shapes, controls, result panel; `StickerEditor.tsx` is the entry

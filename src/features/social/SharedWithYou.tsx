@@ -191,8 +191,8 @@ function SharedCard({ share, index }: { share: Share; index: number }) {
           size="sm"
           icon="x"
           seed={"sd" + share.id}
-          loading={dismiss.isPending && dismiss.variables === share.id}
-          onClick={() => dismiss.mutate(share.id)}
+          loading={dismiss.isPending && dismiss.variables?.id === share.id}
+          onClick={() => dismiss.mutate({ id: share.id, from: share.from })}
         >
           {t("shared.dismiss")}
         </Button>
