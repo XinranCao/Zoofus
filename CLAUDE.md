@@ -33,12 +33,12 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
   - `store/editorStore.ts` – Zustand store per editor instance with undo/redo history (`EditorStoreProvider`, `useEditor`)
   - `components/` Konva canvas, shapes, controls, result panel; `StickerEditor.tsx` is the entry
   - `library/` saved stickers: `sticker.schema.ts`, `stickers.api.ts` (Firestore `users/{uid}/stickers/{id}` + Storage `{uid}/stickers/{id}.png`), `useStickers.ts`, `StickerBookPage.tsx`, `StickerPreviewDialog.tsx` (zoom/pan preview via `react-zoom-pan-pinch`)
-- `firestore.rules`, `storage.rules`, `rules-tests/` – owner-only security rules and their emulator tests. Deploying rules changes production. They go out with a release, first, with `npx firebase-tools@14 deploy --only firestore:rules,storage --project zoofus-48264` (the owner has pre-approved this for releases; outside a release, ask).
+- `firestore.rules`, `storage.rules`, `rules-tests/` – owner-only security rules and their emulator tests. Deploying rules changes production. They go out with a release, first, with `npx firebase-tools@14 deploy --only firestore:rules,storage --project zoofus-48264` (the owner has pre-approved this for every release; outside a release, ask).
 - `e2e/` – Playwright tests; `src/**/*.test.tsx` – Testing Library component tests
 - `src/features/pages/` – collage page data model (schema, pure ops, API, hooks; no UI yet). `src/features/account/` – account page (export/delete), email verification banner
 - `docs/app-check.md` – one-time App Check console setup
 - `src/components/ErrorBoundary.tsx`, `src/pages/NotFoundPage.tsx` – error and 404 handling
-- `src/features/library/` (tabs), `tape/` (tape studio + page), `journal/` (page model in `journal.schema.ts`, ops with inverses in `ops.ts`, store, Konva studio), `collections/`, `social/` (friends, friend codes, sharing, inbox), `together/` (workspaces: live items, shelf, presence, `saveCopy`). Data model in `docs/data-model.md`. Journal items are one compact doc; workspace items are one doc per object.
+- `src/features/library/` (tabs), `tape/` (tape studio + page), `journal/` (page model in `journal.schema.ts`, ops with inverses in `ops.ts`, store, Konva studio), `collections/`, `social/` (friends, friend codes, sharing, inbox), `together/` (workspaces: live items, shelf, presence, a page thumbnail kept in the workspace doc, `saveCopy` with a thumbnail). Library tiles (sticker, tape, journal, folder) show the name above the picture and the same hover actions; tapes can be edited in place (`NewTapeDialog` with `edit`). Data model in `docs/data-model.md`. Journal items are one compact doc; workspace items are one doc per object.
 - `src/pages/HomePage.tsx` – opens the editor in a dialog
 - `design-system/` – the Zoofus design system (reference docs and code, never imported); `ADOPTION_PLAN.md`, `ADOPTION_REPORT.md`, `verification/` screenshots
 - `src/paper/` – ported paper primitives (torn clip pairs, patterns, dieCut, renderSticker) with tests; `src/styles/` – Tailwind theme, tokens, components.css; `src/components/ui/` – Radix-based UI kit, gallery at `/dev/design-system` (dev only); `src/i18n/` – locales; `src/features/tape/` – tape studio (`/tape`)
@@ -70,8 +70,13 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
 
 ## Release process (only when the user says "release" / "cut a version")
 
+**Standing permission.** When the user says to release (or "I give you permission to release"), that covers the whole process below, including merging to `main`, pushing the tag, deploying the Firestore/Storage rules first when they changed, and the CI deploy. Do not ask again at each step. Only stop if something fails, or if the version to use is genuinely unclear (otherwise pick the semver bump yourself: features = minor, fixes only = patch, breaking = major) and say which you picked.
+
+**Docs first.** Before every release, bring the docs up to date with what is actually implemented: `README.md` (features, commands, structure), `CLAUDE.md` (architecture map, conventions, backlog), `docs/data-model.md` (collections and fields), `RELEASE_CHECKLIST.md` and any other file that describes behaviour that changed. Check them against the code, not against memory, and commit the updates with the release.
+
 1. On `dev`, with a clean tree: `git pull --ff-only`, `npm ci`, `npm run build` (and tests). Everything must pass.
-2. Propose the version number (semver; current is in package.json) and confirm it with the user.
+2. Choose the version number (semver; current is in package.json) and state it. Ask only if the user has not given standing permission to release.
+   2b. Update the docs (see "Docs first" above): README, CLAUDE.md, docs/data-model.md and any file that no longer matches the code.
 3. Update `CHANGELOG.md`: a new `## vX.Y.Z – YYYY-MM-DD` section summarizing changes since the last tag (`git log <last-tag>..dev --oneline`, or since the first commit if there is no tag). Group them as Features / Fixes / Other, and skip WIP auto-save commits.
 4. `npm version X.Y.Z --no-git-tag-version`, then commit `RELEASE: vX.Y.Z` on `dev` and push `dev`.
 5. `git switch main && git pull --ff-only && git merge --no-ff dev -m "RELEASE: vX.Y.Z"`

@@ -51,6 +51,9 @@ export function JournalTile({
   const inner = (
     <>
       {selecting && <SelectMark selected={Boolean(selected)} />}
+      <span className="zf-tile__name" style={{ marginBottom: 4 }}>
+        {journal.title}
+      </span>
       <Paper
         seed={"jt" + journal.id}
         size="sm"
@@ -68,9 +71,6 @@ export function JournalTile({
       >
         {picture}
       </Paper>
-      <span className="zf-tile__name" style={{ marginTop: 10 }}>
-        {journal.title}
-      </span>
       {date && <span className="zf-tile__meta">{date}</span>}
     </>
   );

@@ -249,6 +249,9 @@ function WorkspaceCard({
         }}
         aria-label={t("together.open", { title: workspace.title })}
       >
+        <span className="zf-tile__name" style={{ marginBottom: 4, textAlign: "center" }}>
+          {workspace.title}
+        </span>
         <Paper
           seed={"wc" + workspace.id}
           size="sm"
@@ -270,11 +273,17 @@ function WorkspaceCard({
             ) : undefined
           }
         >
-          <PaperPreview page={workspace.page} width={170} />
+          {workspace.thumb ? (
+            <img
+              src={workspace.thumb}
+              alt=""
+              width={170}
+              style={{ display: "block", width: 170, height: "auto" }}
+            />
+          ) : (
+            <PaperPreview page={workspace.page} width={170} />
+          )}
         </Paper>
-        <span className="zf-tile__name" style={{ marginTop: 10, textAlign: "center" }}>
-          {workspace.title}
-        </span>
       </Link>
       <div
         style={{ display: "flex", gap: 4, justifyContent: "center", flexWrap: "wrap" }}

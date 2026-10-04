@@ -868,7 +868,9 @@
     transition: opacity var(--dur-quick);
   }
   .zf-tile:hover .zf-tile__actions,
-  .zf-tile:focus-within .zf-tile__actions {
+  .zf-tapetile:hover .zf-tile__actions,
+  .zf-tile:focus-within .zf-tile__actions,
+  .zf-tapetile:focus-within .zf-tile__actions {
     opacity: 1;
   }
   @media (hover: none) {
@@ -1653,6 +1655,42 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 30px 24px;
+}
+.zf-grid-bring {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 20px 14px;
+  align-items: start;
+}
+.zf-grid-bring--tape {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+/* one card per piece in the "add to this page" list: the tick, the name and the picture belong together */
+.zf-grid-bring .zf-tile,
+.zf-grid-bring .zf-tapetile {
+  position: relative;
+  padding: 34px 8px 12px;
+  background: color-mix(in srgb, var(--sheet-50) 55%, transparent);
+  transition: background var(--dur-quick, 160ms);
+}
+.zf-grid-bring .zf-tile.is-selected,
+.zf-grid-bring .zf-tapetile.is-selected {
+  background: color-mix(in srgb, var(--lime-300) 50%, transparent);
+}
+.zf-grid-bring .zf-selmark {
+  top: 6px;
+  left: 6px;
+}
+.zf-grid-bring .zf-tile__open,
+.zf-grid-bring .zf-tapetile__open {
+  width: 100%;
+  position: static;
+  justify-items: center;
+  text-align: center;
+}
+.zf-grid-bring .zf-tile.is-selecting .zf-tile__open,
+.zf-grid-bring .zf-tile.is-selecting .zf-tapetile__open {
+  position: static;
 }
 .zf-grid-picker {
   display: grid;

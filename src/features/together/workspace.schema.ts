@@ -14,6 +14,8 @@ export const workspaceDocSchema = z.object({
   members: z.array(z.string()).min(1),
   invited: z.array(z.string()).catch([]),
   page: pageSpecSchema,
+  /** A small picture of the page as it was last changed (a `data:` URL), for the list. */
+  thumb: z.string().optional().catch(undefined),
   createdAt: date,
   updatedAt: date,
 });

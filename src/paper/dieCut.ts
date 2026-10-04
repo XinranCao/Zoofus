@@ -63,29 +63,26 @@ export function edgeRadius(
   if (shape === "torn") {
     const n1 = vnoise(R, 4 + Math.floor(R() * 4), true);
     const n2 = vnoise(R, 23 + Math.floor(R() * 10), true);
-    const n3 = vnoise(R, 150, true);
+    const n3 = vnoise(R, 64, true);
     const rough = vnoise(R, 7, true);
     const fb = vnoise(R, 41, true);
     const nb = 1 + Math.floor(R() * 3);
     const bites: { a: number; w: number; lead: number }[] = [];
     for (let i = 0; i < nb; i++)
       bites.push({ a: R(), w: 0.012 + R() * 0.03, lead: 0.2 + R() * 0.6 });
-    const grit: number[] = [];
-    for (let g = 0; g < 1440; g++) grit.push(R());
+    // fine grain is smooth noise, never per-sample randomness: neighbouring stamps that jump
+    // in radius smear the silhouette into thin radial spikes
+    const grit = vnoise(R, 110, true);
     return (a) => {
       const rr = 0.35 + 0.9 * rough(a); // ragged in places, calmer in others
       let r =
         bw *
-        (0.45 +
-          0.6 * n1(a) +
-          0.4 * n2(a) +
-          rr * (0.55 * n3(a) + 0.35 * grit[Math.floor(a * 1439)]!) -
-          0.2);
+        (0.45 + 0.6 * n1(a) + 0.4 * n2(a) + rr * (0.5 * n3(a) + 0.35 * grit(a)) - 0.2);
       for (const b of bites) {
         const x = (a - b.a) / b.w;
         if (x > -b.lead && x < 1 - b.lead) {
-          const u = x < 0 ? 1 + x / b.lead : 1 - x / (1 - b.lead);
-          r -= bw * 0.8 * Math.pow(u, 0.6);
+          const t = x < 0 ? 1 + x / b.lead : 1 - x / (1 - b.lead);
+          r -= bw * 0.8 * (t * t * (3 - 2 * t)); // eased, so a bite has no sharp cusp
         }
       }
       return {

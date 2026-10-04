@@ -208,7 +208,7 @@ service cloud.firestore {
           && validTape(request.resource.data)
           && request.resource.data.createdAt == request.time;
         allow update: if isOwner(uid)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'pattern', 'thickness', 'opacity', 'ends'])
           && validTape(request.resource.data);
         allow delete: if isOwner(uid);
       }
@@ -298,7 +298,8 @@ service cloud.firestore {
     }
     match /workspaces/{wid} {
       function validWorkspace(d) {
-        return d.keys().hasOnly(['title', 'ownerUid', 'members', 'invited', 'page', 'createdAt', 'updatedAt'])
+        return d.keys().hasOnly(['title', 'ownerUid', 'members', 'invited', 'page', 'thumb', 'createdAt', 'updatedAt'])
+          && (!('thumb' in d) || isString(d.thumb, 60000))
           && isString(d.title, 80) && d.title.size() > 0
           && d.members is list && d.members.size() >= 1 && d.members.size() <= 8
           && d.invited is list && d.invited.size() <= 12

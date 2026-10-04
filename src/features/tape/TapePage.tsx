@@ -14,7 +14,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { AddToCollectionDialog } from "@/features/collections/AddToCollectionDialog";
 import { ShareDialog } from "@/features/social/ShareDialog";
 import { useForgetItems } from "@/features/collections/useCollections";
-import { MAX_TAPE_NAME, STARTER_TAPES, type TapeSpec } from "./tape.schema";
+import { MAX_TAPE_NAME, STARTER_TAPES, type Tape, type TapeSpec } from "./tape.schema";
 import { NewTapeDialog } from "./NewTapeDialog";
 import { TapeTile } from "./TapeTile";
 import { useDeleteTape, useRenameTape, useTapes } from "./useTapes";
@@ -28,7 +28,7 @@ export default function TapePage() {
   const rename = useRenameTape();
   const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
   /** The dialog is open when this is set; `from` is the tape it starts from, if any. */
-  const [making, setMaking] = useState<{ from?: TapeSpec } | null>(null);
+  const [making, setMaking] = useState<{ from?: TapeSpec; edit?: Tape } | null>(null);
   const selection = useSelection();
   const forget = useForgetItems();
   const [addOpen, setAddOpen] = useState(false);
@@ -38,6 +38,7 @@ export default function TapePage() {
   const [bulkBusy, setBulkBusy] = useState(false);
 
   const start = (from?: TapeSpec) => setMaking({ from });
+  const editOne = (edit: Tape) => setMaking({ edit });
   useMakeParam(() => start());
 
   const mine = tapes ?? [];
@@ -113,6 +114,7 @@ export default function TapePage() {
               index={i}
               onUse={() => start(tape)}
               onShare={() => setShareOne(tape)}
+              onEdit={() => editOne(tape)}
               onRename={() => setRenaming({ id: tape.id, name: tape.name })}
               onDelete={() =>
                 remove.mutate(tape.id, {
@@ -277,7 +279,13 @@ export default function TapePage() {
           />
         </div>
       </Dialog>
-      {making && <NewTapeDialog from={making.from} onClose={() => setMaking(null)} />}
+      {making && (
+        <NewTapeDialog
+          from={making.from}
+          edit={making.edit}
+          onClose={() => setMaking(null)}
+        />
+      )}
     </div>
   );
 }

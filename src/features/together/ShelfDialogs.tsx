@@ -3,10 +3,10 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { SelectMark } from "@/components/ui/SelectMark";
 import { useToast } from "@/components/ui/Toast";
 import { useCollections } from "@/features/collections/useCollections";
 import { useStickers } from "@/features/stickers/library/useStickers";
+import { StickerTile } from "@/features/stickers/library/StickerTile";
 import { TapeTile } from "@/features/tape/TapeTile";
 import { STARTER_TAPES, type TapeSpec } from "@/features/tape/tape.schema";
 import { useTapes } from "@/features/tape/useTapes";
@@ -46,8 +46,8 @@ export function ShelfStickerPicker({
       tapes={1}
       title={t("together.shelfStickers")}
       actions={
-        <Button variant="secondary" icon="folder" seed="sbring" onClick={onBringIn}>
-          {t("together.bringIn")}
+        <Button variant="secondary" icon="plus" seed="sbring" onClick={onBringIn}>
+          {t("together.addFromLibrary")}
         </Button>
       }
     >
@@ -123,8 +123,8 @@ export function ShelfTapePicker({
       tapes={1}
       title={t("together.shelfTapes")}
       actions={
-        <Button variant="secondary" icon="folder" seed="tbring" onClick={onBringIn}>
-          {t("together.bringIn")}
+        <Button variant="secondary" icon="plus" seed="tbring" onClick={onBringIn}>
+          {t("together.addFromLibrary")}
         </Button>
       }
     >
@@ -311,31 +311,19 @@ export function BringInDialog({
             {t("library.stickers")}
           </div>
           <ul
-            className="zf-grid-picker"
+            className="zf-grid-bring"
             style={{ listStyle: "none", margin: "0 0 18px", padding: 0 }}
           >
             {stickers.map((s) => (
               <li key={s.id}>
-                <button
-                  type="button"
-                  className={cn("zf-picker__item", "zf-tile")}
-                  aria-pressed={pickedStickers.has(s.id)}
-                  aria-label={s.name}
-                  onClick={() => setPickedStickers((p) => flip(p, s.id, MAX_PER_BRING))}
-                >
-                  <SelectMark selected={pickedStickers.has(s.id)} />
-                  <span className="zf-sticker" style={{ ["--rot" as string]: "3deg" }}>
-                    <img
-                      className="zf-sticker-img"
-                      src={s.imageUrl}
-                      alt=""
-                      width={Math.round((72 * s.width) / Math.max(s.width, s.height))}
-                      height={Math.round((72 * s.height) / Math.max(s.width, s.height))}
-                      loading="lazy"
-                    />
-                  </span>
-                  <span className="zf-tile__meta">{s.name}</span>
-                </button>
+                <StickerTile
+                  sticker={s}
+                  size={84}
+                  date=""
+                  selecting
+                  selected={pickedStickers.has(s.id)}
+                  onToggle={() => setPickedStickers((p) => flip(p, s.id, MAX_PER_BRING))}
+                />
               </li>
             ))}
           </ul>
@@ -347,7 +335,7 @@ export function BringInDialog({
             {t("library.tapes")}
           </div>
           <ul
-            className="zf-grid-tape"
+            className="zf-grid-bring zf-grid-bring--tape"
             style={{ listStyle: "none", margin: "0 0 6px", padding: 0 }}
           >
             {tapes.map((tape, i) => (

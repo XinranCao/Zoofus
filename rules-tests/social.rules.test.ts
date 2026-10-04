@@ -416,6 +416,19 @@ describe("workspaces (working together)", () => {
     );
     await assertFails(getDocs(collection(as("carol"), "workspaces")));
   });
+  it("a member keeps a small picture of the page, and only a small one", async () => {
+    await seedWs();
+    await assertSucceeds(
+      setDoc(
+        doc(as("alice"), "workspaces/w9"),
+        ws({ thumb: "data:image/webp;base64,AAAA" }),
+      ),
+    );
+    await assertFails(
+      setDoc(doc(as("alice"), "workspaces/w8"), ws({ thumb: "x".repeat(60001) })),
+    );
+    await assertFails(setDoc(doc(as("alice"), "workspaces/w7"), ws({ thumb: 5 })));
+  });
   it("an invited friend can join, and only by adding themselves", async () => {
     await seedWs();
     await assertSucceeds(

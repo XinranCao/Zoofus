@@ -51,6 +51,11 @@ export async function renameTape(uid: string, id: string, name: string): Promise
   await updateDoc(doc(tapesRef(uid), id), { name });
 }
 
+/** Change a tape's looks and name in place; it keeps its place in the collection. */
+export async function updateTape(uid: string, id: string, tape: TapeSpec): Promise<void> {
+  await updateDoc(doc(tapesRef(uid), id), { ...cleanForFirestore(tape) });
+}
+
 export async function deleteTape(uid: string, id: string): Promise<void> {
   await deleteDoc(doc(tapesRef(uid), id));
 }

@@ -68,6 +68,9 @@ export function TapeStudio({
   defaultName,
   onAdd,
   adding,
+  initialName = "",
+  addLabel,
+  addingLabel,
 }: {
   draft: TapeDraft;
   onDraft: (patch: Partial<TapeDraft>) => void;
@@ -75,11 +78,15 @@ export function TapeStudio({
   defaultName: string;
   onAdd: (name: string) => void;
   adding: boolean;
+  /** The name already given (when editing a tape). */
+  initialName?: string;
+  addLabel?: string;
+  addingLabel?: string;
 }) {
   const { t } = useTranslation();
   const stage = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
-  const [name, setName] = useState("");
+  const [name, setName] = useState(initialName);
 
   const rad = (draft.angle * Math.PI) / 180;
   const reach = draft.length / 2 + 14;
@@ -246,15 +253,15 @@ export function TapeStudio({
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <Button
             variant="primary"
-            icon="plus"
+            icon={initialName ? "check" : "plus"}
             seed="tsave"
             loading={adding}
             onClick={() => {
               onAdd(name.trim() || defaultName);
-              setName("");
+              if (!initialName) setName("");
             }}
           >
-            {adding ? t("tape.adding") : t("tape.add")}
+            {adding ? (addingLabel ?? t("tape.adding")) : (addLabel ?? t("tape.add"))}
           </Button>
         </div>
       </div>

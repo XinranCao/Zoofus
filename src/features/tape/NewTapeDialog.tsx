@@ -3,9 +3,9 @@ import { useTranslation } from "react-i18next";
 import { Dialog } from "@/components/ui/Dialog";
 import { useToast } from "@/components/ui/Toast";
 import { TapeLimitError } from "./tape.api";
-import type { TapeSpec } from "./tape.schema";
+import type { Tape, TapeSpec } from "./tape.schema";
 import { DEFAULT_DRAFT, TapeStudio, type TapeDraft } from "./TapeStudio";
-import { useSaveTape, useTapes } from "./useTapes";
+import { useSaveTape, useTapes, useUpdateTape } from "./useTapes";
 
 const draftOf = (tape: TapeSpec): TapeDraft => ({
   ...DEFAULT_DRAFT,
@@ -21,40 +21,51 @@ const draftOf = (tape: TapeSpec): TapeDraft => ({
  */
 export function NewTapeDialog({
   from,
+  edit,
   onClose,
 }: {
   from?: TapeSpec;
+  /** Change this tape instead of making a new one. */
+  edit?: Tape;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
   const toast = useToast();
   const { data: tapes } = useTapes();
   const save = useSaveTape();
-  const [draft, setDraft] = useState<TapeDraft>(from ? draftOf(from) : DEFAULT_DRAFT);
+  const update = useUpdateTape();
+  const start = edit ?? from;
+  const [draft, setDraft] = useState<TapeDraft>(start ? draftOf(start) : DEFAULT_DRAFT);
   const patch = (p: Partial<TapeDraft>) => setDraft((d) => ({ ...d, ...p }));
 
-  const add = (name: string) =>
-    save.mutate(
-      {
-        name,
-        pattern: draft.pattern,
-        thickness: draft.thickness,
-        opacity: draft.opacity,
-        ends: draft.ends,
+  const add = (name: string) => {
+    const spec: TapeSpec = {
+      name,
+      pattern: draft.pattern,
+      thickness: draft.thickness,
+      opacity: draft.opacity,
+      ends: draft.ends,
+    };
+    const run = edit
+      ? (opts: Parameters<typeof save.mutate>[1]) =>
+          update.mutate({ id: edit.id, tape: spec }, opts as never)
+      : (opts: Parameters<typeof save.mutate>[1]) => save.mutate(spec, opts);
+    run({
+      onSuccess: () => {
+        toast.push({
+          kind: "success",
+          title: edit ? t("tape.updated") : t("tape.added"),
+        });
+        onClose();
       },
-      {
-        onSuccess: () => {
-          toast.push({ kind: "success", title: t("tape.added") });
-          onClose();
-        },
-        onError: (err) =>
-          toast.push({
-            kind: "error",
-            title: t("auth.errors.toastTitle"),
-            body: err instanceof TapeLimitError ? t("tape.limit") : t("tape.saveFailed"),
-          }),
-      },
-    );
+      onError: (err) =>
+        toast.push({
+          kind: "error",
+          title: t("auth.errors.toastTitle"),
+          body: err instanceof TapeLimitError ? t("tape.limit") : t("tape.saveFailed"),
+        }),
+    });
+  };
 
   return (
     <Dialog
@@ -63,15 +74,20 @@ export function NewTapeDialog({
       width={1040}
       sheet
       seed="new-tape"
-      title={t("tape.newTitle")}
+      title={edit ? t("tape.editTitle") : t("tape.newTitle")}
     >
       <div style={{ margin: "10px 0 6px" }}>
         <TapeStudio
           draft={draft}
           onDraft={patch}
-          defaultName={t("tape.defaultName", { n: (tapes?.length ?? 0) + 1 })}
+          defaultName={
+            edit?.name ?? t("tape.defaultName", { n: (tapes?.length ?? 0) + 1 })
+          }
           onAdd={add}
-          adding={save.isPending}
+          adding={save.isPending || update.isPending}
+          initialName={edit?.name}
+          addLabel={edit ? t("tape.saveChanges") : undefined}
+          addingLabel={edit ? t("tape.saving") : undefined}
         />
       </div>
     </Dialog>
