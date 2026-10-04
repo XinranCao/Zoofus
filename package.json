@@ -1,6 +1,6 @@
 {
   "name": "zoofus",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "private": true,
   "type": "module",
   "dependencies": {
@@ -60,6 +60,7 @@
     "predeploy": "vite build",
     "deploy": "npm run predeploy && firebase deploy",
     "test": "vitest run",
+    "test:noenv": "VITE_APP_API_KEY= VITE_APP_AUTH_DOMAIN= VITE_APP_PROJECT_ID= VITE_APP_STORAGE_BUCKET= VITE_APP_MESSAGING_SENDER_ID= VITE_APP_APP_ID= VITE_APP_RECAPTCHA_SITE_KEY= VITE_USE_EMULATORS= vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",

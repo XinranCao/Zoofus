@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.6.1 – 2026-10-05
+
+### Fixes
+
+- v1.6.0 could not be released: three unit tests imported a module that needs the Firebase keys, which CI does not have. v1.6.1 is v1.6.0 (project-manager-only diagnostics, safer sharing, debugging tools) with that fixed, and `npm run test:noenv` now runs the tests the way CI does.
+
 ## v1.6.0 – 2026-10-05
 
 ### Features

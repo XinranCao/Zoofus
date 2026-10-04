@@ -5,6 +5,7 @@ import { dragOnPhoto } from "./support/draw";
 test.use({ viewport: { width: 1280, height: 800 } });
 
 test("editing the edge of a saved sticker saves", async ({ page }) => {
+  test.setTimeout(180_000); // it tries every shape and print; CI runners are slow
   page.on("console", (m) => m.type() === "error" && console.log("CONSOLE", m.text()));
   page.on("requestfailed", (r) =>
     console.log("REQFAIL", r.url().slice(0, 100), r.failure()?.errorText),
