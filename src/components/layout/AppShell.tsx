@@ -8,7 +8,11 @@ import { useProfile } from "@/features/profile/useProfile";
 
 const TITLE_KEYS: [string, string][] = [
   ["/stickers", "pageTitle.book"],
-  ["/tape", "pageTitle.tape"],
+  ["/tapes", "pageTitle.tape"],
+  ["/journals", "pageTitle.journals"],
+  ["/collections", "pageTitle.collections"],
+  ["/friends", "pageTitle.friends"],
+  ["/together", "pageTitle.together"],
   ["/account", "pageTitle.account"],
   ["/login", "pageTitle.logIn"],
   ["/signup", "pageTitle.signUp"],

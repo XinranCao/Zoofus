@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogBody } from "@/components/ui/Dialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Loader";
-import { Scribble } from "@/components/ui/Scribble";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { LibraryTabs } from "@/features/library/LibraryTabs";
+import { useMakeParam } from "@/lib/useMakeParam";
 import { Sticker as DemoSticker } from "@/components/ui/Sticker";
 import { ToastNote, useToast } from "@/components/ui/Toast";
 import { preloadStickerMaker, StickerMakerDialog } from "../editor/LazyStickerMaker";
@@ -16,33 +17,6 @@ import type { Sticker } from "./sticker.schema";
 import { useDeleteSticker, useRenameSticker, useStickers } from "./useStickers";
 
 const UNDO_MS = 6000;
-
-/** The "Stickers | Tape" tabs of the book. */
-export function BookTabs() {
-  const { t } = useTranslation();
-  const tabs = [
-    { to: "/stickers", label: t("book.tabStickers") },
-    { to: "/tape", label: t("book.tabTape") },
-  ];
-  return (
-    <nav
-      className="zf-nav"
-      aria-label={t("book.tabs")}
-      style={{ margin: "0 0 20px -10px" }}
-    >
-      {tabs.map((tab) => (
-        <NavLink key={tab.to} to={tab.to} end>
-          {({ isActive }) => (
-            <>
-              <span aria-current={isActive ? "page" : undefined}>{tab.label}</span>
-              {isActive && <Scribble seed={"tab" + tab.to} weight={2} />}
-            </>
-          )}
-        </NavLink>
-      ))}
-    </nav>
-  );
-}
 
 export default function StickerBookPage() {
   const { t, i18n } = useTranslation();
@@ -56,6 +30,7 @@ export default function StickerBookPage() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [editEdgeId, setEditEdgeId] = useState<string | null>(null);
   const [makerOpen, setMakerOpen] = useState(false);
+  useMakeParam(() => setMakerOpen(true));
   // Deleted stickers disappear at once; the real delete runs after the Undo window.
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const pending = useRef(
@@ -158,38 +133,26 @@ export default function StickerBookPage() {
 
   return (
     <div className="zf-page">
-      <BookTabs />
-      <div
-        style={{
-          display: "flex",
-          alignItems: "end",
-          justifyContent: "space-between",
-          gap: 12,
-          marginBottom: 28,
-          flexWrap: "wrap",
-        }}
-      >
-        <div>
-          <div className="zf-kicker">
-            {empty ? t("book.kickerEmpty") : t("book.kicker", { count: stickers.length })}
-          </div>
-          <h1 className="zf-display" style={{ marginTop: 4 }}>
-            {t("book.title")}
-          </h1>
-        </div>
-        {!empty && (
-          <Button
-            variant="primary"
-            icon="plus"
-            seed="nw"
-            onPointerEnter={preloadStickerMaker}
-            onFocus={preloadStickerMaker}
-            onClick={() => setMakerOpen(true)}
-          >
-            {t("book.newSticker")}
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title={t("book.title")}
+        lead={t("book.lead")}
+        art={["star", "pear"]}
+        actions={
+          !empty && (
+            <Button
+              variant="primary"
+              icon="plus"
+              seed="nw"
+              onPointerEnter={preloadStickerMaker}
+              onFocus={preloadStickerMaker}
+              onClick={() => setMakerOpen(true)}
+            >
+              {t("book.newSticker")}
+            </Button>
+          )
+        }
+      />
+      <LibraryTabs />
 
       {isError && (
         <ToastNote
@@ -211,7 +174,6 @@ export default function StickerBookPage() {
         <div style={{ paddingTop: 24 }}>
           <EmptyState
             seed="bk"
-            kicker={t("book.emptyKicker")}
             title={t("book.emptyTitle")}
             art={<DemoSticker art="star" size={70} />}
             action={

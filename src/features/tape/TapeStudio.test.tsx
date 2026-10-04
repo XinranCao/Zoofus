@@ -3,23 +3,15 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import "@/i18n";
-import { STARTER_TAPES } from "./tape.schema";
 import { DEFAULT_DRAFT, TapeStudio, type TapeDraft } from "./TapeStudio";
 
-function Harness({
-  onAdd = vi.fn(),
-  onRemove = vi.fn(),
-  onUse = vi.fn(),
-  roll = STARTER_TAPES as never[],
-}) {
+function Harness({ onAdd = vi.fn() }) {
   const [draft, setDraft] = useState<TapeDraft>({ ...DEFAULT_DRAFT, angle: 0 });
   return (
     <TapeStudio
       draft={draft}
       onDraft={(p) => setDraft((d) => ({ ...d, ...p }))}
-      roll={roll}
-      onUse={onUse}
-      onRemove={onRemove}
+      defaultName="My tape 1"
       onAdd={onAdd}
       adding={false}
     />
@@ -67,31 +59,14 @@ describe("TapeStudio", () => {
     );
   });
 
-  it("loads a tape from the roll when tapped", async () => {
-    const onUse = vi.fn();
-    render(<Harness onUse={onUse} />);
-    await userEvent.click(screen.getByRole("button", { name: "Use Picnic" }));
-    expect(onUse).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "Picnic", ends: "pinked" }),
-    );
-  });
-
-  it("adds to the roll with the typed name, or a default one", async () => {
+  it("adds to the collection with the typed name, or a default one", async () => {
     const onAdd = vi.fn();
     render(<Harness onAdd={onAdd} />);
-    await userEvent.click(screen.getByRole("button", { name: "Add to my tape roll" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add to my tapes" }));
     expect(onAdd).toHaveBeenLastCalledWith("My tape 1");
     await userEvent.type(screen.getByLabelText("Name"), "Birthday");
-    await userEvent.click(screen.getByRole("button", { name: "Add to my tape roll" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add to my tapes" }));
     expect(onAdd).toHaveBeenLastCalledWith("Birthday");
-  });
-
-  it("offers a remove button only for saved tapes", () => {
-    const saved = [{ ...STARTER_TAPES[0]!, id: "t1" }, STARTER_TAPES[1]!];
-    render(<Harness roll={saved as never[]} />);
-    expect(
-      screen.getAllByRole("button", { name: /Remove .* from the roll/ }),
-    ).toHaveLength(1);
   });
 
   it("lists the three tape ends as a radiogroup", () => {

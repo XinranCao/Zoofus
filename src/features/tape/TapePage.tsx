@@ -1,30 +1,44 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { ToastNote, useToast } from "@/components/ui/Toast";
-import { BookTabs } from "@/features/stickers/library/StickerBookPage";
+import { LibraryTabs } from "@/features/library/LibraryTabs";
+import { useMakeParam } from "@/lib/useMakeParam";
 import { TapeLimitError } from "./tape.api";
 import { STARTER_TAPES, type TapeSpec } from "./tape.schema";
 import { DEFAULT_DRAFT, TapeStudio, type TapeDraft } from "./TapeStudio";
+import { TapeTile } from "./TapeTile";
 import { useDeleteTape, useSaveTape, useTapes } from "./useTapes";
 
-/** The Tape tab of the sticker book: design a tape, keep it in "My tape roll". */
+const draftOf = (tape: TapeSpec): TapeDraft => ({
+  ...DEFAULT_DRAFT,
+  pattern: tape.pattern,
+  thickness: tape.thickness,
+  opacity: tape.opacity,
+  ends: tape.ends,
+});
+
+/** The tape collection: your tapes and the starters. A new tape is made in a dialog. */
 export default function TapePage() {
   const { t } = useTranslation();
   const toast = useToast();
   const { data: tapes, isError } = useTapes();
   const save = useSaveTape();
   const remove = useDeleteTape();
+  const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<TapeDraft>(DEFAULT_DRAFT);
 
-  const roll = [...(tapes ?? []), ...STARTER_TAPES];
+  const start = (from?: TapeSpec) => {
+    setDraft(from ? draftOf(from) : DEFAULT_DRAFT);
+    setOpen(true);
+  };
+  useMakeParam(() => start());
+
+  const mine = tapes ?? [];
   const patch = (p: Partial<TapeDraft>) => setDraft((d) => ({ ...d, ...p }));
-  const use = (tape: TapeSpec) =>
-    patch({
-      pattern: tape.pattern,
-      thickness: tape.thickness,
-      opacity: tape.opacity,
-      ends: tape.ends,
-    });
 
   const add = (name: string) =>
     save.mutate(
@@ -36,7 +50,10 @@ export default function TapePage() {
         ends: draft.ends,
       },
       {
-        onSuccess: () => toast.push({ kind: "success", title: t("tape.added") }),
+        onSuccess: () => {
+          toast.push({ kind: "success", title: t("tape.added") });
+          setOpen(false);
+        },
         onError: (err) =>
           toast.push({
             kind: "error",
@@ -48,11 +65,17 @@ export default function TapePage() {
 
   return (
     <div className="zf-page">
-      <BookTabs />
-      <div className="zf-kicker">{t("tape.kicker")}</div>
-      <h1 className="zf-display" style={{ margin: "4px 0 28px" }}>
-        {t("tape.title")}
-      </h1>
+      <PageHeader
+        title={t("tape.title")}
+        lead={t("tape.lead")}
+        art={["roll", "scissors"]}
+        actions={
+          <Button variant="primary" icon="plus" seed="newtape" onClick={() => start()}>
+            {t("tape.new")}
+          </Button>
+        }
+      />
+      <LibraryTabs />
       {isError && (
         <div style={{ marginBottom: 20 }}>
           <ToastNote
@@ -64,19 +87,79 @@ export default function TapePage() {
           />
         </div>
       )}
-      <TapeStudio
-        draft={draft}
-        onDraft={patch}
-        roll={roll}
-        onUse={use}
-        onRemove={(id) =>
-          remove.mutate(id, {
-            onSuccess: () => toast.push({ kind: "info", title: t("tape.removed") }),
-          })
-        }
-        onAdd={add}
-        adding={save.isPending}
-      />
+
+      <h2 className="zf-h1" style={{ margin: "0 0 14px" }}>
+        {t("tape.mine", { count: mine.length })}
+      </h2>
+      {mine.length === 0 ? (
+        <EmptyState
+          seed="tapes-empty"
+          title={t("tape.emptyTitle")}
+          art={null}
+          action={
+            <Button
+              variant="primary"
+              icon="plus"
+              seed="tapes-first"
+              onClick={() => start()}
+            >
+              {t("tape.new")}
+            </Button>
+          }
+        >
+          {t("tape.emptyBody")}
+        </EmptyState>
+      ) : (
+        <div className="zf-grid-tape">
+          {mine.map((tape, i) => (
+            <TapeTile
+              key={tape.id}
+              tape={tape}
+              index={i}
+              onUse={() => start(tape)}
+              onDelete={() =>
+                remove.mutate(tape.id, {
+                  onSuccess: () => toast.push({ kind: "info", title: t("tape.removed") }),
+                })
+              }
+            />
+          ))}
+        </div>
+      )}
+
+      <h2 className="zf-h1" style={{ margin: "40px 0 14px" }}>
+        {t("tape.starters")}
+      </h2>
+      <div className="zf-grid-tape">
+        {STARTER_TAPES.map((tape, i) => (
+          <TapeTile
+            key={tape.name}
+            tape={tape}
+            index={i}
+            starter
+            onUse={() => start(tape)}
+          />
+        ))}
+      </div>
+
+      <Dialog
+        open={open}
+        onOpenChange={setOpen}
+        width={1040}
+        sheet
+        seed="new-tape"
+        title={t("tape.newTitle")}
+      >
+        <div style={{ margin: "10px 0 6px" }}>
+          <TapeStudio
+            draft={draft}
+            onDraft={patch}
+            defaultName={t("tape.defaultName", { n: mine.length + 1 })}
+            onAdd={add}
+            adding={save.isPending}
+          />
+        </div>
+      </Dialog>
     </div>
   );
 }

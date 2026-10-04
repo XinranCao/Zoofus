@@ -70,13 +70,16 @@ export function StickerDetailDialog({
   onRename,
   onDelete,
   onEditEdge,
+  onOpenLibrary,
 }: {
   sticker: Sticker | null;
   date: string;
   onClose: () => void;
-  onRename: () => void;
-  onDelete: () => void;
-  onEditEdge: () => void;
+  onRename?: () => void;
+  onDelete?: () => void;
+  onEditEdge?: () => void;
+  /** Where the sticker lives (when it is previewed from another page). */
+  onOpenLibrary?: () => void;
 }) {
   const { t } = useTranslation();
   const download = async () => {
@@ -102,14 +105,23 @@ export function StickerDetailDialog({
       actions={
         sticker && (
           <>
-            <Button variant="danger" icon="trash" seed="ddl" onClick={onDelete}>
-              {t("common.delete")}
-            </Button>
+            {onDelete && (
+              <Button variant="danger" icon="trash" seed="ddl" onClick={onDelete}>
+                {t("common.delete")}
+              </Button>
+            )}
             <span style={{ flex: 1 }} />
-            <Button variant="secondary" icon="pencil" seed="drn" onClick={onRename}>
-              {t("common.rename")}
-            </Button>
-            {sticker.kind === "editable" && (
+            {onRename && (
+              <Button variant="secondary" icon="pencil" seed="drn" onClick={onRename}>
+                {t("common.rename")}
+              </Button>
+            )}
+            {onOpenLibrary && (
+              <Button variant="quiet" icon="folder" seed="dol" onClick={onOpenLibrary}>
+                {t("book.openLibrary")}
+              </Button>
+            )}
+            {onEditEdge && sticker.kind === "editable" && (
               <Button variant="quiet" seed="dee" onClick={onEditEdge}>
                 {t("book.editEdge")}
               </Button>
@@ -163,7 +175,7 @@ export function StickerDetailDialog({
             </TransformComponent>
           </div>
           <ZoomControls />
-          {sticker.kind === "legacy" && (
+          {onEditEdge && sticker.kind === "legacy" && (
             <p className="zf-muted" style={{ margin: "10px 0 0" }}>
               {t("book.legacyNote")}
             </p>

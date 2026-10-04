@@ -165,7 +165,10 @@ export async function updateStickerEdge(
     await deleteFileIfExists(ref(storage, storagePath));
     throw err;
   }
-  await deleteFileIfExists(ref(storage, current.storagePath));
+  // The edge is saved; removing the previous image is housekeeping and must not fail the edit.
+  await deleteFileIfExists(ref(storage, current.storagePath)).catch((err) =>
+    console.warn("Could not remove the previous image", err),
+  );
 }
 
 export async function deleteSticker(

@@ -13,6 +13,7 @@ import {
   preloadStickerMaker,
   StickerMakerDialog,
 } from "@/features/stickers/editor/LazyStickerMaker";
+import { StickerDetailDialog } from "@/features/stickers/library/StickerDetailDialog";
 import { StickerTile, TILE_HEIGHT } from "@/features/stickers/library/StickerTile";
 import { useStickers } from "@/features/stickers/library/useStickers";
 
@@ -28,6 +29,7 @@ export default function HomePage() {
   const [file, setFile] = useState<File | null>(null);
   const [howOpen, setHowOpen] = useState(false);
   const [over, setOver] = useState(false);
+  const [previewId, setPreviewId] = useState<string | null>(null);
   const input = useRef<HTMLInputElement>(null);
   const depth = useRef(0);
 
@@ -82,7 +84,7 @@ export default function HomePage() {
           }
           faceStyle={{ padding: "30px 28px 28px" }}
         >
-          <div className="zf-kicker">{over ? t("home.drop") : t("home.kicker")}</div>
+          {over && <div className="zf-kicker">{t("home.drop")}</div>}
           <h1 className="zf-display" style={{ margin: "8px 0 10px" }}>
             {t("home.title")}
           </h1>
@@ -134,12 +136,9 @@ export default function HomePage() {
           flexWrap: "wrap",
         }}
       >
-        <div>
-          <div className="zf-kicker">{t("home.recentKicker")}</div>
-          <h2 className="zf-h1" style={{ marginTop: 4 }}>
-            {t("home.recent")}
-          </h2>
-        </div>
+        <h2 className="zf-h1" style={{ margin: 0 }}>
+          {t("home.recent")}
+        </h2>
         <Button
           variant="secondary"
           size="sm"
@@ -175,13 +174,28 @@ export default function HomePage() {
                 sticker={s}
                 size={92}
                 date={date(s.createdAt)}
-                onOpen={() => navigate("/stickers")}
+                onOpen={() => setPreviewId(s.id)}
               />
             </div>
           ))}
         </div>
       )}
 
+      <StickerDetailDialog
+        sticker={(data ?? []).find((s) => s.id === previewId) ?? null}
+        date={(() => {
+          const s = (data ?? []).find((x) => x.id === previewId);
+          return s
+            ? new Intl.DateTimeFormat(i18n.language, {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              }).format(s.createdAt)
+            : "";
+        })()}
+        onClose={() => setPreviewId(null)}
+        onOpenLibrary={() => navigate("/stickers")}
+      />
       <StickerMakerDialog
         open={makerOpen}
         onOpenChange={(o) => {

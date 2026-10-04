@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppShell } from "@/components/layout/AppShell";
 import { ProtectedRoute } from "@/features/auth/ProtectedRoute";
@@ -44,13 +44,14 @@ export default function App() {
               <Route path="/dev/design-system" element={<DesignSystemPage />} />
             )}
             <Route
-              path="/tape"
+              path="/tapes"
               element={
                 <ProtectedRoute>
                   <TapePage />
                 </ProtectedRoute>
               }
             />
+            <Route path="/tape" element={<Navigate to="/tapes" replace />} />
             <Route path="*" element={<NotFoundPage />} />
             <Route
               path="/"

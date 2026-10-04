@@ -73,7 +73,6 @@ export default function AccountPage() {
 
   return (
     <div className="zf-page" style={{ maxWidth: 760 }}>
-      <div className="zf-kicker">{t("account.kicker")}</div>
       <h1 className="zf-display" style={{ margin: "4px 0 6px" }}>
         {t("account.title")}
       </h1>
