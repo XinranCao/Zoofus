@@ -424,6 +424,29 @@ describe("workspaces (working together)", () => {
       }),
     );
   });
+  it("an invited friend can say no, and only by removing themselves", async () => {
+    await seedWs();
+    await assertSucceeds(
+      updateDoc(doc(as("bob"), "workspaces/w1"), {
+        invited: [],
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    await seedWs();
+    await assertFails(
+      updateDoc(doc(as("bob"), "workspaces/w1"), {
+        invited: [],
+        title: "x",
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(as("carol"), "workspaces/w1"), {
+        invited: [],
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
   it("a member can invite more people and rename it, but not change who is in or own it", async () => {
     await seedWs();
     await assertSucceeds(
@@ -534,6 +557,7 @@ describe("workspaces (working together)", () => {
       }),
     );
     const asset = (uid: string, over: object = {}) => ({
+      kind: "sticker",
       owner: uid,
       url: "https://x/y",
       path: `${uid}/collab/w1/a.webp`,
@@ -554,6 +578,15 @@ describe("workspaces (working together)", () => {
       setDoc(doc(as("carol"), "workspaces/w1/assets/a4"), asset("carol")),
     );
     await assertSucceeds(deleteDoc(doc(as("alice"), "workspaces/w1/assets/a1"))); // the owner may clear any
+    // a tape on the shelf is only its print
+    const tape = { owner: "bob", kind: "tape", name: "Dots", tape: { thickness: 20 } };
+    await assertSucceeds(setDoc(doc(as("bob"), "workspaces/w1/assets/t1"), tape));
+    await assertFails(
+      setDoc(doc(as("bob"), "workspaces/w1/assets/t2"), { ...tape, url: "https://x" }),
+    );
+    await assertFails(
+      setDoc(doc(as("bob"), "workspaces/w1/assets/t3"), { ...tape, kind: "gadget" }),
+    );
   });
   it("presence is each person's own heartbeat", async () => {
     await seed((db) =>

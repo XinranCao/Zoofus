@@ -15,6 +15,25 @@ import { deleteJournal, listJournals } from "@/features/journal/journal.api";
 import { deleteTape, listTapes } from "@/features/tape/tape.api";
 import { fetchProfile } from "@/features/profile/profile.api";
 import { deleteSticker, listStickers } from "@/features/stickers/library/stickers.api";
+import {
+  cancelRequest,
+  declineRequest,
+  dismissShare,
+  listFriends,
+  listIncoming,
+  listInbox,
+  listSent,
+  listSentShares,
+  removeFriend,
+  removePublicProfile,
+} from "@/features/social/social.api";
+import { unshare } from "@/features/social/share.api";
+import {
+  declineInvite,
+  deleteWorkspace,
+  leaveWorkspace,
+  listWorkspaces,
+} from "@/features/together/workspace.api";
 import { db } from "@/lib/firebase";
 import { deleteFolder } from "@/lib/storage";
 import { buildExport, type AccountExport } from "./account.export";
@@ -59,6 +78,7 @@ export async function deleteAccount(user: User): Promise<void> {
   await Promise.all(tapes.map((t) => deleteTape(uid, t.id)));
   await Promise.all(journals.map((j) => deleteJournal(uid, j.id)));
   await Promise.all(collections.map((c) => deleteCollection(uid, c.id)));
+  await removeSocial(uid);
   await deleteFolder(`${uid}/stickers`);
   await deleteFolder(`${uid}/journals`);
   await deleteFolder(`${uid}/shares`);
@@ -66,4 +86,28 @@ export async function deleteAccount(user: User): Promise<void> {
   await deleteFolder(`${uid}/profile/profile_pic`);
   await deleteDoc(doc(db, "users", uid));
   await deleteUser(user);
+}
+
+/** Friends, requests, shares, shared pages and the public profile: everything that points at other people. */
+async function removeSocial(uid: string): Promise<void> {
+  const [friends, incoming, sentReq, inbox, sentShares, spaces] = await Promise.all([
+    listFriends(uid),
+    listIncoming(uid),
+    listSent(uid),
+    listInbox(uid),
+    listSentShares(uid),
+    listWorkspaces(uid),
+  ]);
+  await Promise.all(
+    spaces.mine.map((w) =>
+      w.ownerUid === uid ? deleteWorkspace(uid, w.id) : leaveWorkspace(uid, w.id),
+    ),
+  );
+  await Promise.all(spaces.invites.map((w) => declineInvite(uid, w.id)));
+  await Promise.all(sentShares.map((x) => unshare(uid, x.to, x.id, x.files)));
+  await Promise.all(inbox.map((x) => dismissShare(uid, x.id)));
+  await Promise.all(incoming.map((r) => declineRequest(uid, r.from)));
+  await Promise.all(sentReq.map((r) => cancelRequest(uid, r.to)));
+  await Promise.all(friends.map((f) => removeFriend(uid, f.uid)));
+  await removePublicProfile(uid);
 }

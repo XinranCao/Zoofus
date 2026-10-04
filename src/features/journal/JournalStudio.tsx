@@ -75,6 +75,8 @@ export function JournalStudio({
   onTitle,
   resolve,
   onAddSticker,
+  stickerPicker,
+  tapePicker,
   header,
   aside,
   exportRef,
@@ -84,7 +86,19 @@ export function JournalStudio({
   onTitle?: (title: string) => void;
   resolve: StickerResolver;
   /** Bring one of your stickers onto the page; resolves to the pointer the item should hold. */
-  onAddSticker: (sticker: Sticker) => Promise<string>;
+  onAddSticker?: (sticker: Sticker) => Promise<string>;
+  /** Replace the sticker list (a shared page picks from its shelf): call `onPick` with the pointer to put on the page. */
+  stickerPicker?: (p: {
+    open: boolean;
+    onClose: () => void;
+    onPick: (ref: string) => void;
+  }) => ReactNode;
+  /** Replace the tape list (a shared page picks from its shelf). */
+  tapePicker?: (p: {
+    open: boolean;
+    onClose: () => void;
+    onPick: (tape: TapeSpec) => void;
+  }) => ReactNode;
   /** Buttons for the top bar (Save, Download, ...). */
   header?: ReactNode;
   /** Extra content under the tools (who is here, who can edit). */
@@ -142,10 +156,9 @@ export function JournalStudio({
 
   const placeAtCentre = () => ({ x: page.width / 2, y: page.height / 2 });
 
-  const addSticker = async (sticker: Sticker) => {
+  const addRef = (ref: string) => {
     setStickerOpen(false);
     if (full) return;
-    const ref = await onAddSticker(sticker);
     const id = newId();
     apply([
       {
@@ -164,6 +177,8 @@ export function JournalStudio({
     store.getState().setTool("select");
     store.getState().select(id);
   };
+  const addSticker = async (sticker: Sticker) =>
+    addRef((await onAddSticker?.(sticker)) ?? sticker.id);
 
   const addTape = (tape: TapeSpec) => {
     setTapeOpen(false);
@@ -453,17 +468,29 @@ export function JournalStudio({
         </div>
       </div>
 
-      <StickerPickerDialog
-        open={stickerOpen}
-        onClose={() => setStickerOpen(false)}
-        onPick={(s) => void addSticker(s)}
-        title={t("journal.pickSticker")}
-      />
-      <TapePickerDialog
-        open={tapeOpen}
-        onClose={() => setTapeOpen(false)}
-        onPick={addTape}
-      />
+      {stickerPicker ? (
+        stickerPicker({
+          open: stickerOpen,
+          onClose: () => setStickerOpen(false),
+          onPick: addRef,
+        })
+      ) : (
+        <StickerPickerDialog
+          open={stickerOpen}
+          onClose={() => setStickerOpen(false)}
+          onPick={(s) => void addSticker(s)}
+          title={t("journal.pickSticker")}
+        />
+      )}
+      {tapePicker ? (
+        tapePicker({ open: tapeOpen, onClose: () => setTapeOpen(false), onPick: addTape })
+      ) : (
+        <TapePickerDialog
+          open={tapeOpen}
+          onClose={() => setTapeOpen(false)}
+          onPick={addTape}
+        />
+      )}
       <Dialog
         open={paperOpen}
         onOpenChange={setPaperOpen}

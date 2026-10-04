@@ -17,6 +17,8 @@ const JournalPage = lazy(() => import("@/features/journal/JournalPage"));
 const CollectionsPage = lazy(() => import("@/features/collections/CollectionsPage"));
 const CollectionPage = lazy(() => import("@/features/collections/CollectionPage"));
 const FriendsPage = lazy(() => import("@/features/social/FriendsPage"));
+const TogetherPage = lazy(() => import("@/features/together/TogetherPage"));
+const WorkspacePage = lazy(() => import("@/features/together/WorkspacePage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const StickerBookPage = lazy(() => import("@/features/stickers/library/StickerBookPage"));
 
@@ -93,6 +95,22 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <FriendsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/together"
+              element={
+                <ProtectedRoute>
+                  <TogetherPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/together/:id"
+              element={
+                <ProtectedRoute>
+                  <WorkspacePage />
                 </ProtectedRoute>
               }
             />

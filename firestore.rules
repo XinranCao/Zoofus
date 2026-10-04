@@ -317,6 +317,12 @@ service cloud.firestore {
           && request.auth.uid in request.resource.data.members
           && !(request.auth.uid in request.resource.data.invited)
           && request.resource.data.updatedAt == request.time)
+        // an invited friend says no: they come off `invited`, nothing else changes
+        || (request.auth.uid in resource.data.invited
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['invited', 'updatedAt'])
+          && request.resource.data.invited.size() == resource.data.invited.size() - 1
+          && !(request.auth.uid in request.resource.data.invited)
+          && request.resource.data.updatedAt == request.time)
         // a member (not the owner) leaves
         || (request.auth.uid in resource.data.members
           && request.auth.uid != resource.data.ownerUid
@@ -355,17 +361,26 @@ service cloud.firestore {
         allow create, update: if isMember(wid) && validItem(request.resource.data);
         allow delete: if isMember(wid);
       }
-      // a sticker brought into the workspace by one member: a copy of the picture in THEIR folder
+      // something brought onto the shelf by one member, for everyone to use: a sticker (a copy of the
+      // picture in THEIR folder) or a tape (just its print)
       match /assets/{aid} {
+        function ownCollabFile(path) {
+          return isString(path, 512) && path.matches('^' + request.auth.uid + '/collab/.+');
+        }
         allow read: if isMember(wid);
         allow create: if isMember(wid)
-          && request.resource.data.keys().hasOnly(['owner', 'url', 'path', 'w', 'h', 'name'])
+          && request.resource.data.keys().hasOnly(['owner', 'kind', 'url', 'path', 'w', 'h', 'name', 'tape'])
           && request.resource.data.owner == request.auth.uid
-          && isString(request.resource.data.url, 2048)
-          && isString(request.resource.data.path, 512)
-          && request.resource.data.path.matches('^' + request.auth.uid + '/collab/.+')
-          && request.resource.data.w is int && request.resource.data.h is int
-          && isString(request.resource.data.name, 80);
+          && isString(request.resource.data.name, 80)
+          && (
+            (request.resource.data.kind == 'sticker'
+              && isString(request.resource.data.url, 2048)
+              && ownCollabFile(request.resource.data.path)
+              && request.resource.data.w is int && request.resource.data.h is int)
+            || (request.resource.data.kind == 'tape'
+              && request.resource.data.tape is map
+              && !('url' in request.resource.data) && !('path' in request.resource.data))
+          );
         allow delete: if isMember(wid)
           && (resource.data.owner == request.auth.uid
               || get(/databases/$(database)/documents/workspaces/$(wid)).data.ownerUid == request.auth.uid);

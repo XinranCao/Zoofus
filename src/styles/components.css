@@ -1757,3 +1757,14 @@
 .zf-people .zf-person {
   padding: 8px 4px;
 }
+.zf-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: var(--sage-100);
+  clip-path: polygon(10% 8%, 62% 0, 100% 40%, 88% 92%, 30% 100%, 0 52%);
+  flex: none;
+}
+.zf-dot.is-on {
+  background: var(--olive-500);
+}

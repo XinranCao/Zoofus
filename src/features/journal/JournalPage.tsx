@@ -134,7 +134,6 @@ function Editor({ journal }: { journal: Journal }) {
         title={title}
         onTitle={setTitle}
         resolve={resolve}
-        onAddSticker={async (s) => s.id}
         backTo={{ to: "/journals", label: t("journal.backToJournals") }}
         exportRef={exportRef}
         header={
