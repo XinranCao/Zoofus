@@ -1,5 +1,7 @@
 import type { StorageReference } from "firebase/storage";
 import { describe, expect, it, vi } from "vitest";
+
+vi.mock("./firebase", () => ({ storage: {} }));
 import { deleteFileIfExists } from "./storage";
 
 const fileRef = {} as StorageReference;

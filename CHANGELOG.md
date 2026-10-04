@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.1 – 2026-10-04
+
+### Fixes
+
+- Release pipeline: a unit test no longer needs Firebase settings, so the release build runs on CI. v1.0.0 (below) was tagged but its build stopped at that test and was never deployed; v1.0.1 is the first deployed 1.0 release.
+
 ## v1.0.0 – 2026-10-03
 
 ### Features
