@@ -93,7 +93,12 @@ export default function TapePage() {
                 {selection.active ? t("bulk.done") : t("bulk.select")}
               </Button>
             )}
-            <Button variant="primary" icon="plus" seed="newtape" onClick={() => start()}>
+            <Button
+              variant={mine.length ? "primary" : "secondary"}
+              icon="plus"
+              seed="newtape"
+              onClick={() => start()}
+            >
               {t("tape.new")}
             </Button>
           </>

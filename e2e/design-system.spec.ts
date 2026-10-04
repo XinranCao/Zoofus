@@ -191,9 +191,42 @@ for (const variant of VARIANTS) {
       await page.getByRole("button", { name: t("common.cancel") }).click();
 
       // --- tape, account, delete, 404 ---
-      await page.goto("/tape");
-      await expect(page.getByRole("heading", { name: t("tape.title") })).toBeVisible();
-      await shot("20-tape-studio");
+      await page.goto("/tapes");
+      await expect(
+        page.getByRole("heading", { name: t("tape.title"), level: 1 }),
+      ).toBeVisible();
+      await shot("20-tapes");
+      await page.goto("/tapes?make=1");
+      await expect(page.getByRole("dialog", { name: t("tape.newTitle") })).toBeVisible();
+      await shot("20b-tape-dialog");
+      await page.keyboard.press("Escape");
+
+      // --- journals, collections, friends, together ---
+      await page.goto("/journals");
+      await expect(
+        page.getByRole("heading", { name: t("journal.pageTitle"), level: 1 }),
+      ).toBeVisible();
+      await shot("20c-journals-empty");
+      await page.goto("/journals?make=1");
+      await expect(page.getByRole("dialog")).toBeVisible();
+      await shot("20d-new-journal");
+      await page.getByRole("button", { name: t("journal.start") }).click();
+      await expect(page).toHaveURL(/\/journals\/.+/);
+      await page.waitForTimeout(800);
+      await shot("20e-journal-studio");
+      for (const [path, name] of [
+        ["/collections", "20f-collections"],
+        ["/friends", "20g-friends"],
+        ["/together", "20h-together"],
+      ] as const) {
+        await page.goto(path);
+        await page.waitForTimeout(500);
+        await shot(name);
+      }
+      await page.goto("/together?make=1");
+      await expect(page.getByRole("dialog")).toBeVisible();
+      await shot("20i-new-together");
+      await page.keyboard.press("Escape");
       await page.goto("/account");
       await shot("21-account");
       await page.getByRole("button", { name: t("account.deleteButton") }).click();

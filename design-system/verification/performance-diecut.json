@@ -2,9 +2,9 @@
   "longSide": 2000,
   "cpuThrottle": "4x",
   "ms": {
-    "tornSolid": 28,
-    "tornStripes": 37.1,
-    "wobbly": 15.2,
-    "smooth": 5.2
+    "tornSolid": 30.2,
+    "tornStripes": 31.5,
+    "wobbly": 17.3,
+    "smooth": 5.6
   }
 }

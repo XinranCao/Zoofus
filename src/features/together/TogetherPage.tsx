@@ -52,7 +52,7 @@ export default function TogetherPage() {
         art={["friends", "notebook"]}
         actions={
           <Button
-            variant="primary"
+            variant={mine.length ? "primary" : "secondary"}
             icon="plus"
             seed="tnew"
             onClick={() => setNewOpen(true)}

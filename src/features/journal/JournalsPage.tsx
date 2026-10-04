@@ -87,7 +87,7 @@ export default function JournalsPage() {
               </Button>
             )}
             <Button
-              variant="primary"
+              variant={list.length ? "primary" : "secondary"}
               icon="plus"
               seed="jnew"
               onClick={() => setNewOpen(true)}

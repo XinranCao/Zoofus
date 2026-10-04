@@ -1,44 +1,24 @@
 {
-  "checked": 365,
+  "checked": 549,
   "lowest": [
     {
-      "screen": "zh/desktop/07-home-empty",
-      "text": "No. 02 · 贴纸本",
-      "ratio": 4.97,
-      "min": 4.5,
-      "fg": "#57620d",
-      "bg": "#e8ddd0",
-      "size": 12,
-      "weight": 400
-    },
-    {
-      "screen": "zh/desktop/08-menu-open",
-      "text": "No. 02 · 贴纸本",
-      "ratio": 4.97,
-      "min": 4.5,
-      "fg": "#57620d",
-      "bg": "#e8ddd0",
-      "size": 12,
-      "weight": 400
-    },
-    {
       "screen": "zh/desktop/10-book-empty",
-      "text": "No. 00 · 贴纸本",
+      "text": "你剪出来的所有贴纸。点开一张可以看大图。",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
       "bg": "#e8ddd0",
-      "size": 12,
+      "size": 14,
       "weight": 400
     },
     {
       "screen": "zh/desktop/17-book-grid",
-      "text": "No. 02 · 1 张贴纸",
+      "text": "你剪出来的所有贴纸。点开一张可以看大图。",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
       "bg": "#e8ddd0",
-      "size": 12,
+      "size": 14,
       "weight": 400
     },
     {
@@ -52,78 +32,58 @@
       "weight": 400
     },
     {
-      "screen": "zh/desktop/20-tape-studio",
-      "text": "No. 03 · 胶带",
+      "screen": "zh/desktop/20-tapes",
+      "text": "可以贴在手账页上的和纸胶带、纸胶带。自己做一卷,留在这里。",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
       "bg": "#e8ddd0",
-      "size": 12,
+      "size": 14,
       "weight": 400
     },
     {
-      "screen": "zh/desktop/20-tape-studio",
-      "text": "我的胶带卷 · 4",
+      "screen": "zh/desktop/20c-journals-empty",
+      "text": "用你的贴纸和胶带做出来的页面,再写字、画画。",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
       "bg": "#e8ddd0",
-      "size": 12,
+      "size": 14,
       "weight": 400
     },
     {
-      "screen": "zh/desktop/20-tape-studio",
-      "text": "Pink dots",
+      "screen": "zh/desktop/20f-collections",
+      "text": "你自己分的一组组贴纸、胶带和手账,想建多少都行。",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
       "bg": "#e8ddd0",
-      "size": 12,
+      "size": 14,
       "weight": 400
     },
     {
-      "screen": "zh/desktop/20-tape-studio",
-      "text": "Lime stripe",
+      "screen": "zh/desktop/20g-friends",
+      "text": "和朋友互相分享贴纸、胶带和手账,还能一起做手账。",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
       "bg": "#e8ddd0",
-      "size": 12,
+      "size": 14,
       "weight": 400
     },
     {
-      "screen": "zh/desktop/20-tape-studio",
-      "text": "Picnic",
+      "screen": "zh/desktop/20h-together",
+      "text": "和朋友同时做一页手账。每个人都能放贴纸和胶带、画画写字,并保存一份副本。",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
       "bg": "#e8ddd0",
-      "size": 12,
-      "weight": 400
-    },
-    {
-      "screen": "zh/desktop/20-tape-studio",
-      "text": "Masking",
-      "ratio": 4.97,
-      "min": 4.5,
-      "fg": "#57620d",
-      "bg": "#e8ddd0",
-      "size": 12,
+      "size": 14,
       "weight": 400
     },
     {
       "screen": "zh/desktop/21-account",
-      "text": "No. 04 · 账号",
-      "ratio": 4.97,
-      "min": 4.5,
-      "fg": "#57620d",
-      "bg": "#e8ddd0",
-      "size": 12,
-      "weight": 400
-    },
-    {
-      "screen": "zh/desktop/21-account",
-      "text": "ds-zh-desktop-1791055758843@example.com",
+      "text": "ds-zh-desktop-1791089414668@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -182,8 +142,28 @@
       "weight": 400
     },
     {
-      "screen": "zh/desktop/06-signup-step2",
-      "text": "开始剪贴纸",
+      "screen": "zh/desktop/07-home-empty",
+      "text": "上传照片",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 17,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/08-menu-open",
+      "text": "上传照片",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 17,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/09-how-it-works",
+      "text": "知道了",
       "ratio": 5.15,
       "min": 4.5,
       "fg": "#fbf6ee",
@@ -192,13 +172,33 @@
       "weight": 400
     },
     {
-      "screen": "zh/desktop/07-home-empty",
-      "text": "上传照片",
+      "screen": "zh/desktop/10-book-empty",
+      "text": "剪第一张贴纸",
       "ratio": 5.15,
       "min": 4.5,
       "fg": "#fbf6ee",
       "bg": "#bc3b22",
-      "size": 17,
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/13-maker-lasso",
+      "text": "剪下来",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/14-maker-deselect-mode",
+      "text": "剪下来",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
       "weight": 400
     }
   ],

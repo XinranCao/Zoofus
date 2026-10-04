@@ -91,8 +91,8 @@ test("the sticker book of 60 generates its tears in a few milliseconds, then hit
   }, TORN);
 
   // a re-render of the whole book (switching tabs and back) must not generate anything new
-  await page.getByRole("link", { name: "Tape" }).click();
-  await expect(page.getByRole("heading", { name: "Tape studio" })).toBeVisible();
+  await page.getByRole("link", { name: "Tapes" }).click();
+  await expect(page.getByRole("heading", { name: "Tapes", exact: true })).toBeVisible();
   const afterTape = await page.evaluate(async (TORN) => {
     const torn = await import(/* @vite-ignore */ TORN);
     return { ...torn.tornStats(), cache: torn.tornCacheSize() };

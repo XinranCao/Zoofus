@@ -83,7 +83,7 @@ export default function CollectionsPage() {
               </Button>
             )}
             <Button
-              variant="primary"
+              variant={list.length ? "primary" : "secondary"}
               icon="plus"
               seed="cnew"
               onClick={() => setNewOpen(true)}
