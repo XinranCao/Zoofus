@@ -1,0 +1,12 @@
+[
+  {
+    "origin": [
+      "https://zoofus-48264.web.app",
+      "https://zoofus-48264.firebaseapp.com",
+      "http://localhost:5173"
+    ],
+    "method": ["GET", "HEAD"],
+    "responseHeader": ["Content-Type", "Content-Length", "Cache-Control"],
+    "maxAgeSeconds": 3600
+  }
+]

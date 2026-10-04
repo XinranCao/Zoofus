@@ -46,6 +46,20 @@ Add `?debug=1` to any address (or use the button on the page) to turn on Firesto
 
 Errors are also counted in **Google Analytics** as the event `app_error` (parameters `code` and `where`), at most one per code per session, only in production. Firebase console → Analytics → Events → `app_error` shows how many people hit a problem; add `code` as a custom dimension to break it down.
 
+## 3b. Pictures cannot be read: "blocked by CORS policy" (needed for share, edit edge, save a copy)
+
+Showing a picture works without it, but **reading** one (to copy it into a share, to redo a sticker's edge, to save a copy of a Together page) is a browser request, and Google Cloud Storage only answers it if the bucket has a CORS policy. Symptom: the console says `Access to XMLHttpRequest at 'https://firebasestorage.googleapis.com/…?alt=media' … has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header`, although the request shows `200 OK`, and sharing hangs or fails. The fix is one command, once, in Google Cloud Shell (the policy is `cors.json` in the project root):
+
+```bash
+cat > cors.json <<'EOF'
+[{"origin":["https://zoofus-48264.web.app","https://zoofus-48264.firebaseapp.com","http://localhost:5173"],"method":["GET","HEAD"],"responseHeader":["Content-Type","Content-Length","Cache-Control"],"maxAgeSeconds":3600}]
+EOF
+gcloud storage buckets update gs://zoofus-48264.firebasestorage.app --cors-file=cors.json
+gcloud storage buckets describe gs://zoofus-48264.firebasestorage.app --format="default(cors_config)"
+```
+
+Add another origin to the list if the app is served from a new address. The emulators need none. `/diagnostics` → _Storage read_ shows this problem as "by link: failed; by SDK: failed".
+
 ## 4. App Check (the usual cause when "everything is slow or fails in production only")
 
 App Check is **enforced** for Firestore, Storage and Auth, so a request without a valid token is refused. In Firebase console → App Check → APIs, the metrics are:
