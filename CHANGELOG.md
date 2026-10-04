@@ -1,5 +1,28 @@
 # Changelog
 
+## v1.0.0 – 2026-10-03
+
+### Features
+
+- Journals (手账): a page studio with custom size, paper (notebook, newspaper, magazine) and styles, stickers and tapes placed freely, text in common and handwriting fonts, drawing (pen, pencil, crayon, …), erase, undo/redo, PNG export; a journal gallery with thumbnails.
+- Collections of your own for stickers, tapes and journals, with bulk select, add, remove and delete.
+- Friends: a friend code, requests, nicknames only you see; share stickers, tapes and journals; a "Shared with you" inbox; keep what friends share.
+- Together: make a journal page with friends in real time (invite, shared shelf of stickers and tapes, who is here, everyone can save a copy).
+- Nickname at sign-up, a profile card (change the nickname, make a profile picture with the sticker maker or pick a sticker), the picture keeps its sticker shape in the navigation bar.
+- New navigation: one "Make" menu for stickers, tapes, journals and together; a "Library" with tabs; the language switch sits on the bar.
+- Tapes live on their own page with a "New tape" dialog; stickers and tapes are separate tabs.
+
+### Fixes
+
+- Torn edges of small pieces (profile picture, paper and ink pickers) are calmer: no more long thorn-like spikes.
+- Clicking a sticker under "Recently cut" opens a preview instead of the book.
+- The Stickers/Tapes switch no longer disappears on narrow screens.
+- "Edit edge" reports a specific error code when it fails and is more tolerant of leftovers from earlier saves.
+
+### Other
+
+- New security rules for journals, collections, friends, shares and shared pages (**deploy them before releasing**); account deletion removes the new data too; README rewritten.
+
 ## v0.4.1 – 2026-10-03
 
 ### Other

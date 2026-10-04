@@ -1,11 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogBody } from "@/components/ui/Dialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Loader";
-import { Scribble } from "@/components/ui/Scribble";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { LibraryTabs } from "@/features/library/LibraryTabs";
+import { useMakeParam } from "@/lib/useMakeParam";
+import { useSelection } from "@/lib/useSelection";
+import { BulkBar } from "@/components/ui/BulkBar";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { AddToCollectionDialog } from "@/features/collections/AddToCollectionDialog";
+import { ShareDialog } from "@/features/social/ShareDialog";
+import { useForgetItems } from "@/features/collections/useCollections";
 import { Sticker as DemoSticker } from "@/components/ui/Sticker";
 import { ToastNote, useToast } from "@/components/ui/Toast";
 import { preloadStickerMaker, StickerMakerDialog } from "../editor/LazyStickerMaker";
@@ -16,33 +23,6 @@ import type { Sticker } from "./sticker.schema";
 import { useDeleteSticker, useRenameSticker, useStickers } from "./useStickers";
 
 const UNDO_MS = 6000;
-
-/** The "Stickers | Tape" tabs of the book. */
-export function BookTabs() {
-  const { t } = useTranslation();
-  const tabs = [
-    { to: "/stickers", label: t("book.tabStickers") },
-    { to: "/tape", label: t("book.tabTape") },
-  ];
-  return (
-    <nav
-      className="zf-nav"
-      aria-label={t("book.tabs")}
-      style={{ margin: "0 0 20px -10px" }}
-    >
-      {tabs.map((tab) => (
-        <NavLink key={tab.to} to={tab.to} end>
-          {({ isActive }) => (
-            <>
-              <span aria-current={isActive ? "page" : undefined}>{tab.label}</span>
-              {isActive && <Scribble seed={"tab" + tab.to} weight={2} />}
-            </>
-          )}
-        </NavLink>
-      ))}
-    </nav>
-  );
-}
 
 export default function StickerBookPage() {
   const { t, i18n } = useTranslation();
@@ -56,6 +36,13 @@ export default function StickerBookPage() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [editEdgeId, setEditEdgeId] = useState<string | null>(null);
   const [makerOpen, setMakerOpen] = useState(false);
+  const selection = useSelection();
+  const forget = useForgetItems();
+  const [addOpen, setAddOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [bulkDelete, setBulkDelete] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  useMakeParam(() => setMakerOpen(true));
   // Deleted stickers disappear at once; the real delete runs after the Undo window.
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const pending = useRef(
@@ -81,6 +68,7 @@ export default function StickerBookPage() {
 
   const runDelete = (sticker: Sticker) => {
     pending.current.delete(sticker.id);
+    void forget([{ k: "sticker", id: sticker.id }]);
     remove.mutate(sticker, {
       onError: () => {
         setHidden((h) => {
@@ -158,38 +146,38 @@ export default function StickerBookPage() {
 
   return (
     <div className="zf-page">
-      <BookTabs />
-      <div
-        style={{
-          display: "flex",
-          alignItems: "end",
-          justifyContent: "space-between",
-          gap: 12,
-          marginBottom: 28,
-          flexWrap: "wrap",
-        }}
-      >
-        <div>
-          <div className="zf-kicker">
-            {empty ? t("book.kickerEmpty") : t("book.kicker", { count: stickers.length })}
-          </div>
-          <h1 className="zf-display" style={{ marginTop: 4 }}>
-            {t("book.title")}
-          </h1>
-        </div>
-        {!empty && (
-          <Button
-            variant="primary"
-            icon="plus"
-            seed="nw"
-            onPointerEnter={preloadStickerMaker}
-            onFocus={preloadStickerMaker}
-            onClick={() => setMakerOpen(true)}
-          >
-            {t("book.newSticker")}
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title={t("book.title")}
+        lead={t("book.lead")}
+        art={["star", "pear"]}
+        actions={
+          !empty && (
+            <>
+              {stickers.length > 0 && (
+                <Button
+                  variant="quiet"
+                  icon="select"
+                  seed="sel"
+                  onClick={selection.active ? selection.stop : selection.start}
+                >
+                  {selection.active ? t("bulk.done") : t("bulk.select")}
+                </Button>
+              )}
+              <Button
+                variant="primary"
+                icon="plus"
+                seed="nw"
+                onPointerEnter={preloadStickerMaker}
+                onFocus={preloadStickerMaker}
+                onClick={() => setMakerOpen(true)}
+              >
+                {t("book.newSticker")}
+              </Button>
+            </>
+          )
+        }
+      />
+      <LibraryTabs />
 
       {isError && (
         <ToastNote
@@ -211,7 +199,6 @@ export default function StickerBookPage() {
         <div style={{ paddingTop: 24 }}>
           <EmptyState
             seed="bk"
-            kicker={t("book.emptyKicker")}
             title={t("book.emptyTitle")}
             art={<DemoSticker art="star" size={70} />}
             action={
@@ -245,11 +232,106 @@ export default function StickerBookPage() {
               onDelete={() => setConfirmId(s.id)}
               renaming={renamingId === s.id}
               onRenameDone={(name) => onRenameDone(s.id, name)}
+              selecting={selection.active}
+              selected={selection.ids.has(s.id)}
+              onToggle={() => selection.toggle(s.id)}
             />
           ))}
         </div>
       )}
 
+      {selection.active && (
+        <BulkBar
+          count={selection.count}
+          total={stickers.length}
+          onSelectAll={() => selection.set(stickers.map((s) => s.id))}
+          onClear={selection.clear}
+          onDone={selection.stop}
+        >
+          <Button
+            variant="secondary"
+            size="sm"
+            icon="folder"
+            seed="bacol"
+            disabled={selection.count === 0}
+            onClick={() => setAddOpen(true)}
+          >
+            {t("bulk.addToCollection")}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon="send"
+            seed="bashare"
+            disabled={selection.count === 0}
+            onClick={() => setShareOpen(true)}
+          >
+            {t("bulk.share")}
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            icon="trash"
+            seed="badel"
+            disabled={selection.count === 0}
+            onClick={() => setBulkDelete(true)}
+          >
+            {t("bulk.delete")}
+          </Button>
+        </BulkBar>
+      )}
+      <ShareDialog
+        open={shareOpen}
+        sources={(data ?? [])
+          .filter((s) => selection.ids.has(s.id))
+          .map((sticker) => ({ kind: "sticker" as const, sticker }))}
+        onClose={() => setShareOpen(false)}
+        onDone={selection.stop}
+      />
+      <AddToCollectionDialog
+        open={addOpen}
+        items={[...selection.ids].map((id) => ({ k: "sticker" as const, id }))}
+        onClose={() => setAddOpen(false)}
+        onDone={selection.stop}
+      />
+      <ConfirmDialog
+        open={bulkDelete}
+        title={t("book.bulkDeleteTitle", { count: selection.count })}
+        body={t("book.deleteBody")}
+        confirmLabel={t("common.delete")}
+        loading={bulkBusy}
+        onCancel={() => setBulkDelete(false)}
+        onConfirm={() => {
+          const chosen = (data ?? []).filter((s) => selection.ids.has(s.id));
+          setBulkBusy(true);
+          void Promise.allSettled(chosen.map((s) => remove.mutateAsync(s)))
+            .then(async (results) => {
+              const failed = results.filter((r) => r.status === "rejected").length;
+              await forget(
+                chosen
+                  .filter((_, i) => results[i]!.status === "fulfilled")
+                  .map((s) => ({ k: "sticker" as const, id: s.id })),
+              );
+              if (failed)
+                toast.push({
+                  kind: "error",
+                  title: t("auth.errors.toastTitle"),
+                  body: t("book.deleteFailed"),
+                });
+              else
+                toast.push({
+                  kind: "info",
+                  title: t("book.deleted"),
+                  body: t("book.bulkDeleted", { count: chosen.length }),
+                });
+            })
+            .finally(() => {
+              setBulkBusy(false);
+              setBulkDelete(false);
+              selection.stop();
+            });
+        }}
+      />
       <StickerDetailDialog
         sticker={detail}
         date={detail ? longDate(detail) : ""}

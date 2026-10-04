@@ -1,10 +1,10 @@
 import * as RMenu from "@radix-ui/react-dropdown-menu";
-import { useTranslation } from "react-i18next";
-import { Link, NavLink } from "react-router-dom";
-import { tornClip } from "@/paper/torn";
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { LANGUAGES } from "@/i18n";
 import { ensureFontsFor } from "@/lib/cjkFonts";
+import { tornClip } from "@/paper/torn";
 import { Avatar } from "./Avatar";
 import { Button, ButtonLink } from "./Button";
 import { Icon, type IconName } from "./Icon";
@@ -16,6 +16,10 @@ export interface MastheadUser {
   name: string;
   email?: string;
   avatar?: string | null;
+  /** `sticker`: the picture is a die-cut sticker and is shown with its own shape. */
+  avatarKind?: "sticker" | "photo";
+  /** Friend requests and shares waiting, shown as a small count on Friends. */
+  pending?: number;
 }
 
 interface MenuItem {
@@ -26,124 +30,13 @@ interface MenuItem {
   current?: boolean;
 }
 
-/** The account / mobile menu: a flat scrap Paper (Radix DropdownMenu, arrow keys, typeahead). */
-function MenuContent({
-  user,
-  items,
-  seed,
-}: {
-  user: MastheadUser;
-  items: MenuItem[];
-  seed: string;
-}) {
-  const { t, i18n } = useTranslation();
-  const current = i18n.language.startsWith("zh") ? "zh-CN" : "en";
-  const style = {
-    "--clip-item": tornClip(seed + "i", { size: "xs", w: 200, h: 36 }),
-  } as CSSProperties;
-  return (
-    <RMenu.Portal>
-      <RMenu.Content asChild align="end" sideOffset={10} collisionPadding={12}>
-        <Paper
-          seed={seed}
-          size="md"
-          tone="scrap"
-          rotate={0.5}
-          className="zf-menu z-50"
-          style={{ minWidth: 230, ...style }}
-        >
-          <div
-            style={{ display: "flex", gap: 10, alignItems: "center", padding: "6px 8px" }}
-          >
-            <Avatar
-              name={user.name}
-              src={user.avatar}
-              size={34}
-              seed={user.name + "-card"}
-              asStatic
-            />
-            <div style={{ minWidth: 0 }}>
-              <div className="zf-h2" style={{ fontSize: 16 }}>
-                {user.name}
-              </div>
-              {user.email && (
-                <div
-                  className="zf-muted"
-                  style={{ fontSize: 12, overflowWrap: "anywhere" }}
-                >
-                  {user.email}
-                </div>
-              )}
-            </div>
-          </div>
-          <Divider seed={seed} />
-          {items
-            .filter((it) => it.icon !== "logout")
-            .map((it) => (
-              <RMenu.Item key={it.label} asChild onSelect={it.onSelect}>
-                {it.to ? (
-                  <Link
-                    to={it.to}
-                    className={"zf-menu__item" + (it.current ? " is-active" : "")}
-                    aria-current={it.current ? "page" : undefined}
-                  >
-                    <Icon name={it.icon} />
-                    {it.label}
-                  </Link>
-                ) : (
-                  <button type="button" className="zf-menu__item">
-                    <Icon name={it.icon} />
-                    {it.label}
-                  </button>
-                )}
-              </RMenu.Item>
-            ))}
-          <Divider seed={seed + "l"} />
-          {/* "EN · 中文": two radio items in a group, set as one segmented control */}
-          <RMenu.RadioGroup
-            value={current}
-            onValueChange={(code) => void i18n.changeLanguage(code)}
-            aria-label={t("nav.language")}
-            className="zf-menu__lang"
-          >
-            <Icon name="globe" />
-            {LANGUAGES.map((l) => (
-              <RMenu.RadioItem
-                key={l.code}
-                value={l.code}
-                className="zf-menu__langopt"
-                lang={l.code}
-              >
-                {l.code === "en" ? "EN" : l.label}
-              </RMenu.RadioItem>
-            ))}
-          </RMenu.RadioGroup>
-          {items
-            .filter((it) => it.icon === "logout")
-            .map((it) => (
-              <RMenu.Item key={it.label} asChild onSelect={it.onSelect}>
-                {it.to ? (
-                  <Link
-                    to={it.to}
-                    className={"zf-menu__item" + (it.current ? " is-active" : "")}
-                    aria-current={it.current ? "page" : undefined}
-                  >
-                    <Icon name={it.icon} />
-                    {it.label}
-                  </Link>
-                ) : (
-                  <button type="button" className="zf-menu__item">
-                    <Icon name={it.icon} />
-                    {it.label}
-                  </button>
-                )}
-              </RMenu.Item>
-            ))}
-        </Paper>
-      </RMenu.Content>
-    </RMenu.Portal>
-  );
-}
+/** What "Make" offers: one place for everything that can be made. */
+export const MAKE_ITEMS: { key: string; to: string; icon: IconName }[] = [
+  { key: "sticker", to: "/stickers?make=1", icon: "lasso" },
+  { key: "tape", to: "/tapes?make=1", icon: "tape" },
+  { key: "journal", to: "/journals?make=1", icon: "journal" },
+  { key: "together", to: "/together?make=1", icon: "users" },
+];
 
 /**
  * A non-modal menu (the page behind stays in the accessibility tree) that still behaves like a
@@ -178,10 +71,136 @@ function Menu({ children }: { children: ReactNode }) {
   );
 }
 
+function ItemRow({ it }: { it: MenuItem }) {
+  const navigate = useNavigate();
+  return (
+    <RMenu.Item
+      asChild
+      onSelect={() => {
+        if (it.to) navigate(it.to);
+        it.onSelect?.();
+      }}
+    >
+      {it.to ? (
+        <Link
+          to={it.to}
+          className={"zf-menu__item" + (it.current ? " is-active" : "")}
+          aria-current={it.current ? "page" : undefined}
+        >
+          <Icon name={it.icon} />
+          {it.label}
+        </Link>
+      ) : (
+        <button type="button" className="zf-menu__item">
+          <Icon name={it.icon} />
+          {it.label}
+        </button>
+      )}
+    </RMenu.Item>
+  );
+}
+
+/** A flat scrap Paper menu (Radix DropdownMenu: arrow keys, typeahead), items in groups. */
+function MenuContent({
+  user,
+  groups,
+  seed,
+  align = "end",
+}: {
+  user?: MastheadUser;
+  groups: MenuItem[][];
+  seed: string;
+  align?: "start" | "end";
+}) {
+  const style = {
+    "--clip-item": tornClip(seed + "i", { size: "xs", w: 200, h: 36 }),
+  } as CSSProperties;
+  return (
+    <RMenu.Portal>
+      <RMenu.Content asChild align={align} sideOffset={10} collisionPadding={12}>
+        <Paper
+          seed={seed}
+          size="md"
+          tone="scrap"
+          rotate={0.5}
+          className="zf-menu z-50"
+          style={{ minWidth: 230, ...style }}
+        >
+          {user && (
+            <>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 10,
+                  alignItems: "center",
+                  padding: "6px 8px",
+                }}
+              >
+                <Avatar
+                  name={user.name}
+                  src={user.avatar}
+                  kind={user.avatarKind}
+                  size={34}
+                  seed={user.name + "-card"}
+                  asStatic
+                />
+                <div style={{ minWidth: 0 }}>
+                  <div className="zf-h2" style={{ fontSize: 16 }}>
+                    {user.name}
+                  </div>
+                  {user.email && (
+                    <div
+                      className="zf-muted"
+                      style={{ fontSize: 12, overflowWrap: "anywhere" }}
+                    >
+                      {user.email}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <Divider seed={seed} />
+            </>
+          )}
+          {groups.map((items, g) => (
+            <div key={g}>
+              {g > 0 && <Divider seed={seed + "g" + g} />}
+              {items.map((it) => (
+                <ItemRow key={it.label} it={it} />
+              ))}
+            </div>
+          ))}
+        </Paper>
+      </RMenu.Content>
+    </RMenu.Portal>
+  );
+}
+
+/** "EN · 中文", right on the bar: two plain buttons, the current one underlined. */
+export function LanguageSwitch() {
+  const { t, i18n } = useTranslation();
+  const current = i18n.language.startsWith("zh") ? "zh-CN" : "en";
+  return (
+    <div className="zf-lang" role="group" aria-label={t("nav.language")}>
+      {LANGUAGES.map((l) => (
+        <button
+          key={l.code}
+          type="button"
+          lang={l.code}
+          aria-pressed={current === l.code}
+          onClick={() => void i18n.changeLanguage(l.code)}
+        >
+          {l.code === "en" ? "EN" : l.label}
+          {current === l.code && <Scribble seed={"lang" + l.code} weight={2} />}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /**
- * The top band: wordmark, main navigation and the avatar menu. It holds no slogan. A peach scrap
- * torn on the bottom edge only (xl, flush, measured). Under 760px a menu button replaces the nav.
- * Sticky on desktop; flat, so its torn edge and lip separate it from the content.
+ * The top band: wordmark, main navigation (Make, Library, Friends, Together), the language switch
+ * and the avatar menu. It holds no slogan. A peach scrap torn on the bottom edge only (xl, flush,
+ * measured). Under 760px the navigation moves into one menu; the language switch stays on the bar.
  */
 export function Masthead({
   user,
@@ -192,44 +211,37 @@ export function Masthead({
   onLogout?: () => void;
   pathname: string;
 }) {
-  const { t, i18n } = useTranslation();
-  const zh = i18n.language.startsWith("zh");
+  const { t } = useTranslation();
   ensureFontsFor(user?.name);
-  const other = LANGUAGES.find((l) => (zh ? l.code === "en" : l.code === "zh-CN"))!;
   // the auth card already carries the page's one primary button
   const onAuth = pathname === "/login" || pathname === "/signup";
-  const toggleLanguage = () => void i18n.changeLanguage(other.code);
-  const onBook = pathname.startsWith("/stickers") || pathname.startsWith("/tape");
+  const inLibrary = ["/stickers", "/tapes", "/journals", "/collections"].some((p) =>
+    pathname.startsWith(p),
+  );
+  const onFriends = pathname.startsWith("/friends");
+  const onTogether = pathname.startsWith("/together");
 
-  const links = [
-    { to: "/", label: t("nav.make"), current: pathname === "/" },
-    { to: "/stickers", label: t("nav.book"), current: onBook },
+  const makeItems: MenuItem[] = MAKE_ITEMS.map((m) => ({
+    to: m.to,
+    icon: m.icon,
+    label: t(`nav.makeItems.${m.key}`),
+  }));
+  const placeItems: MenuItem[] = [
+    { to: "/stickers", icon: "folder", label: t("nav.library"), current: inLibrary },
+    { to: "/friends", icon: "users", label: t("nav.friends"), current: onFriends },
+    { to: "/together", icon: "journal", label: t("nav.together"), current: onTogether },
   ];
-  const desktopItems: MenuItem[] = user
-    ? [
-        { to: "/stickers", icon: "book", label: t("nav.book"), current: onBook },
-        {
-          to: "/account",
-          icon: "gear",
-          label: t("nav.profile"),
-          current: pathname.startsWith("/account"),
-        },
-        { icon: "logout", label: t("nav.logOut"), onSelect: onLogout },
-      ]
-    : [];
-  const mobileItems: MenuItem[] = user
-    ? [
-        { to: "/", icon: "lasso", label: t("nav.make"), current: pathname === "/" },
-        { to: "/stickers", icon: "book", label: t("nav.book"), current: onBook },
-        {
-          to: "/account",
-          icon: "gear",
-          label: t("nav.profile"),
-          current: pathname.startsWith("/account"),
-        },
-        { icon: "logout", label: t("nav.logOut"), onSelect: onLogout },
-      ]
-    : [];
+  const accountItems: MenuItem[] = [
+    {
+      to: "/account",
+      icon: "gear",
+      label: t("nav.profile"),
+      current: pathname.startsWith("/account"),
+    },
+    { icon: "logout", label: t("nav.logOut"), onSelect: onLogout },
+  ];
+
+  const pending = user?.pending ?? 0;
 
   return (
     <header className="zf-masthead is-sticky">
@@ -249,30 +261,51 @@ export function Masthead({
           {user ? (
             <>
               <nav className="zf-nav" aria-label={t("nav.main")}>
-                {links.map((l) => (
-                  <NavLink
-                    key={l.to}
-                    to={l.to}
-                    end
-                    aria-current={l.current ? "page" : undefined}
-                  >
-                    {l.label}
-                    {l.current && <Scribble seed={"nav" + l.to} weight={2} />}
-                  </NavLink>
-                ))}
+                <Menu>
+                  <RMenu.Trigger asChild>
+                    <button type="button" className="zf-nav__make">
+                      {t("nav.make")}
+                      <Icon name="plus" style={{ width: 14, height: 14 }} />
+                    </button>
+                  </RMenu.Trigger>
+                  <MenuContent groups={[makeItems]} seed="make" align="start" />
+                </Menu>
+                <NavLink to="/stickers" aria-current={inLibrary ? "page" : undefined}>
+                  {t("nav.library")}
+                  {inLibrary && <Scribble seed="nav-lib" weight={2} />}
+                </NavLink>
+                <NavLink to="/friends" aria-current={onFriends ? "page" : undefined}>
+                  {t("nav.friends")}
+                  {pending > 0 && (
+                    <span
+                      className="zf-badge"
+                      aria-label={t("nav.pending", { count: pending })}
+                    >
+                      {pending}
+                    </span>
+                  )}
+                  {onFriends && <Scribble seed="nav-fr" weight={2} />}
+                </NavLink>
+                <NavLink to="/together" aria-current={onTogether ? "page" : undefined}>
+                  {t("nav.together")}
+                  {onTogether && <Scribble seed="nav-tg" weight={2} />}
+                </NavLink>
                 <span style={{ width: 8 }} />
+                <LanguageSwitch />
                 <Menu>
                   <RMenu.Trigger asChild>
                     <Avatar
                       name={user.name}
                       src={user.avatar}
+                      kind={user.avatarKind}
                       aria-label={t("nav.accountMenu", { name: user.name })}
                     />
                   </RMenu.Trigger>
-                  <MenuContent user={user} items={desktopItems} seed="menu" />
+                  <MenuContent user={user} groups={[accountItems]} seed="menu" />
                 </Menu>
               </nav>
               <span className="zf-menu-btn">
+                <LanguageSwitch />
                 <Menu>
                   <RMenu.Trigger asChild>
                     <Button
@@ -282,7 +315,11 @@ export function Masthead({
                       aria-label={t("common.menu")}
                     />
                   </RMenu.Trigger>
-                  <MenuContent user={user} items={mobileItems} seed="mm" />
+                  <MenuContent
+                    user={user}
+                    groups={[makeItems, placeItems, accountItems]}
+                    seed="mm"
+                  />
                 </Menu>
               </span>
             </>
@@ -291,15 +328,7 @@ export function Masthead({
               className="zf-nav"
               style={{ display: "flex", marginLeft: "auto", gap: 4 }}
             >
-              <Button
-                variant="quiet"
-                size="sm"
-                icon="globe"
-                seed="lang"
-                onClick={toggleLanguage}
-              >
-                {other.label}
-              </Button>
+              <LanguageSwitch />
               <ButtonLink variant="quiet" to="/login" seed="li">
                 {t("nav.logIn")}
               </ButtonLink>

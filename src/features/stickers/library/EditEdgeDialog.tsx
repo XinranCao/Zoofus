@@ -35,6 +35,7 @@ function EditEdgeBody({ sticker, onClose }: { sticker: Sticker; onClose: () => v
   const [source, setSource] = useState<HTMLCanvasElement | null>(null);
   const [edge, setEdge] = useState<EdgeSpec>(sticker.edge ?? DEFAULT_EDGE);
   const [failed, setFailed] = useState(!sticker.sourceUrl);
+  const [reason, setReason] = useState<string | null>(null);
   const seed = sticker.seed ?? sticker.id;
 
   useEffect(() => {
@@ -49,7 +50,12 @@ function EditEdgeBody({ sticker, onClose }: { sticker: Sticker; onClose: () => v
         c.getContext("2d")?.drawImage(img, 0, 0);
         setSource(c);
       })
-      .catch(() => alive && setFailed(true));
+      .catch(() => {
+        if (!alive) return;
+        console.error("Could not open the sticker's original", sticker.sourceUrl);
+        setReason("source");
+        setFailed(true);
+      });
     return () => {
       alive = false;
     };
@@ -62,11 +68,14 @@ function EditEdgeBody({ sticker, onClose }: { sticker: Sticker; onClose: () => v
       await update.mutateAsync({ sticker, canvas, edge, seed });
       toast.push({ kind: "success", title: t("book.editEdgeSaved") });
       onClose();
-    } catch {
+    } catch (err) {
+      // the cause is shown (a short code) so a report says what actually went wrong
+      const code = (err as { code?: string }).code ?? (err as Error).name ?? "error";
+      console.error("Editing the edge failed", err);
       toast.push({
         kind: "error",
         title: t("auth.errors.toastTitle"),
-        body: t("book.editEdgeFailed"),
+        body: `${t("book.editEdgeFailed")} (${code})`,
       });
     }
   };
@@ -100,7 +109,9 @@ function EditEdgeBody({ sticker, onClose }: { sticker: Sticker; onClose: () => v
     >
       <div style={{ margin: "10px 0 22px" }}>
         {failed ? (
-          <p>{t("book.editEdgeFailed")}</p>
+          <p>
+            {reason === "source" ? t("book.editEdgeNoSource") : t("book.editEdgeFailed")}
+          </p>
         ) : !source ? (
           <div
             style={{

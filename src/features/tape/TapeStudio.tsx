@@ -1,4 +1,3 @@
-import { ensureFontsFor } from "@/lib/cjkFonts";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
@@ -19,7 +18,6 @@ import {
   angleFromPointer,
   clampAngle,
   type TapeEnds,
-  type TapeSpec,
 } from "./tape.schema";
 
 const PRESET_ANGLES = [-45, -15, 0, 15, 45, 90];
@@ -63,24 +61,20 @@ export const DEFAULT_DRAFT: TapeDraft = {
 };
 
 /**
- * The tape editor: turn, size, finish and print a tape, then add it to "My tape roll". Drag the
- * round handle to any angle from −90 to 90°, or focus it and use the arrow keys (±5°). Tapping a
- * saved tape loads all of its settings.
+ * The tape editor: turn, size, finish and print a tape, then add it to the collection. Drag the
+ * round handle to any angle from −90 to 90°, or focus it and use the arrow keys (±5°).
  */
 export function TapeStudio({
   draft,
   onDraft,
-  roll,
-  onUse,
-  onRemove,
+  defaultName,
   onAdd,
   adding,
 }: {
   draft: TapeDraft;
   onDraft: (patch: Partial<TapeDraft>) => void;
-  roll: (TapeSpec & { id?: string })[];
-  onUse: (tape: TapeSpec) => void;
-  onRemove: (id: string) => void;
+  /** The suggested name, shown as the placeholder. */
+  defaultName: string;
   onAdd: (name: string) => void;
   adding: boolean;
 }) {
@@ -105,9 +99,6 @@ export function TapeStudio({
     });
   };
 
-  roll.forEach((r) => ensureFontsFor(r.name));
-  const defaultName = t("tape.defaultName", { n: roll.filter((r) => r.id).length + 1 });
-
   return (
     <div className="zf-studio">
       <div style={{ display: "grid", gap: 24, alignContent: "start", minWidth: 0 }}>
@@ -128,10 +119,7 @@ export function TapeStudio({
             style={{ width: "64%", margin: `${STAGE_TOP}px auto 0` }}
             faceStyle={{ height: 170, padding: "34px 22px 22px" }}
           >
-            <div className="zf-kicker">{t("tape.stageKicker")}</div>
-            <div className="zf-h2" style={{ marginTop: 6 }}>
-              {t("tape.stageTitle")}
-            </div>
+            <div className="zf-h2">{t("tape.stageTitle")}</div>
           </Paper>
           <div
             data-user-tape
@@ -188,52 +176,6 @@ export function TapeStudio({
                 <Icon name="turn" />
               </span>
             </div>
-          </div>
-        </div>
-
-        <div>
-          <div className="zf-kicker" style={{ marginBottom: 10 }}>
-            {t("tape.rollCount", { count: roll.length })}
-          </div>
-          <div className="zf-roll">
-            {roll.map((tape, i) => (
-              <div
-                key={tape.id ?? "starter" + i}
-                style={{ display: "grid", justifyItems: "center" }}
-              >
-                <button
-                  type="button"
-                  className="zf-roll__item"
-                  aria-label={t("tape.use", { name: tape.name })}
-                  onClick={() => onUse(tape)}
-                >
-                  <span style={{ position: "relative", display: "block", height: 34 }}>
-                    <Tape
-                      pattern={tape.pattern}
-                      angle={-6 + (i % 3) * 5}
-                      length={86}
-                      thickness={tape.thickness * 0.8}
-                      opacity={tape.opacity}
-                      ends={tape.ends}
-                      x="50%"
-                      y="17px"
-                      seed={"roll" + (tape.id ?? i)}
-                    />
-                  </span>
-                  <span className="zf-tile__meta">{tape.name}</span>
-                </button>
-                {tape.id && (
-                  <Button
-                    variant="quiet"
-                    size="sm"
-                    icon="trash"
-                    seed={"rm" + tape.id}
-                    aria-label={t("tape.remove", { name: tape.name })}
-                    onClick={() => onRemove(tape.id!)}
-                  />
-                )}
-              </div>
-            ))}
           </div>
         </div>
       </div>

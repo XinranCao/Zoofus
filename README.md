@@ -1,8 +1,20 @@
 # Zoofus
 
-A React + Firebase web app. Sign up or log in (email/password or Google), then use the **Image Lasso** tool: upload an image, select regions with a freehand lasso or rectangle/triangle/star shapes (with select and deselect modes), and preview the masked cut-out with an adjustable border color and width.
+**Zoofus is a scrapbook for the web.** Cut stickers out of your photos, make washi tape, lay them on journal pages (手账), keep everything in collections, share with friends, and make a page together in real time. It looks hand-made on purpose: torn paper, tape, die-cut stickers, in English and 中文.
 
-Stack: React 19, Vite 7, Tailwind CSS v4, Radix UI, react-router 7, Konva/react-konva, polygon-clipping, react-i18next, Firebase 12 (Auth, Firestore, Storage, Analytics, Hosting).
+## What you can do
+
+- **Stickers.** Upload a photo and draw around the part you want (freehand lasso, or drag out a rectangle, triangle or star; select and deselect). Choose the edge (smooth, wobbly, torn), its width and a print, then save it. "Edit edge" redoes it later; "Download PNG" exports it.
+- **Tapes.** Turn, size and print your own tape (stripes, dots, gingham, pixels you paint by dragging, a doodle, a plain colour). Four starter tapes come with the app.
+- **Journals (手账).** A page studio: pick a size, a paper (notebook, newspaper, magazine) and a style (lined, grid, dotted, blank, …) and a colour; place stickers and tapes freely (move, rotate, resize), add text in common and handwriting fonts, draw with pen, pencil, crayon and more, erase, undo and redo, save, export a PNG.
+- **Collections.** Your own folders of stickers, tapes and journals, with bulk select, add, remove and delete everywhere.
+- **Friends.** Add friends with a friend code, give them nicknames only you see, and share stickers, tapes and journals. What a friend shares arrives in "Shared with you" and you can keep it.
+- **Together.** Start a shared page, invite friends, bring your own stickers and tapes onto a shelf everyone can use, edit at the same time (you see who is here), and each save your own copy.
+- **Profile.** A nickname chosen at sign-up, and a profile picture made with the sticker maker (it keeps its sticker shape in the navigation bar).
+
+## How it is built
+
+React 19, Vite 7, TypeScript (strict), Tailwind CSS v4 with Radix UI, react-router 7, TanStack Query, Zustand (editor stores with undo/redo), Konva/react-konva (canvases), polygon-clipping, react-i18next, zod, Firebase 12 (Auth, Firestore, Storage, App Check, Analytics, Hosting). The data model and the security rules are described in [`docs/data-model.md`](docs/data-model.md); the visual language in [`design-system/`](design-system/).
 
 ## Setup
 
@@ -23,14 +35,16 @@ Use the emulated setup for anything that writes data. PR previews talk to the pr
 
 ## Commands
 
-| Command                                       | What it does                              |
-| --------------------------------------------- | ----------------------------------------- |
-| `npm run dev`                                 | Vite dev server (http://localhost:5173)   |
-| `npm run build`                               | Production build into `dist/`             |
-| `npm run typecheck` / `lint` / `format:check` | TypeScript (strict), ESLint, Prettier     |
-| `npm test`                                    | Vitest suite                              |
-| `npm run check`                               | Typecheck, lint, tests and build together |
-| `npm run preview`                             | Serve the production build                |
+| Command                                       | What it does                                        |
+| --------------------------------------------- | --------------------------------------------------- |
+| `npm run dev`                                 | Vite dev server (http://localhost:5173)             |
+| `npm run build`                               | Production build into `dist/`                       |
+| `npm run typecheck` / `lint` / `format:check` | TypeScript (strict), ESLint, Prettier               |
+| `npm test`                                    | Vitest suite                                        |
+| `npm run check`                               | Typecheck, lint, tests and build together           |
+| `npm run preview`                             | Serve the production build                          |
+| `npm run test:rules`                          | Firestore and Storage rules tests (emulators, Java) |
+| `npm run test:e2e`                            | Playwright end-to-end tests against the emulators   |
 
 ## Project structure
 
@@ -38,10 +52,16 @@ TypeScript with an `@/` alias for `src/`, organised by feature:
 
 - `src/app/` – providers and routes
 - `src/lib/` – env validation, Firebase init, image helpers
-- `src/features/auth/` – sign in / sign up, auth provider
-- `src/features/profile/` – user profile data (TanStack Query + Firestore/Storage)
-- `src/features/stickers/editor/` – the sticker maker: pure geometry and mask logic (`domain/`), Zustand store with undo/redo, Konva canvas
-- `src/components/layout/`, `src/pages/` – app chrome and pages
+- `src/features/auth/`, `profile/`, `account/` – sign in / up, profile card, account export and deletion
+- `src/features/stickers/` – the sticker maker (`editor/`: pure geometry and mask logic, store, Konva canvas) and the library
+- `src/features/tape/` – tape studio and the tape collection page
+- `src/features/journal/` – the journal model (compact items, operations with inverses for undo), the studio, the gallery
+- `src/features/collections/` – user collections and bulk management
+- `src/features/social/` – friends, friend codes, sharing and the inbox
+- `src/features/together/` – shared pages (workspaces): live items, shelf, presence, save a copy
+- `src/paper/` – the torn-paper drawing code shared by the UI and the exports
+- `src/components/ui/`, `src/components/layout/` – design-system components and the app chrome
+- `rules-tests/`, `e2e/` – security rules tests and Playwright flows
 
 ## Branches and releases
 

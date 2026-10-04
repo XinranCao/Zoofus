@@ -112,7 +112,9 @@ test("the book and the tape roll still load stickers and tapes saved by an earli
   await expect(page.getByRole("button", { name: "Open Plain old" })).toBeVisible();
   await expect(page.getByText("We couldn’t load your stickers")).toHaveCount(0);
 
-  await page.goto("/tape");
-  await expect(page.getByRole("button", { name: "Use Old tape" })).toBeVisible();
-  await expect(page.getByText("We couldn’t load your tape roll")).toHaveCount(0);
+  await page.goto("/tapes");
+  await expect(
+    page.getByRole("button", { name: "Make a tape like Old tape" }),
+  ).toBeVisible();
+  await expect(page.getByText("We couldn’t load your tapes")).toHaveCount(0);
 });

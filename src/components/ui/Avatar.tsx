@@ -15,6 +15,11 @@ interface BaseProps {
   state?: "focus";
   /** A non-interactive avatar renders a span. */
   asStatic?: boolean;
+  /**
+   * `sticker`: the picture is a die-cut sticker (transparent, with its own edge) and is shown
+   * with its own shape, not in a round frame.
+   */
+  kind?: "sticker" | "photo";
 }
 
 export type AvatarProps = BaseProps &
@@ -31,11 +36,38 @@ export function Avatar({
   seed,
   state,
   asStatic,
+  kind,
   className,
   style,
   ...rest
 }: AvatarProps) {
   const id = useSeed(seed ?? name);
+  if (kind === "sticker" && src) {
+    const stickerCss = {
+      width: size,
+      height: size,
+      "--rot": seededRot(id, 3),
+      ...style,
+    } as CSSProperties;
+    const img = <img src={src} alt="" className="zf-avatar__sticker" />;
+    return asStatic ? (
+      <span
+        className={cn("zf-avatar is-sticker is-static", className)}
+        style={stickerCss}
+      >
+        {img}
+      </span>
+    ) : (
+      <button
+        type="button"
+        className={cn("zf-avatar is-sticker", className)}
+        style={stickerCss}
+        {...rest}
+      >
+        {img}
+      </button>
+    );
+  }
   const css = {
     "--rot": seededRot(id, 3),
     "--fiber-tone": "var(--cream-100)",

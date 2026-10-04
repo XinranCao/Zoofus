@@ -210,6 +210,8 @@ export async function cjkProblems(
       if (!(el.textContent ?? "").trim()) continue;
       // a sticker tile's button wraps a tilted picture, whose corner pokes out by a pixel or two
       if (el.matches(".zf-tile__open")) continue;
+      // the language switch is plain text buttons, not torn faces
+      if (el.closest(".zf-lang")) continue;
       const face = el.querySelector<HTMLElement>(".zf-face") ?? el;
       // scrollWidth counts text that overflows its box (a label wider than the torn face)
       if (face.scrollWidth > face.clientWidth + 1)
@@ -501,7 +503,7 @@ export async function layoutProblems(page: Page, screen: string): Promise<Proble
 
     // UI tape only: tapes the user designed (roll, studio stage) are content
     const tapes = Array.from(document.querySelectorAll(".zf-tape")).filter(
-      (t) => inView(t) && !t.closest(".zf-roll, [data-user-tape]"),
+      (t) => inView(t) && !t.closest(".zf-roll, .zf-tapetile, [data-user-tape]"),
     );
     if (tapes.length > 6)
       out.push({

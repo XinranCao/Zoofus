@@ -2,18 +2,18 @@
   "stickers": 60,
   "cpuThrottle": "4x",
   "bookLoad": {
-    "generated": 26,
-    "ms": 8.90000006556511,
-    "cache": 26
+    "generated": 27,
+    "ms": 10.299999952316284,
+    "cache": 27
   },
   "afterTapeStudio": {
-    "generated": 88,
-    "ms": 27.100000113248825,
-    "cache": 88
+    "generated": 38,
+    "ms": 13.29999989271164,
+    "cache": 38
   },
   "afterReturningToBook": {
-    "generated": 88,
-    "ms": 27.100000113248825,
-    "cache": 88
+    "generated": 38,
+    "ms": 13.29999989271164,
+    "cache": 38
   }
 }

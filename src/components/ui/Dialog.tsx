@@ -26,6 +26,8 @@ export interface DialogProps {
   /** Called before closing on Esc / outside click; call `preventDefault` to keep it open. */
   onEscapeKeyDown?: (e: KeyboardEvent) => void;
   onInteractOutside?: (e: Event) => void;
+  /** No close button (a step the person must finish). */
+  hideClose?: boolean;
 }
 
 /**
@@ -47,6 +49,7 @@ export function Dialog({
   children,
   onEscapeKeyDown,
   onInteractOutside,
+  hideClose,
 }: DialogProps) {
   const { t } = useTranslation();
   const id = useSeed(seed);
@@ -88,9 +91,11 @@ export function Dialog({
                 )
               }
             >
-              <RDialog.Close className="zf-close" aria-label={t("common.close")}>
-                <Icon name="x" />
-              </RDialog.Close>
+              {!hideClose && (
+                <RDialog.Close className="zf-close" aria-label={t("common.close")}>
+                  <Icon name="x" />
+                </RDialog.Close>
+              )}
               {kicker && (
                 <div className="zf-kicker" style={{ marginBottom: 6 }}>
                   {kicker}

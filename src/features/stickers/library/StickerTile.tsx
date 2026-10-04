@@ -2,6 +2,7 @@ import { ensureFontsFor } from "@/lib/cjkFonts";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
+import { SelectMark } from "@/components/ui/SelectMark";
 import { Tape } from "@/components/ui/Tape";
 import { TextField } from "@/components/ui/TextField";
 import { cn } from "@/lib/cn";
@@ -98,6 +99,9 @@ export function StickerTile({
   onDelete,
   renaming,
   onRenameDone,
+  selecting,
+  selected,
+  onToggle,
 }: {
   sticker: Sticker;
   size?: number;
@@ -108,11 +112,16 @@ export function StickerTile({
   onDelete?: () => void;
   renaming?: boolean;
   onRenameDone?: (name: string | null) => void;
+  /** Bulk-select mode: a tap picks the sticker instead of opening it. */
+  selecting?: boolean;
+  selected?: boolean;
+  onToggle?: () => void;
 }) {
   ensureFontsFor(sticker.name);
   const { t } = useTranslation();
   const body = (
     <>
+      {selecting && <SelectMark selected={Boolean(selected)} />}
       <div
         style={{
           height: size + 34,
@@ -132,8 +141,20 @@ export function StickerTile({
   );
 
   return (
-    <figure className="zf-tile">
-      {renaming ? (
+    <figure
+      className={cn("zf-tile", selecting && "is-selecting", selected && "is-selected")}
+    >
+      {selecting ? (
+        <button
+          type="button"
+          className="zf-tile__open"
+          aria-pressed={Boolean(selected)}
+          aria-label={sticker.name}
+          onClick={onToggle}
+        >
+          {body}
+        </button>
+      ) : renaming ? (
         <>
           <div style={{ height: size + 34, display: "grid", placeItems: "center" }}>
             <StickerImage sticker={sticker} size={size} />
@@ -154,7 +175,7 @@ export function StickerTile({
           {body}
         </div>
       )}
-      {(onRename || onDelete) && !renaming && (
+      {(onRename || onDelete) && !renaming && !selecting && (
         <div
           className="zf-tile__actions"
           role="group"

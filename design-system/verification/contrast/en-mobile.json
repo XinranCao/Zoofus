@@ -1,44 +1,24 @@
 {
-  "checked": 294,
+  "checked": 460,
   "lowest": [
     {
-      "screen": "en/mobile/07-home-empty",
-      "text": "No. 02 · Sticker book",
-      "ratio": 4.97,
-      "min": 4.5,
-      "fg": "#57620d",
-      "bg": "#e8ddd0",
-      "size": 12,
-      "weight": 400
-    },
-    {
-      "screen": "en/mobile/08-menu-open",
-      "text": "No. 02 · Sticker book",
-      "ratio": 4.97,
-      "min": 4.5,
-      "fg": "#57620d",
-      "bg": "#e8ddd0",
-      "size": 12,
-      "weight": 400
-    },
-    {
       "screen": "en/mobile/10-book-empty",
-      "text": "No. 00 · Sticker book",
+      "text": "Everything you’ve cut out. Open one to l",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
       "bg": "#e8ddd0",
-      "size": 12,
+      "size": 14,
       "weight": 400
     },
     {
       "screen": "en/mobile/17-book-grid",
-      "text": "No. 02 · 1 sticker",
+      "text": "Everything you’ve cut out. Open one to l",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
       "bg": "#e8ddd0",
-      "size": 12,
+      "size": 14,
       "weight": 400
     },
     {
@@ -52,78 +32,58 @@
       "weight": 400
     },
     {
-      "screen": "en/mobile/20-tape-studio",
-      "text": "No. 03 · Tape",
+      "screen": "en/mobile/20-tapes",
+      "text": "Washi and masking tape to stick on journ",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
       "bg": "#e8ddd0",
-      "size": 12,
+      "size": 14,
       "weight": 400
     },
     {
-      "screen": "en/mobile/20-tape-studio",
-      "text": "My tape roll · 4",
+      "screen": "en/mobile/20c-journals-empty",
+      "text": "Pages you make from your stickers and ta",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
       "bg": "#e8ddd0",
-      "size": 12,
+      "size": 14,
       "weight": 400
     },
     {
-      "screen": "en/mobile/20-tape-studio",
-      "text": "Pink dots",
+      "screen": "en/mobile/20f-collections",
+      "text": "Your own groups of stickers, tapes and j",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
       "bg": "#e8ddd0",
-      "size": 12,
+      "size": 14,
       "weight": 400
     },
     {
-      "screen": "en/mobile/20-tape-studio",
-      "text": "Lime stripe",
+      "screen": "en/mobile/20g-friends",
+      "text": "Connect with friends to share stickers, ",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
       "bg": "#e8ddd0",
-      "size": 12,
+      "size": 14,
       "weight": 400
     },
     {
-      "screen": "en/mobile/20-tape-studio",
-      "text": "Picnic",
+      "screen": "en/mobile/20h-together",
+      "text": "Make a journal page with friends, all at",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
       "bg": "#e8ddd0",
-      "size": 12,
-      "weight": 400
-    },
-    {
-      "screen": "en/mobile/20-tape-studio",
-      "text": "Masking",
-      "ratio": 4.97,
-      "min": 4.5,
-      "fg": "#57620d",
-      "bg": "#e8ddd0",
-      "size": 12,
+      "size": 14,
       "weight": 400
     },
     {
       "screen": "en/mobile/21-account",
-      "text": "No. 04 · Account",
-      "ratio": 4.97,
-      "min": 4.5,
-      "fg": "#57620d",
-      "bg": "#e8ddd0",
-      "size": 12,
-      "weight": 400
-    },
-    {
-      "screen": "en/mobile/21-account",
-      "text": "ds-en-mobile-1791055676183@example.com",
+      "text": "ds-en-mobile-1791089713351@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -199,6 +159,46 @@
       "fg": "#fbf6ee",
       "bg": "#bc3b22",
       "size": 17,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/08-menu-open",
+      "text": "Upload a photo",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 17,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/09-how-it-works",
+      "text": "Got it",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/13-maker-lasso",
+      "text": "Cut it out",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "en/mobile/14-maker-deselect-mode",
+      "text": "Cut it out",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
       "weight": 400
     }
   ],

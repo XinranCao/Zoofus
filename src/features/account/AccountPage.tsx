@@ -4,11 +4,13 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { Paper } from "@/components/ui/Paper";
 import { Tape } from "@/components/ui/Tape";
 import { TextField } from "@/components/ui/TextField";
 import { ToastNote } from "@/components/ui/Toast";
 import { useAuth } from "@/features/auth/useAuth";
+import { ProfileCard } from "./ProfileCard";
 import { downloadBlob } from "@/features/stickers/studio/export";
 import {
   deleteAccount,
@@ -73,15 +75,14 @@ export default function AccountPage() {
 
   return (
     <div className="zf-page" style={{ maxWidth: 760 }}>
-      <div className="zf-kicker">{t("account.kicker")}</div>
-      <h1 className="zf-display" style={{ margin: "4px 0 6px" }}>
-        {t("account.title")}
-      </h1>
-      <p className="zf-muted" style={{ margin: "0 0 32px" }}>
-        {currentUser.email}
-      </p>
+      <PageHeader
+        title={t("account.title")}
+        lead={currentUser.email}
+        art={["gear", "heart"]}
+      />
 
       <div style={{ display: "grid", gap: 36 }}>
+        <ProfileCard />
         <Paper
           seed="acct-data"
           size="lg"

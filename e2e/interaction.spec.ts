@@ -108,15 +108,16 @@ test.describe("starter tapes", () => {
   test("stay on the roll after the user makes their own tape", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await signUp(page);
-    await page.goto("/tape");
-    await expect(page.getByRole("button", { name: /^Use / })).toHaveCount(4);
+    await page.goto("/tapes");
+    await expect(page.getByRole("button", { name: /^Make a tape like / })).toHaveCount(4);
+    await page.getByRole("button", { name: "New tape" }).first().click();
     await page.getByLabel("Name").fill("Mine");
-    await page.getByRole("button", { name: "Add to my tape roll" }).click();
+    await page.getByRole("button", { name: "Add to my tapes" }).click();
+    await expect(page.getByText("Added to your tapes.", { exact: true })).toBeVisible();
     await expect(
-      page.getByText("Added to your tape roll.", { exact: true }),
+      page.getByRole("button", { name: "Make a tape like Mine" }),
     ).toBeVisible();
-    await expect(page.getByRole("button", { name: "Use Mine" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /^Use / })).toHaveCount(5);
+    await expect(page.getByRole("button", { name: /^Make a tape like / })).toHaveCount(5);
   });
 });
 
@@ -124,7 +125,7 @@ test.describe("drawing pixels", () => {
   test("dragging across the grid paints every cell it crosses", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await signUp(page);
-    await page.goto("/tape");
+    await page.goto("/tapes?make=1");
     await page.getByRole("radio", { name: "Pixels" }).click();
     await page.getByRole("button", { name: "Clear" }).click();
     const grid = page.getByRole("group", { name: /Pixel pattern/ });
@@ -148,7 +149,7 @@ test.describe("drawing pixels", () => {
   test("a plain click and the keyboard still toggle one cell", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await signUp(page);
-    await page.goto("/tape");
+    await page.goto("/tapes?make=1");
     await page.getByRole("radio", { name: "Pixels" }).click();
     await page.getByRole("button", { name: "Clear" }).click();
     const cell = page.getByRole("button", { name: "Row 1 column 1" });
@@ -291,8 +292,10 @@ test.describe("touch", () => {
     await scan("home");
     await page.goto("/stickers");
     await scan("book-empty");
-    await page.goto("/tape");
-    await scan("tape");
+    await page.goto("/tapes");
+    await scan("tapes");
+    await page.goto("/tapes?make=1");
+    await scan("tape-dialog");
     await page.getByRole("radio", { name: "Pixels" }).click();
     await scan("tape-pixels");
     await page.goto("/account");

@@ -1,0 +1,127 @@
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { db, storage } from "@/lib/firebase";
+import { deleteFileIfExists, deleteFolder } from "@/lib/storage";
+import { cleanForFirestore } from "@/paper/patternSchema";
+import {
+  journalDocSchema,
+  MAX_JOURNAL_ITEMS,
+  type Asset,
+  type Item,
+  type Journal,
+  type PageSpec,
+} from "./journal.schema";
+
+const journalsRef = (uid: string) => collection(db, "users", uid, "journals");
+
+export class JournalLimitError extends Error {}
+export const MAX_JOURNALS = 200;
+
+const parse = (id: string, data: unknown): Journal | null => {
+  const r = journalDocSchema.safeParse(data);
+  if (r.success) return { id, ...r.data };
+  console.warn(`Skipping journal ${id}: its data could not be read`, r.error.issues);
+  return null;
+};
+
+export async function listJournals(uid: string): Promise<Journal[]> {
+  const snap = await getDocs(query(journalsRef(uid), orderBy("updatedAt", "desc")));
+  return snap.docs.flatMap((d) => {
+    const j = parse(d.id, d.data());
+    return j ? [j] : [];
+  });
+}
+
+export async function getJournal(uid: string, id: string): Promise<Journal | null> {
+  const snap = await getDoc(doc(journalsRef(uid), id));
+  return snap.exists() ? parse(snap.id, snap.data()) : null;
+}
+
+export interface NewJournal {
+  title: string;
+  page: PageSpec;
+  items?: Item[];
+  assets?: Record<string, Asset>;
+  origin?: { from?: string; workspace?: string };
+  /** Use this id (when files for the journal were already stored under it). */
+  id?: string;
+}
+
+export async function createJournal(
+  uid: string,
+  input: NewJournal,
+  existing = 0,
+): Promise<string> {
+  if (existing >= MAX_JOURNALS) throw new JournalLimitError();
+  const items = input.items ?? [];
+  if (items.length > MAX_JOURNAL_ITEMS) throw new JournalLimitError();
+  const id = input.id ?? crypto.randomUUID();
+  await setDoc(doc(journalsRef(uid), id), {
+    title: input.title,
+    page: cleanForFirestore(input.page),
+    items: cleanForFirestore(items),
+    ...(input.assets && Object.keys(input.assets).length
+      ? { assets: cleanForFirestore(input.assets) }
+      : {}),
+    ...(input.origin ? { origin: cleanForFirestore(input.origin) } : {}),
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return id;
+}
+
+export interface JournalChanges {
+  title?: string;
+  page?: PageSpec;
+  items?: Item[];
+  /** A new thumbnail (WebP). It replaces the previous one. */
+  thumb?: Blob | null;
+}
+
+export async function saveJournal(
+  uid: string,
+  journal: Pick<Journal, "id" | "thumbPath">,
+  changes: JournalChanges,
+): Promise<void> {
+  if (changes.items && changes.items.length > MAX_JOURNAL_ITEMS)
+    throw new JournalLimitError();
+  const update: Record<string, unknown> = { updatedAt: serverTimestamp() };
+  if (changes.title !== undefined) update.title = changes.title;
+  if (changes.page) update.page = cleanForFirestore(changes.page);
+  if (changes.items) update.items = cleanForFirestore(changes.items);
+  let newThumbPath: string | undefined;
+  if (changes.thumb) {
+    // a new name every time, so a cached picture is never served for the new page
+    newThumbPath = `${uid}/journals/${journal.id}/thumb_${Date.now()}.webp`;
+    const fileRef = ref(storage, newThumbPath);
+    await uploadBytes(fileRef, changes.thumb, { contentType: "image/webp" });
+    update.thumbUrl = await getDownloadURL(fileRef);
+    update.thumbPath = newThumbPath;
+  }
+  await updateDoc(doc(journalsRef(uid), journal.id), update);
+  if (newThumbPath && journal.thumbPath && journal.thumbPath !== newThumbPath)
+    await deleteFileIfExists(ref(storage, journal.thumbPath)).catch(() => {});
+}
+
+export async function renameJournal(uid: string, id: string, title: string) {
+  await updateDoc(doc(journalsRef(uid), id), { title, updatedAt: serverTimestamp() });
+}
+
+/** Deletes the journal and every file it owns (its thumbnail and any pictures kept inside it). */
+export async function deleteJournal(uid: string, id: string): Promise<void> {
+  await deleteDoc(doc(journalsRef(uid), id));
+  await deleteFolder(`${uid}/journals/${id}`).catch((err) =>
+    console.warn("Could not remove a journal's files", err),
+  );
+}

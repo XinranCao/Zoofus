@@ -25,17 +25,27 @@ export function StickerMakerDialog({
   open,
   onOpenChange,
   initialFile,
+  onAvatar,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** A photo dropped on Home or picked there; opens straight into the maker. */
   initialFile?: File | null;
+  /**
+   * Makes the maker produce a profile picture instead of a sticker for the book: the last step
+   * offers "Use as my picture", and this receives the finished die-cut sticker.
+   */
+  onAvatar?: (sticker: HTMLCanvasElement) => Promise<void>;
 }) {
   // Unmounting on close gives every visit a fresh editor.
   if (!open) return null;
   return (
     <EditorStoreProvider>
-      <MakerBody onClose={() => onOpenChange(false)} initialFile={initialFile} />
+      <MakerBody
+        onClose={() => onOpenChange(false)}
+        initialFile={initialFile}
+        onAvatar={onAvatar}
+      />
     </EditorStoreProvider>
   );
 }
@@ -43,10 +53,13 @@ export function StickerMakerDialog({
 function MakerBody({
   onClose,
   initialFile,
+  onAvatar,
 }: {
   onClose: () => void;
   initialFile?: File | null;
+  onAvatar?: (sticker: HTMLCanvasElement) => Promise<void>;
 }) {
+  const [usingPicture, setUsingPicture] = useState(false);
   const { t, i18n } = useTranslation();
   const toast = useToast();
   const intake = useImageIntake();
@@ -103,7 +116,9 @@ function MakerBody({
   const requestClose = () => (dirty ? setLeaving(true) : onClose());
 
   const stage = !imageUrl ? "empty" : view === "result" ? "result" : "lasso";
-  const title = t(`maker.title.${status === "loading" ? "empty" : stage}`);
+  const title = onAvatar
+    ? t(`maker.avatarTitle.${status === "loading" ? "empty" : stage}`)
+    : t(`maker.title.${status === "loading" ? "empty" : stage}`);
   const kicker = view === "result" ? t("maker.kicker2") : t("maker.kicker1");
 
   const bake = async () => {
@@ -146,8 +161,42 @@ function MakerBody({
     downloadBlob(await canvasToPng(sticker), "zoofus-sticker.png");
   };
 
+  const onUsePicture = async () => {
+    if (!source || !onAvatar) return;
+    setUsingPicture(true);
+    try {
+      await onAvatar(await bake());
+      onClose();
+    } catch (err) {
+      console.error("Setting the profile picture failed", err);
+      toast.push({
+        kind: "error",
+        title: t("auth.errors.toastTitle"),
+        body: t("account.pictureFailed"),
+      });
+    } finally {
+      setUsingPicture(false);
+    }
+  };
+
   const actions =
-    view === "result" ? (
+    view === "result" && onAvatar ? (
+      <>
+        <Button variant="quiet" icon="undo" seed="ba" onClick={backToEdit}>
+          {t("maker.edge.back")}
+        </Button>
+        <Button
+          variant="primary"
+          icon="check"
+          seed="usepic"
+          disabled={!source}
+          loading={usingPicture}
+          onClick={() => void onUsePicture()}
+        >
+          {usingPicture ? t("maker.edge.saving") : t("account.usePicture")}
+        </Button>
+      </>
+    ) : view === "result" ? (
       <>
         <Button variant="quiet" icon="undo" seed="ba" onClick={backToEdit}>
           {t("maker.edge.back")}

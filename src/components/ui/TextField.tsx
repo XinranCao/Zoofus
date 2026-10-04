@@ -15,6 +15,11 @@ interface BaseProps {
   seed?: string;
   /** Preview only. */
   state?: "focus";
+  /** A box for several lines of text. */
+  multiline?: boolean;
+  /** Keep the label for screen readers but do not show it (the surroundings say what the field is). */
+  hideLabel?: boolean;
+  rows?: number;
 }
 
 export type TextFieldProps = BaseProps & Omit<ComponentProps<"input">, keyof BaseProps>;
@@ -30,6 +35,9 @@ export function TextField({
   error,
   seed,
   state,
+  multiline,
+  hideLabel,
+  rows = 4,
   id: idProp,
   className,
   disabled,
@@ -55,7 +63,7 @@ export function TextField({
         className,
       )}
     >
-      <RLabel.Root className="zf-field__label" htmlFor={id}>
+      <RLabel.Root className={cn("zf-field__label", hideLabel && "sr-only")} htmlFor={id}>
         {label}
       </RLabel.Root>
       {/* a tap anywhere on the scrap, torn margin included, focuses the field */}
@@ -63,7 +71,7 @@ export function TextField({
         className="zf-field__box zf-torn"
         style={boxStyle}
         onPointerDown={(e) => {
-          const el = e.currentTarget.querySelector("input");
+          const el = e.currentTarget.querySelector<HTMLElement>("input, textarea");
           if (el && e.target !== el && !disabled) {
             e.preventDefault();
             el.focus();
@@ -71,14 +79,25 @@ export function TextField({
         }}
       >
         <div className="zf-face">
-          <input
-            id={id}
-            ref={ref}
-            disabled={disabled}
-            aria-invalid={error ? true : undefined}
-            aria-describedby={describedBy}
-            {...input}
-          />
+          {multiline ? (
+            <textarea
+              id={id}
+              rows={rows}
+              disabled={disabled}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={describedBy}
+              {...(input as unknown as ComponentProps<"textarea">)}
+            />
+          ) : (
+            <input
+              id={id}
+              ref={ref}
+              disabled={disabled}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={describedBy}
+              {...input}
+            />
+          )}
           <Scribble seed={s} variant={error ? "wave" : "line"} />
         </div>
       </div>

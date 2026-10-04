@@ -176,3 +176,40 @@ describe("everything else", () => {
     await assertFails(uploadBytes(ref(storage, "random.png"), bytes(10), png));
   });
 });
+
+describe("journals, shares and workspaces", () => {
+  for (const folder of ["journals", "shares", "collab"]) {
+    it(`${folder}: the owner uploads pictures and reads them back; nobody else does`, async () => {
+      const mine = env.authenticatedContext("alice").storage();
+      const file = ref(mine, `alice/${folder}/x/a.webp`);
+      await assertSucceeds(uploadBytes(file, bytes(100), { contentType: "image/webp" }));
+      await assertSucceeds(getBytes(file));
+      await assertFails(
+        getBytes(
+          ref(env.authenticatedContext("bob").storage(), `alice/${folder}/x/a.webp`),
+        ),
+      );
+      await assertFails(
+        uploadBytes(
+          ref(env.authenticatedContext("bob").storage(), `alice/${folder}/x/b.webp`),
+          bytes(10),
+          { contentType: "image/webp" },
+        ),
+      );
+      await assertFails(
+        uploadBytes(ref(mine, `alice/${folder}/x/c.html`), bytes(10), {
+          contentType: "text/html",
+        }),
+      );
+      await assertSucceeds(deleteObject(file));
+    });
+  }
+  it("an unknown folder is denied", async () => {
+    const mine = env.authenticatedContext("alice").storage();
+    await assertFails(
+      uploadBytes(ref(mine, "alice/misc/a.webp"), bytes(10), {
+        contentType: "image/webp",
+      }),
+    );
+  });
+});

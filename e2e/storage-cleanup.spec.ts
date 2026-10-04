@@ -56,7 +56,7 @@ test("deleting a sticker removes its image and source from Storage", async ({ pa
   await page.goto("/stickers");
   await page.getByRole("button", { name: /^Delete: Cut / }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Delete" }).click();
-  await expect(page.getByText("No. 00 · Sticker book")).toBeVisible();
+  await expect(page.getByText("No stickers yet")).toBeVisible();
 
   // the delete is deferred a few seconds (for Undo), then both files must be gone
   await expect

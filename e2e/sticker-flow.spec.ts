@@ -44,7 +44,9 @@ test("sign up, cut and save a sticker, then delete the account", async ({ page }
 
   // It shows up in the sticker book
   await page.goto("/stickers");
-  await expect(page.getByRole("heading", { name: "My sticker book" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Stickers", exact: true }),
+  ).toBeVisible();
   const open = page.getByRole("button", { name: /^Open Cut / });
   await expect(open).toBeVisible();
 
@@ -69,13 +71,13 @@ test("sign up, cut and save a sticker, then delete the account", async ({ page }
   // Delete with a confirmation, then Undo brings it back
   await page.getByRole("button", { name: "Delete: Blue square" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Delete" }).click();
-  await expect(page.getByText("No. 00 · Sticker book")).toBeVisible();
+  await expect(page.getByText("No stickers yet")).toBeVisible();
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(page.getByText("Blue square")).toBeVisible();
 
   // Tape studio: turn with the keyboard, pick a preset direction, add to the roll
-  await page.getByRole("link", { name: "Tape" }).click();
-  await expect(page.getByRole("heading", { name: "Tape studio" })).toBeVisible();
+  await page.goto("/tapes?make=1");
+  await expect(page.getByRole("dialog", { name: "New tape" })).toBeVisible();
   const handle = page.getByRole("slider", { name: /Turn tape/ });
   await handle.focus();
   await page.keyboard.press("ArrowRight");
@@ -83,9 +85,11 @@ test("sign up, cut and save a sticker, then delete the account", async ({ page }
   await page.getByRole("button", { name: "45 degrees", exact: true }).click();
   await expect(page.getByText("Direction · 45°")).toBeVisible();
   await page.getByLabel("Name").fill("E2E tape");
-  await page.getByRole("button", { name: "Add to my tape roll" }).click();
-  await expect(page.getByText("Added to your tape roll.", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Use E2E tape" })).toBeVisible();
+  await page.getByRole("button", { name: "Add to my tapes" }).click();
+  await expect(page.getByText("Added to your tapes.", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Make a tape like E2E tape" }),
+  ).toBeVisible();
 
   // Delete the account: everything is removed and we land on a public page
   await page.goto("/account");

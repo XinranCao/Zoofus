@@ -105,6 +105,9 @@ export function tearEdge(R: Rng, len: number, o: ResolvedOptions): EdgePoint[] {
       lead: 0.2 + R() * 0.6,
     });
   }
+  // Short edges (a 28px swatch, a 34px avatar) get a calmer tear: the fine, per-point jitter that
+  // reads as paper fibre on a card reads as stray spikes on something this small.
+  const calm = Math.min(1, Math.max(0.3, len / 140));
   const pts: EdgePoint[] = [];
   let min = Infinity;
   for (let i = 0; i <= n; i++) {
@@ -112,7 +115,8 @@ export function tearEdge(R: Rng, len: number, o: ResolvedOptions): EdgePoint[] {
     if (i > 0 && i < n) t += ((R() - 0.5) * 0.7) / n;
     const r = Math.min(1, roughBase + rough(t) * 0.9);
     let d =
-      o.amp * (bow * big(t) + 0.5 * mid(t) + r * (0.55 * fine(t) + 0.45 * R() * R())) +
+      o.amp *
+        (bow * big(t) + 0.5 * mid(t) + calm * r * (0.55 * fine(t) + 0.45 * R() * R())) +
       slope * o.amp * t;
     for (const bt of bites) {
       // asymmetric bite: steep on one side, slow on the other
@@ -126,10 +130,14 @@ export function tearEdge(R: Rng, len: number, o: ResolvedOptions): EdgePoint[] {
     if (d < min) min = d;
   }
   for (const p of pts) {
-    const fw = Math.min(
+    // Big scraps have a lip that comes and goes like torn fibre. On a small piece that reads as
+    // stray slivers, so there it is a steady strip with only a gentle swell.
+    const wavy = Math.min(
       o.fiber,
       o.fiber * lip * Math.max(0.12, (p.fb ?? 0) * 1.7 - 0.3) * (0.75 + 0.5 * R()),
     );
+    const steady = o.fiber * (0.55 + 0.45 * (p.fb ?? 0));
+    const fw = len < 100 ? steady : wavy;
     p.d = p.d - min + o.fiber;
     p.f = p.d - fw; // the fibre sits outside the face, inside the box
   }
