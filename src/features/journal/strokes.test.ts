@@ -3,6 +3,7 @@ import { MAX_STROKE_CHARS } from "./journal.schema";
 import {
   decodeStroke,
   distToSegment,
+  erasePieces,
   encodeStroke,
   simplify,
   strokesFromLine,
@@ -79,5 +80,31 @@ describe("strokesFromLine", () => {
     const b = decodeStroke(strokes[1]!);
     expect(b[0]).toBeCloseTo(a[a.length - 2]!, 1);
     expect(b[1]).toBeCloseTo(a[a.length - 1]!, 1);
+  });
+});
+
+describe("erasePieces", () => {
+  const line = [0, 0, 100, 0];
+  it("leaves a line alone when the eraser is far away", () => {
+    expect(erasePieces([line], 0, 50, 100, 50, 6)).toEqual([line]);
+  });
+  it("rubs out only the part the eraser went over", () => {
+    const out = erasePieces([line], 50, -10, 50, 10, 6);
+    expect(out).toHaveLength(2);
+    const [left, right] = out as [number[], number[]];
+    expect(Math.max(...left.filter((_, i) => i % 2 === 0))).toBeLessThan(50);
+    expect(Math.min(...right.filter((_, i) => i % 2 === 0))).toBeGreaterThan(50);
+    // both halves are still most of the line
+    expect(Math.max(...left.filter((_, i) => i % 2 === 0))).toBeGreaterThan(40);
+    expect(Math.min(...right.filter((_, i) => i % 2 === 0))).toBeLessThan(60);
+  });
+  it("does not touch other lines the eraser did not reach", () => {
+    const a = [0, 0, 100, 0];
+    const b = [0, 40, 100, 40];
+    const out = erasePieces([a, b], 50, -10, 50, 10, 6);
+    expect(out).toContainEqual(b);
+  });
+  it("removes a line the eraser covers entirely", () => {
+    expect(erasePieces([[10, 0, 20, 0]], 0, 0, 40, 0, 8)).toEqual([]);
   });
 });

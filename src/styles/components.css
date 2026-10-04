@@ -680,6 +680,32 @@
   .zf-menu__item:focus-visible {
     outline: none;
   }
+  .zf-select .zf-face {
+    gap: 8px;
+    justify-content: space-between;
+    min-width: 150px;
+    max-width: 100%;
+  }
+  .zf-select__value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .zf-select__menu {
+    max-width: min(340px, calc(100vw - 24px));
+  }
+  .zf-select__list {
+    max-height: min(340px, 55vh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .zf-select__group {
+    padding: 8px 10px 2px;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--ink-muted);
+    opacity: 0.8;
+  }
   .zf-toast .zf-face {
     display: flex;
     gap: 10px;
@@ -834,7 +860,9 @@
   }
   .zf-tile__actions {
     display: flex;
-    gap: 2px;
+    flex-wrap: wrap;
+    max-width: 100%;
+    gap: 0 2px;
     justify-content: center;
     opacity: 0;
     transition: opacity var(--dur-quick);
@@ -985,6 +1013,15 @@
     color: var(--on-accent);
     clip-path: polygon(6% 12%, 94% 0, 100% 88%, 4% 100%);
   }
+  .zf-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-left: 6px;
+    vertical-align: super;
+    background: var(--accent);
+    clip-path: polygon(10% 18%, 90% 0, 100% 84%, 6% 100%);
+  }
   .zf-page {
     max-width: 1280px;
     margin: 0 auto;
@@ -993,7 +1030,7 @@
   .zf-grid-book {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 36px 28px;
+    gap: 22px 14px;
   }
   @media (max-width: 759px) {
     .zf-masthead__row {
@@ -1027,7 +1064,7 @@
     }
     .zf-grid-book {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 28px 16px;
+      gap: 20px 10px;
     }
     .zf-hide-m {
       display: none !important;
@@ -1377,10 +1414,67 @@
   }
 }
 
+/* ---------- a collection's folder: its pictures lie in it and spring out when you point at it ---------- */
+.zf-fold {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  aspect-ratio: 190 / 150;
+  margin: 0 auto;
+}
+.zf-fold__back,
+.zf-fold__front {
+  position: absolute !important;
+  left: 0;
+  right: 0;
+}
+.zf-fold__back {
+  top: 8%;
+  bottom: 0;
+}
+.zf-fold__front {
+  bottom: 0;
+  height: 56%;
+  z-index: 5;
+}
+.zf-fold__items {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+.zf-fold__item {
+  position: absolute;
+  left: calc(50% + var(--x));
+  top: calc(32% + var(--y));
+  width: 36%;
+  max-height: 52%;
+  object-fit: contain;
+  transform: translate(-50%, -50%) rotate(var(--r));
+  transition: transform 340ms var(--ease-paper) var(--d);
+  filter: none;
+}
+.zf-tile:hover .zf-fold__item,
+.zf-tile:focus-within .zf-fold__item {
+  transform: translate(calc(-50% + var(--fx)), calc(-50% + var(--fy)))
+    rotate(calc(var(--r) + var(--fr))) scale(1.12);
+}
+@media (prefers-reduced-motion: reduce) {
+  .zf-fold__item {
+    transition: none;
+  }
+}
+
 /* ---------- page header ---------- */
+.zf-pageheader__title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 52px;
+}
 .zf-pageheader {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 16px 24px;
   flex-wrap: wrap;

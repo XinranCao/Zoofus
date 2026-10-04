@@ -18,6 +18,7 @@ export const publicProfileSchema = z.object({
   nickname: z.string(),
   avatarUrl: z.string().catch(""),
   avatarKind: z.enum(["sticker", "photo"]).optional().catch(undefined),
+  avatarKey: z.string().optional().catch(undefined),
   friendCode: z.string(),
 });
 export type PublicProfile = z.infer<typeof publicProfileSchema>;
@@ -87,6 +88,8 @@ export const shareDocSchema = z.object({
   payload: z.unknown(),
   files: z.array(z.string()).catch([]),
   seen: z.boolean().catch(false),
+  /** I have kept it as my own: it can only be kept once. */
+  saved: z.boolean().catch(false),
   createdAt: date,
 });
 

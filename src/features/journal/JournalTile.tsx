@@ -19,6 +19,7 @@ export function JournalTile({
   onToggle,
   onRename,
   onDelete,
+  onShare,
 }: {
   journal: Journal;
   date?: string;
@@ -28,6 +29,7 @@ export function JournalTile({
   onToggle?: () => void;
   onRename?: () => void;
   onDelete?: () => void;
+  onShare?: () => void;
 }) {
   const { t } = useTranslation();
   ensureFontsFor(journal.title);
@@ -100,12 +102,24 @@ export function JournalTile({
           {inner}
         </Link>
       )}
-      {!selecting && (onRename || onDelete) && (
+      {!selecting && (onRename || onDelete || onShare) && (
         <div
           className="zf-tile__actions"
           role="group"
           aria-label={t("journal.actionsFor", { title: journal.title })}
         >
+          {onShare && (
+            <Button
+              variant="quiet"
+              size="sm"
+              icon="send"
+              seed={"jsh" + journal.id}
+              aria-label={`${t("bulk.share")}: ${journal.title}`}
+              onClick={onShare}
+            >
+              {t("bulk.share")}
+            </Button>
+          )}
           {onRename && (
             <Button
               variant="quiet"

@@ -20,6 +20,7 @@ import type { Asset, Item, PageSpec } from "@/features/journal/journal.schema";
 import type { Sticker } from "@/features/stickers/library/sticker.schema";
 import type { TapeSpec } from "@/features/tape/tape.schema";
 import { db, storage } from "@/lib/firebase";
+import { toInlinePicture } from "@/lib/inlinePicture";
 import { deleteFolder } from "@/lib/storage";
 import { cleanForFirestore } from "@/paper/patternSchema";
 import {
@@ -31,6 +32,9 @@ import {
   type ShelfEntry,
   type Workspace,
 } from "./workspace.schema";
+
+/** The most a sticker on the shelf may weigh: well under the 1 MiB a document can hold. */
+const SHELF_INLINE = { maxSide: 560, maxChars: 150_000 } as const;
 
 const ws = (id: string) => doc(db, "workspaces", id);
 const sub = (id: string, name: string) => collection(db, "workspaces", id, name);
@@ -242,29 +246,23 @@ export function watchShelf(id: string, on: (shelf: ShelfEntry[]) => void): Unsub
   });
 }
 
-/** Put one of my stickers on the shelf: a copy of its picture in my own folder, for everyone to use. */
+/**
+ * Put one of my stickers on the shelf for everyone to use. Members cannot read each other's files,
+ * so the picture goes into the shelf entry itself, shrunk to a size that suits a page. It costs no
+ * Storage, and it goes away with the workspace.
+ */
 export async function addStickerToShelf(
   wid: string,
   me: string,
   sticker: Sticker,
 ): Promise<string> {
-  const res = await fetch(sticker.imageUrl);
-  if (!res.ok) throw new Error("Could not read the sticker");
-  const raw = await res.blob();
-  const blob =
-    raw.type === "image/png" || raw.type === "image/webp"
-      ? raw
-      : new Blob([raw], { type: "image/webp" });
+  const pic = await toInlinePicture(sticker.imageUrl, SHELF_INLINE);
   const aid = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
-  const path = `${me}/collab/${wid}/${aid}.${blob.type === "image/png" ? "png" : "webp"}`;
-  const r = ref(storage, path);
-  await uploadBytes(r, blob, { contentType: blob.type });
-  const url = await getDownloadURL(r);
   await setDoc(doc(sub(wid, "assets"), aid), {
     kind: "sticker",
     owner: me,
-    url,
-    path,
+    url: pic.url,
+    // the shape of the original, so a sticker keeps its proportions
     w: sticker.width,
     h: sticker.height,
     name: sticker.name,

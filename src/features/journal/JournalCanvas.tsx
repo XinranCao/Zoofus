@@ -34,7 +34,7 @@ import {
 } from "./journal.schema";
 import { drawPaper } from "./paper";
 import { topZ, type Op } from "./ops";
-import { decodeStroke, strokesFromLine, touchesStroke } from "./strokes";
+import { decodeStroke, erasePieces, strokesFromLine } from "./strokes";
 import { useTapeCanvas } from "./tapeCanvas";
 import type { JournalTool, PenState, TextStyle } from "./store/journalStore";
 
@@ -79,12 +79,50 @@ function pointsOf(item: StrokeItem): number[] {
   return p;
 }
 
+// ------------------------------------------------------------------ picking
+
+/** Which parts of a picture are ink (not see-through), so a click on the empty corner passes through. */
+export interface AlphaMask {
+  /** `u`, `v` are 0..1 across the picture. */
+  hit: (u: number, v: number) => boolean;
+}
+const MASK_SIDE = 96;
+function makeMask(image: HTMLImageElement): AlphaMask | null {
+  try {
+    const k = MASK_SIDE / Math.max(image.naturalWidth, image.naturalHeight, 1);
+    const w = Math.max(1, Math.round(image.naturalWidth * k));
+    const h = Math.max(1, Math.round(image.naturalHeight * k));
+    const c = document.createElement("canvas");
+    c.width = w;
+    c.height = h;
+    const g = c.getContext("2d", { willReadFrequently: true });
+    if (!g) return null;
+    g.drawImage(image, 0, 0, w, h);
+    const data = g.getImageData(0, 0, w, h).data;
+    return {
+      hit: (u, v) => {
+        // a one-pixel margin, so thin parts of a sticker are easy to catch
+        const x = Math.min(w - 1, Math.max(0, Math.floor(u * w)));
+        const y = Math.min(h - 1, Math.max(0, Math.floor(v * h)));
+        for (let dy = -1; dy <= 1; dy++)
+          for (let dx = -1; dx <= 1; dx++) {
+            const xx = x + dx;
+            const yy = y + dy;
+            if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
+            if (data[(yy * w + xx) * 4 + 3]! > 24) return true;
+          }
+        return false;
+      },
+    };
+  } catch {
+    return null; // the picture cannot be read: treat all of it as solid
+  }
+}
+
 // ------------------------------------------------------------------ the nodes
 
 interface NodeProps<T> {
   item: T;
-  editable: boolean;
-  onSelect: (id: string) => void;
   onPut: (item: Item) => void;
   register: (id: string, node: Konva.Node | null) => void;
   /** The picture has loaded, so the node now exists and can take handles. */
@@ -94,21 +132,26 @@ interface NodeProps<T> {
 const StickerNode = memo(function StickerNode({
   item,
   info,
-  editable,
-  onSelect,
   onPut,
   register,
   onReady,
-}: NodeProps<StickerItem> & { info: StickerInfo | null }) {
+  masks,
+}: NodeProps<StickerItem> & {
+  info: StickerInfo | null;
+  masks: Map<string, AlphaMask | null>;
+}) {
   const image = useLoadedImage(info?.url ?? null, "anonymous");
   useEffect(() => {
-    if (image) onReady?.();
+    if (image) {
+      masks.set(item.id, makeMask(image));
+      onReady?.();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- when the picture arrives
   }, [image]);
   const long = info ? Math.max(info.w, info.h) : 1;
   const f = (STICKER_BASE * item.sc) / long;
   const w = (info?.w ?? 100) * f;
-  const h = (info?.h ?? 100) * f;
+  const h = (info?.h ?? 100) * f * (item.sy ?? 1);
   if (!image) {
     // a stand-in while it loads, or if it is gone (the sticker was deleted)
     return (
@@ -125,10 +168,7 @@ const StickerNode = memo(function StickerNode({
         stroke="#6c4a3b"
         dash={[6, 6]}
         strokeWidth={1.5}
-        draggable={editable}
-        onClick={() => onSelect(item.id)}
-        onTap={() => onSelect(item.id)}
-        onDragEnd={(e) => onPut({ ...item, x: e.target.x(), y: e.target.y() })}
+        listening={false}
       />
     );
   }
@@ -143,36 +183,31 @@ const StickerNode = memo(function StickerNode({
       offsetX={w / 2}
       offsetY={h / 2}
       rotation={item.r}
-      draggable={editable}
-      listening={editable}
-      onClick={() => onSelect(item.id)}
-      onTap={() => onSelect(item.id)}
-      onDragStart={() => onSelect(item.id)}
-      onDragEnd={(e) => onPut({ ...item, x: e.target.x(), y: e.target.y() })}
+      listening={false}
       onTransformEnd={(e) => {
         const n = e.target;
-        const k = (Math.abs(n.scaleX()) + Math.abs(n.scaleY())) / 2;
+        const sx = Math.abs(n.scaleX());
+        const sy = Math.abs(n.scaleY());
         n.scaleX(1);
         n.scaleY(1);
+        const stretch = ((item.sy ?? 1) * sy) / sx;
         onPut({
           ...item,
           x: n.x(),
           y: n.y(),
           r: Math.round(n.rotation() * 10) / 10,
-          sc: Math.min(40, Math.max(0.02, item.sc * k)),
+          sc: Math.min(40, Math.max(0.02, item.sc * sx)),
+          sy:
+            Math.abs(stretch - 1) < 0.02
+              ? undefined
+              : Math.min(20, Math.max(0.05, stretch)),
         });
       }}
     />
   );
 });
 
-const TapeNode = memo(function TapeNode({
-  item,
-  editable,
-  onSelect,
-  onPut,
-  register,
-}: NodeProps<TapeItem>) {
+const TapeNode = memo(function TapeNode({ item, onPut, register }: NodeProps<TapeItem>) {
   const canvas = useTapeCanvas(
     item.tape.pattern,
     item.len,
@@ -196,12 +231,7 @@ const TapeNode = memo(function TapeNode({
       rotation={item.r}
       opacity={item.tape.opacity}
       globalCompositeOperation="multiply"
-      draggable={editable}
-      listening={editable}
-      onClick={() => onSelect(item.id)}
-      onTap={() => onSelect(item.id)}
-      onDragStart={() => onSelect(item.id)}
-      onDragEnd={(e) => onPut({ ...item, x: e.target.x(), y: e.target.y() })}
+      listening={false}
       onTransformEnd={(e) => {
         const n = e.target;
         const sx = n.scaleX();
@@ -226,8 +256,6 @@ const TapeNode = memo(function TapeNode({
 
 const TextNodeView = memo(function TextNodeView({
   item,
-  editable,
-  onSelect,
   onPut,
   register,
 }: NodeProps<TextItem>) {
@@ -265,12 +293,7 @@ const TextNodeView = memo(function TextNodeView({
       width={item.w}
       lineHeight={1.25}
       rotation={item.r}
-      draggable={editable}
-      listening={editable}
-      onClick={() => onSelect(item.id)}
-      onTap={() => onSelect(item.id)}
-      onDragStart={() => onSelect(item.id)}
-      onDragEnd={(e) => onPut({ ...item, x: e.target.x(), y: e.target.y() })}
+      listening={false}
       onTransformEnd={(e) => {
         const n = e.target as Konva.Text;
         const sx = Math.abs(n.scaleX());
@@ -364,10 +387,28 @@ export const JournalCanvas = memo(function JournalCanvas({
   const transformer = useRef<Konva.Transformer>(null);
   const [line, setLine] = useState<number[] | null>(null);
   const liveLine = useRef<number[] | null>(null);
-  const [erased, setErased] = useState<Set<string>>(new Set());
+  /** Lines being rubbed out: what is left of each, as pieces. */
+  const [erased, setErased] = useState<Map<string, number[][]>>(new Map());
   const [nodeVersion, setNodeVersion] = useState(0);
   const bump = useCallback(() => setNodeVersion((v) => v + 1), []);
-  const erasing = useRef<Set<string> | null>(null);
+  const erasing = useRef<{
+    last: readonly [number, number] | null;
+    left: Map<string, number[][]>;
+  } | null>(null);
+  const [masks] = useState(() => new Map<string, AlphaMask | null>());
+  /** Moving the chosen object: where the pointer and the object started. */
+  const dragging = useRef<{
+    id: string;
+    sx: number;
+    sy: number;
+    nx: number;
+    ny: number;
+    moved: boolean;
+  } | null>(null);
+  /** A press on the page in the select tool: what lay under it, to pick through on a plain click. */
+  const press = useRef<{ x: number; y: number; hits: string[]; again: boolean } | null>(
+    null,
+  );
 
   const editing = editor?.tool === "select";
   const selectedId = editor?.selectedId ?? null;
@@ -384,12 +425,34 @@ export const JournalCanvas = memo(function JournalCanvas({
     if (node) nodes.current.set(id, node);
     else nodes.current.delete(id);
   };
-  const onSelect = (id: string) => editing && editor?.onSelect(id);
   const onPut = (item: Item) => editor?.onOps([{ k: "put", item }]);
 
   const pointer = (e: KonvaEventObject<PointerEvent>) => {
     const p = e.target.getStage()?.getRelativePointerPosition();
     return p ? ([p.x, p.y] as const) : null;
+  };
+
+  /** Everything under the pointer, topmost first. Sticker pictures count only where they have ink. */
+  const hitsAt = (stage: Konva.Stage): string[] => {
+    const abs = stage.getPointerPosition();
+    if (!abs) return [];
+    const out: string[] = [];
+    for (let i = items.length - 1; i >= 0; i--) {
+      const it = items[i]!;
+      if (it.t === "p") continue;
+      const node = nodes.current.get(it.id);
+      if (!node) continue;
+      const local = node.getAbsoluteTransform().copy().invert().point(abs);
+      const w = node.width();
+      const h = node.height();
+      if (local.x < 0 || local.y < 0 || local.x > w || local.y > h) continue;
+      if (it.t === "s") {
+        const mask = masks.get(it.id);
+        if (mask && !mask.hit(local.x / w, local.y / h)) continue;
+      }
+      out.push(it.id);
+    }
+    return out;
   };
 
   const down = (e: KonvaEventObject<PointerEvent>) => {
@@ -400,10 +463,28 @@ export const JournalCanvas = memo(function JournalCanvas({
       liveLine.current = [p[0], p[1]];
       setLine(liveLine.current);
     } else if (editor.tool === "erase") {
-      erasing.current = new Set();
-      eraseAt(p[0], p[1]);
-    } else if (editor.tool === "select" && e.target === e.target.getStage()) {
-      editor.onSelect(null);
+      erasing.current = { last: null, left: new Map() };
+      eraseTo(p[0], p[1]);
+    } else if (editor.tool === "select") {
+      // the handles take their own presses
+      if (e.target.getParent()?.className === "Transformer") return;
+      const stage = e.target.getStage();
+      const hits = stage ? hitsAt(stage) : [];
+      const current = editor.selectedId;
+      if (hits.length === 0) {
+        press.current = null;
+        return editor.onSelect(null);
+      }
+      // pressing on the chosen object keeps it (so it can be dragged even when something lies on
+      // top); a plain click there then passes to the next one underneath (see `up`)
+      const keep = current !== null && hits.includes(current);
+      const id = keep ? current : hits[0]!;
+      press.current = { x: p[0], y: p[1], hits, again: keep };
+      if (id !== current) editor.onSelect(id);
+      const node = nodes.current.get(id);
+      dragging.current = node
+        ? { id, sx: p[0], sy: p[1], nx: node.x(), ny: node.y(), moved: false }
+        : null;
     } else if (editor.tool === "text") {
       const id = newId();
       editor.onOps([
@@ -427,26 +508,38 @@ export const JournalCanvas = memo(function JournalCanvas({
       editor.onSelect(id);
     }
   };
-  const eraseAt = (x: number, y: number) => {
-    const set = erasing.current;
-    if (!set) return;
-    const radius = Math.max(8, editor?.pen.size ?? 8) * 1.4;
+  /** Rub out the part of each line the eraser went over between its last place and (x, y). */
+  const eraseTo = (x: number, y: number) => {
+    const e = erasing.current;
+    if (!e) return;
+    const [lx, ly] = e.last ?? [x, y];
+    e.last = [x, y];
+    const radius = Math.max(4, editor?.pen.size ?? 8) * 0.8;
     let changed = false;
     for (const i of items) {
-      if (i.t !== "p" || set.has(i.id)) continue;
-      const half = (i.size * PEN_LOOK[i.tool].wide) / 2;
-      if (touchesStroke(pointsOf(i), x, y, radius + half)) {
-        set.add(i.id);
+      if (i.t !== "p") continue;
+      const before = e.left.get(i.id) ?? [pointsOf(i)];
+      const reach = radius + (i.size * PEN_LOOK[i.tool].wide) / 2;
+      const after = erasePieces(before, lx, ly, x, y, reach);
+      if (after.length !== before.length || after.some((pc, k) => pc !== before[k])) {
+        e.left.set(i.id, after);
         changed = true;
       }
     }
-    if (changed) setErased(new Set(set));
+    if (changed) setErased(new Map(e.left));
   };
   const move = (e: KonvaEventObject<PointerEvent>) => {
     if (!editor) return;
     const p = pointer(e);
     if (!p) return;
-    if (liveLine.current) {
+    if (dragging.current) {
+      const d = dragging.current;
+      if (!d.moved && Math.hypot(p[0] - d.sx, p[1] - d.sy) < 3) return;
+      d.moved = true;
+      const node = nodes.current.get(d.id);
+      node?.position({ x: d.nx + p[0] - d.sx, y: d.ny + p[1] - d.sy });
+      node?.getLayer()?.batchDraw();
+    } else if (liveLine.current) {
       const l = liveLine.current;
       const lx = l[l.length - 2]!;
       const ly = l[l.length - 1]!;
@@ -454,11 +547,35 @@ export const JournalCanvas = memo(function JournalCanvas({
       liveLine.current = [...l, p[0], p[1]];
       setLine(liveLine.current);
     } else if (erasing.current) {
-      eraseAt(p[0], p[1]);
+      eraseTo(p[0], p[1]);
     }
   };
-  const up = () => {
+  const up = (e?: KonvaEventObject<PointerEvent>) => {
     if (!editor) return;
+    if (dragging.current) {
+      const d = dragging.current;
+      dragging.current = null;
+      const node = nodes.current.get(d.id);
+      const item = items.find((i) => i.id === d.id);
+      if (d.moved && node && item)
+        editor.onOps([{ k: "put", item: { ...item, x: node.x(), y: node.y() } }]);
+    }
+    if (press.current) {
+      const pr = press.current;
+      press.current = null;
+      const p = e ? pointer(e) : null;
+      // a click that did not drag, on what was already chosen: choose the next one underneath
+      if (
+        p &&
+        pr.again &&
+        pr.hits.length > 1 &&
+        Math.hypot(p[0] - pr.x, p[1] - pr.y) < 3 &&
+        editor.selectedId
+      ) {
+        const at = pr.hits.indexOf(editor.selectedId);
+        editor.onSelect(pr.hits[(at + 1) % pr.hits.length]!);
+      }
+    }
     if (liveLine.current) {
       const pts = liveLine.current;
       liveLine.current = null;
@@ -483,10 +600,19 @@ export const JournalCanvas = memo(function JournalCanvas({
         })),
       );
     } else if (erasing.current) {
-      const ids = [...erasing.current];
+      const left = erasing.current.left;
       erasing.current = null;
-      setErased(new Set());
-      if (ids.length) editor.onOps(ids.map((id) => ({ k: "del" as const, id })));
+      setErased(new Map());
+      const ops: Op[] = [];
+      for (const [id, pieces] of left) {
+        const old = items.find((i): i is StrokeItem => i.id === id && i.t === "p");
+        if (!old) continue;
+        ops.push({ k: "del", id });
+        for (const piece of pieces)
+          for (const pts of strokesFromLine(piece, 0.25))
+            ops.push({ k: "put", item: { ...old, id: newId(), pts } });
+      }
+      if (ops.length) editor.onOps(ops);
     }
   };
 
@@ -530,11 +656,10 @@ export const JournalCanvas = memo(function JournalCanvas({
                   key={item.id}
                   item={item}
                   info={resolve(item.ref)}
-                  editable={Boolean(editing)}
-                  onSelect={onSelect}
                   onPut={onPut}
                   register={register}
                   onReady={bump}
+                  masks={masks}
                 />
               );
             if (item.t === "t")
@@ -542,8 +667,6 @@ export const JournalCanvas = memo(function JournalCanvas({
                 <TapeNode
                   key={item.id}
                   item={item}
-                  editable={Boolean(editing)}
-                  onSelect={onSelect}
                   onPut={onPut}
                   register={register}
                   onReady={bump}
@@ -554,13 +677,15 @@ export const JournalCanvas = memo(function JournalCanvas({
                 <TextNodeView
                   key={item.id}
                   item={item}
-                  editable={Boolean(editing)}
-                  onSelect={onSelect}
                   onPut={onPut}
                   register={register}
                 />
               );
-            if (erased.has(item.id)) return null;
+            const left = erased.get(item.id);
+            if (left)
+              return left.map((piece, k) => (
+                <StrokeLine key={`${item.id}.${k}`} item={item} points={piece} />
+              ));
             return <StrokeLine key={item.id} item={item} points={pointsOf(item)} />;
           })}
         </Layer>
@@ -587,22 +712,27 @@ export const JournalCanvas = memo(function JournalCanvas({
             borderStroke={PLUM}
             borderStrokeWidth={1.2}
             borderDash={[4, 4]}
-            keepRatio={
-              selected?.t === "s" || selected?.t === "t" ? selected.t === "s" : true
-            }
+            keepRatio={selected?.t === "x"}
             enabledAnchors={
-              selected?.t === "t"
-                ? ["middle-left", "middle-right", "top-center", "bottom-center"]
-                : selected?.t === "x"
-                  ? [
-                      "top-left",
-                      "top-right",
-                      "bottom-left",
-                      "bottom-right",
-                      "middle-left",
-                      "middle-right",
-                    ]
-                  : ["top-left", "top-right", "bottom-left", "bottom-right"]
+              selected?.t === "x"
+                ? [
+                    "top-left",
+                    "top-right",
+                    "bottom-left",
+                    "bottom-right",
+                    "middle-left",
+                    "middle-right",
+                  ]
+                : [
+                    "top-left",
+                    "top-right",
+                    "bottom-left",
+                    "bottom-right",
+                    "middle-left",
+                    "middle-right",
+                    "top-center",
+                    "bottom-center",
+                  ]
             }
             boundBoxFunc={(oldBox, box) =>
               Math.abs(box.width) < 12 || Math.abs(box.height) < 8 ? oldBox : box

@@ -35,8 +35,9 @@ export function itemFromDoc(data: unknown): Item | null {
 const stickerAsset = z.object({
   kind: z.literal("sticker"),
   owner: z.string(),
+  /** The picture itself (a `data:` URL), or a link for older entries. */
   url: z.string(),
-  path: z.string(),
+  path: z.string().optional(),
   w: z.number().int().positive(),
   h: z.number().int().positive(),
   name: z.string().max(80),

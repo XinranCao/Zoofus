@@ -38,9 +38,12 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 if (useEmulators) {
-  connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
-  connectFirestoreEmulator(db, "127.0.0.1", 8080);
-  connectStorageEmulator(storage, "127.0.0.1", 9199);
+  // The emulators run on the machine serving the page, so another device on the same network
+  // (opening http://<this-machine's-ip>:5173) reaches them through the host it loaded from.
+  const host = window.location.hostname || "127.0.0.1";
+  connectAuthEmulator(auth, `http://${host}:9099`, { disableWarnings: true });
+  connectFirestoreEmulator(db, host, 8080);
+  connectStorageEmulator(storage, host, 9199);
 }
 
 // Analytics is only available in supported browsers, and is skipped against the emulators.

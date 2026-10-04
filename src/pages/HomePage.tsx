@@ -172,7 +172,7 @@ export default function HomePage() {
             <div key={s.id} className={i > 3 ? "zf-hide-m" : ""}>
               <StickerTile
                 sticker={s}
-                size={92}
+                size={120}
                 date={date(s.createdAt)}
                 onOpen={() => setPreviewId(s.id)}
               />

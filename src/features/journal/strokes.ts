@@ -152,3 +152,61 @@ export function strokeBounds(points: number[]) {
   }
   return { minX, minY, maxX, maxY };
 }
+
+/** Add points so no step is longer than `step` (a long straight segment can then be cut anywhere). */
+export function densify(points: number[], step: number): number[] {
+  if (points.length < 4) return points.slice();
+  const out: number[] = [points[0]!, points[1]!];
+  for (let i = 2; i < points.length; i += 2) {
+    const x0 = points[i - 2]!;
+    const y0 = points[i - 1]!;
+    const x1 = points[i]!;
+    const y1 = points[i + 1]!;
+    const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0) / step);
+    for (let k = 1; k <= n; k++)
+      out.push(x0 + ((x1 - x0) * k) / n, y0 + ((y1 - y0) * k) / n);
+  }
+  return out;
+}
+
+/**
+ * Rub out the part of some lines that lies within `radius` of the eraser's step from (ax, ay) to
+ * (bx, by). Each line is a list of pieces (an untouched line is one piece); what is left of a line
+ * is the pieces on either side of the rubbed part. Pieces too short to see are dropped.
+ */
+export function erasePieces(
+  pieces: number[][],
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+  radius: number,
+): number[][] {
+  const out: number[][] = [];
+  const loX = Math.min(ax, bx) - radius;
+  const hiX = Math.max(ax, bx) + radius;
+  const loY = Math.min(ay, by) - radius;
+  const hiY = Math.max(ay, by) + radius;
+  for (const piece of pieces) {
+    const b = strokeBounds(piece);
+    if (b.maxX < loX || b.minX > hiX || b.maxY < loY || b.minY > hiY) {
+      out.push(piece);
+      continue;
+    }
+    const dense = densify(piece, Math.max(0.75, radius / 3));
+    let run: number[] = [];
+    let cut = false;
+    for (let i = 0; i < dense.length; i += 2) {
+      const x = dense[i]!;
+      const y = dense[i + 1]!;
+      if (distToSegment(x, y, ax, ay, bx, by) <= radius) {
+        cut = true;
+        if (run.length >= 4) out.push(run);
+        run = [];
+      } else run.push(x, y);
+    }
+    if (!cut) out.push(piece);
+    else if (run.length >= 4) out.push(run);
+  }
+  return out;
+}

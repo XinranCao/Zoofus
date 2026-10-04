@@ -37,6 +37,7 @@ export default function JournalsPage() {
   const [deleting, setDeleting] = useState<Journal[] | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [shareOne, setShareOne] = useState<Journal | null>(null);
   const { data: stickers } = useStickers();
   useMakeParam(() => setNewOpen(true));
 
@@ -70,6 +71,7 @@ export default function JournalsPage() {
 
   return (
     <div className="zf-page">
+      <LibraryTabs />
       <PageHeader
         title={t("journal.pageTitle")}
         lead={t("journal.lead")}
@@ -97,7 +99,6 @@ export default function JournalsPage() {
           </>
         }
       />
-      <LibraryTabs />
 
       {isError && (
         <ToastNote
@@ -149,6 +150,7 @@ export default function JournalsPage() {
                 setRenaming(j);
                 setRenameText(j.title);
               }}
+              onShare={() => setShareOne(j)}
               onDelete={() => setDeleting([j])}
             />
           ))}
@@ -202,15 +204,19 @@ export default function JournalsPage() {
         existing={list.length}
       />
       <ShareDialog
-        open={shareOpen}
-        sources={list
-          .filter((j) => selection.ids.has(j.id))
-          .map((journal) => ({
-            kind: "journal" as const,
-            journal,
-            stickers: new Map((stickers ?? []).map((s) => [s.id, s])),
-          }))}
-        onClose={() => setShareOpen(false)}
+        open={shareOpen || shareOne !== null}
+        sources={(shareOne
+          ? [shareOne]
+          : list.filter((j) => selection.ids.has(j.id))
+        ).map((journal) => ({
+          kind: "journal" as const,
+          journal,
+          stickers: new Map((stickers ?? []).map((s) => [s.id, s])),
+        }))}
+        onClose={() => {
+          setShareOpen(false);
+          setShareOne(null);
+        }}
         onDone={selection.stop}
       />
       <AddToCollectionDialog

@@ -25,6 +25,12 @@ export function useWorkspaces() {
   });
 }
 
+/** How many invitations to a shared journal are waiting for me. */
+export function useInviteCount(): number {
+  const { data } = useWorkspaces();
+  return data?.invites.length ?? 0;
+}
+
 function useAct<A, R>(fn: (uid: string, arg: A) => Promise<R>) {
   const uid = useUid();
   const qc = useQueryClient();

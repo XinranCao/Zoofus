@@ -17,6 +17,7 @@ export { Masthead, type MastheadUser } from "./Masthead";
 export { Paper, type PaperProps } from "./Paper";
 export { DoodlePad, PatternEditor, PixelGrid } from "./PatternEditor";
 export { Divider, Scribble } from "./Scribble";
+export { Select, type SelectOption } from "./Select";
 export { Slider } from "./Slider";
 export { Sticker } from "./Sticker";
 export { PatternFill, Tape, type TapeProps } from "./Tape";

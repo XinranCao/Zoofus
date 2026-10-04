@@ -17,10 +17,10 @@ export const MAX_STROKE_CHARS = 8000;
 export const PAPERS = ["notebook", "newspaper", "magazine"] as const;
 export type Paper = (typeof PAPERS)[number];
 
-/** What is printed on the paper: ruling for a notebook, columns for newsprint, a finish for a magazine. */
+/** What is on the paper: ruling for a notebook, a texture for newsprint and a finish for a magazine. */
 export const PATTERNS_BY_PAPER: Record<Paper, readonly string[]> = {
   notebook: ["ruled", "grid", "dots", "cross", "blank"],
-  newspaper: ["columns", "plain"],
+  newspaper: ["plain", "aged"],
   magazine: ["gloss", "matte"],
 };
 export const ALL_PATTERNS = [
@@ -29,8 +29,9 @@ export const ALL_PATTERNS = [
   "dots",
   "cross",
   "blank",
-  "columns",
+  "columns", // older pages only: drawn like "plain"
   "plain",
+  "aged",
   "gloss",
   "matte",
 ] as const;
@@ -98,6 +99,8 @@ export const stickerItemSchema = z.object({
   /** A sticker's id, or `a:<id>` for a picture kept inside the journal (`assets`). */
   ref: z.string().min(1).max(70),
   sc: n(0.02, 40),
+  /** Stretch: the height as a multiple of the width's scale (1 or missing: not stretched). */
+  sy: n(0.05, 20).optional(),
 });
 export const tapeItemSchema = z.object({
   ...base,

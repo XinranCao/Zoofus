@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ColorPicker } from "@/components/ui/ColorPicker";
+import { Select } from "@/components/ui/Select";
 import { TextField } from "@/components/ui/TextField";
 import { ToggleGroup } from "@/components/ui/ToggleGroup";
 import { USER_COLORS } from "@/paper/pattern";
@@ -66,7 +67,7 @@ export function PageSetup({
         <div className="zf-label" style={{ marginBottom: 8 }}>
           {t("journal.setup.size")}
         </div>
-        <ToggleGroup
+        <Select
           label={t("journal.setup.size")}
           seed="psz"
           value={current}
@@ -130,10 +131,10 @@ export function PageSetup({
         <div className="zf-label" style={{ marginBottom: 8 }}>
           {t("journal.setup.pattern")}
         </div>
-        <ToggleGroup
+        <Select
           label={t("journal.setup.pattern")}
           seed="ppt"
-          value={value.pattern}
+          value={patternFor(value.paper, value.pattern)}
           options={PATTERNS_BY_PAPER[value.paper].map((p) => ({
             value: p,
             label: t(`journal.setup.patterns.${p}`),

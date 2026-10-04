@@ -12,6 +12,7 @@ import {
   listInbox,
   listSent,
   listSentShares,
+  markSaved,
   markSeen,
   removeFriend,
   sendRequest,
@@ -183,14 +184,25 @@ export const useMarkSeen = () =>
     (u) => [keys.inbox(u)],
   );
 
-/** Keep a friend's share: it becomes mine (and the lists that show it are refreshed). */
+/** Shares being kept right now, so a double click cannot keep one twice. */
+const keeping = new Set<string>();
+
+/** Keep a friend's share: it becomes mine, once (and the lists that show it are refreshed). */
 export function useSaveShared() {
   const uid = useUid();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ share, journals }: { share: Share; journals: number }) => {
+    mutationFn: async ({ share, journals }: { share: Share; journals: number }) => {
       if (!uid) throw new Error("Not signed in");
-      return saveSharedToMine(uid, share, { journals });
+      if (share.saved || keeping.has(share.id)) return "";
+      keeping.add(share.id);
+      try {
+        const id = await saveSharedToMine(uid, share, { journals });
+        await markSaved(uid, share.id);
+        return id;
+      } finally {
+        keeping.delete(share.id);
+      }
     },
     onSuccess: (_id, { share }) => {
       const k =
@@ -199,6 +211,7 @@ export function useSaveShared() {
           : share.kind === "tape"
             ? "tapes"
             : "journals";
+      void qc.invalidateQueries({ queryKey: keys.inbox(uid ?? "") });
       return qc.invalidateQueries({ queryKey: [k, uid ?? ""] });
     },
   });

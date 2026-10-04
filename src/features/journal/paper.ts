@@ -4,8 +4,8 @@ import type { PageSpec } from "./journal.schema";
 
 /**
  * The paper a journal is made on, drawn with the canvas: a notebook (ruled, squared, dotted,
- * crossed or blank), newsprint (columns of grey "text", a masthead rule, picture boxes) or a
- * magazine page (glossy or matte). Everything is seeded, so every device draws the same sheet, and
+ * crossed or blank), newsprint (plain or aged) or a magazine page (glossy or matte). The last two
+ * are textures only: no columns, headlines or boxes. Everything is seeded, so every device draws the same sheet, and
  * nothing is stored: a page only records the choice.
  */
 
@@ -62,8 +62,12 @@ export function drawPaper(page: PageSpec, maxSide = 1600): HTMLCanvasElement {
     ctx.fillRect(0, 0, width, height);
     drawRuling(ctx, page, base, width, height, u);
   } else if (page.paper === "newspaper") {
-    // newsprint: the colour you chose, dulled toward grey-yellow
-    const news = mix(base, [226, 219, 200], 0.55);
+    // newsprint: the colour you chose, dulled toward grey (or, aged, toward yellow-brown)
+    const news = mix(
+      base,
+      page.pattern === "aged" ? [222, 196, 144] : [226, 219, 200],
+      0.6,
+    );
     ctx.fillStyle = css(news);
     ctx.fillRect(0, 0, width, height);
     drawNewsprint(ctx, page, news, width, height, u);
@@ -143,6 +147,10 @@ function drawRuling(
   }
 }
 
+/**
+ * Newsprint is a texture, not a layout: a dulled sheet with fibres, soft mottling and darker edges.
+ * "Aged" is the same paper gone yellow and brown, with a few foxing spots.
+ */
 function drawNewsprint(
   ctx: CanvasRenderingContext2D,
   page: PageSpec,
@@ -151,60 +159,62 @@ function drawNewsprint(
   h: number,
   u: (v: number) => number,
 ) {
-  const ink = css(darker(news, 0.7), 0.5);
-  const R = rng(SEED + "news" + page.width + "x" + page.height);
-  const margin = u(48);
-  // masthead: a heavy rule over a light one
-  ctx.fillStyle = css(darker(news, 0.8), 0.7);
-  ctx.fillRect(margin, margin, w - margin * 2, u(7));
-  ctx.fillRect(margin, margin + u(14), w - margin * 2, u(2));
-  ctx.fillRect(margin, margin + u(72), w - margin * 2, u(2));
-  if (page.pattern === "plain") return;
-
-  const cols = page.width >= 1000 ? 4 : page.width >= 700 ? 3 : 2;
-  const gutter = u(22);
-  const colW = (w - margin * 2 - gutter * (cols - 1)) / cols;
-  const top = margin + u(96);
-  for (let c = 0; c < cols; c++) {
-    const x = margin + c * (colW + gutter);
-    let y = top;
-    // a headline, then lines of grey text, sometimes a picture box
-    ctx.fillStyle = css(darker(news, 0.85), 0.65);
-    const heads = 1 + Math.floor(R() * 2);
-    for (let hd = 0; hd < heads; hd++) {
-      ctx.fillRect(x, y, colW * (0.7 + R() * 0.3), u(15));
-      y += u(26);
-      if (R() > 0.5) {
-        ctx.fillRect(x, y - u(8), colW * (0.35 + R() * 0.4), u(15));
-        y += u(18);
-      }
-      const lines = 6 + Math.floor(R() * 8);
-      ctx.fillStyle = ink;
-      for (let l = 0; l < lines && y < h - margin; l++) {
-        const len = l === lines - 1 ? colW * (0.2 + R() * 0.5) : colW;
-        ctx.fillRect(x, y, len, u(3.4));
-        y += u(10);
-      }
-      y += u(14);
-      if (R() > 0.55 && y < h - margin - u(120)) {
-        const bh = u(70 + R() * 70);
-        ctx.fillStyle = css(darker(news, 0.5), 0.35);
-        ctx.fillRect(x, y, colW, bh);
-        ctx.strokeStyle = css(darker(news, 0.8), 0.5);
-        ctx.lineWidth = Math.max(1, u(1));
-        ctx.strokeRect(x, y, colW, bh);
-        y += bh + u(14);
-      }
-      ctx.fillStyle = css(darker(news, 0.85), 0.65);
-    }
-    for (; y < h - margin; y += u(10)) {
-      ctx.fillStyle = ink;
-      ctx.fillRect(x, y, colW * (R() > 0.92 ? 0.4 : 1), u(3.4));
-    }
-    // the column rule
-    if (c < cols - 1) {
-      ctx.fillStyle = css(darker(news, 0.6), 0.35);
-      ctx.fillRect(x + colW + gutter / 2, top, u(1), h - top - margin);
+  const aged = page.pattern === "aged";
+  const R = rng(SEED + "news" + page.width + "x" + page.height + page.pattern);
+  // soft mottling: big faint blotches, lighter and darker
+  const blotches = aged ? 46 : 30;
+  for (let i = 0; i < blotches; i++) {
+    const x = R() * w;
+    const y = R() * h;
+    const r = u(80 + R() * 220);
+    const dark = R() > 0.45;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    const tone: RGB = dark ? (aged ? [150, 110, 60] : [120, 112, 98]) : [255, 252, 240];
+    g.addColorStop(0, css(tone, dark ? (aged ? 0.13 : 0.07) : 0.12));
+    g.addColorStop(1, css(tone, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  // paper fibres
+  ctx.lineWidth = Math.max(0.6, u(0.8));
+  const fibres = Math.round((w * h) / (aged ? 1800 : 2600));
+  for (let i = 0; i < fibres; i++) {
+    const x = R() * w;
+    const y = R() * h;
+    const len = u(3 + R() * 9);
+    const a = R() * Math.PI;
+    ctx.strokeStyle =
+      R() > 0.5 ? css(darker(news, 0.45), 0.1 + R() * 0.12) : css([255, 255, 250], 0.2);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len);
+    ctx.stroke();
+  }
+  // darker, uneven edges
+  const edge = Math.max(w, h) * (aged ? 0.5 : 0.62);
+  const v = ctx.createRadialGradient(
+    w / 2,
+    h / 2,
+    Math.min(w, h) * 0.3,
+    w / 2,
+    h / 2,
+    edge,
+  );
+  v.addColorStop(0, css([90, 70, 40], 0));
+  v.addColorStop(1, css([90, 70, 40], aged ? 0.3 : 0.16));
+  ctx.fillStyle = v;
+  ctx.fillRect(0, 0, w, h);
+  if (aged) {
+    // a few foxing spots
+    for (let i = 0; i < 26; i++) {
+      const x = R() * w;
+      const y = R() * h;
+      const r = u(1.5 + R() * 5);
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, css([140, 90, 40], 0.3));
+      g.addColorStop(1, css([140, 90, 40], 0));
+      ctx.fillStyle = g;
+      ctx.fillRect(x - r, y - r, r * 2, r * 2);
     }
   }
 }

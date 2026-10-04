@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
-import { Dialog } from "@/components/ui/Dialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ToastNote, useToast } from "@/components/ui/Toast";
@@ -13,70 +12,34 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { AddToCollectionDialog } from "@/features/collections/AddToCollectionDialog";
 import { ShareDialog } from "@/features/social/ShareDialog";
 import { useForgetItems } from "@/features/collections/useCollections";
-import { TapeLimitError } from "./tape.api";
 import { STARTER_TAPES, type TapeSpec } from "./tape.schema";
-import { DEFAULT_DRAFT, TapeStudio, type TapeDraft } from "./TapeStudio";
+import { NewTapeDialog } from "./NewTapeDialog";
 import { TapeTile } from "./TapeTile";
-import { useDeleteTape, useSaveTape, useTapes } from "./useTapes";
-
-const draftOf = (tape: TapeSpec): TapeDraft => ({
-  ...DEFAULT_DRAFT,
-  pattern: tape.pattern,
-  thickness: tape.thickness,
-  opacity: tape.opacity,
-  ends: tape.ends,
-});
+import { useDeleteTape, useTapes } from "./useTapes";
 
 /** The tape collection: your tapes and the starters. A new tape is made in a dialog. */
 export default function TapePage() {
   const { t } = useTranslation();
   const toast = useToast();
   const { data: tapes, isError } = useTapes();
-  const save = useSaveTape();
   const remove = useDeleteTape();
-  const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<TapeDraft>(DEFAULT_DRAFT);
+  /** The dialog is open when this is set; `from` is the tape it starts from, if any. */
+  const [making, setMaking] = useState<{ from?: TapeSpec } | null>(null);
   const selection = useSelection();
   const forget = useForgetItems();
   const [addOpen, setAddOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [shareOne, setShareOne] = useState<(TapeSpec & { id: string }) | null>(null);
   const [bulkDelete, setBulkDelete] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
 
-  const start = (from?: TapeSpec) => {
-    setDraft(from ? draftOf(from) : DEFAULT_DRAFT);
-    setOpen(true);
-  };
+  const start = (from?: TapeSpec) => setMaking({ from });
   useMakeParam(() => start());
 
   const mine = tapes ?? [];
-  const patch = (p: Partial<TapeDraft>) => setDraft((d) => ({ ...d, ...p }));
-
-  const add = (name: string) =>
-    save.mutate(
-      {
-        name,
-        pattern: draft.pattern,
-        thickness: draft.thickness,
-        opacity: draft.opacity,
-        ends: draft.ends,
-      },
-      {
-        onSuccess: () => {
-          toast.push({ kind: "success", title: t("tape.added") });
-          setOpen(false);
-        },
-        onError: (err) =>
-          toast.push({
-            kind: "error",
-            title: t("auth.errors.toastTitle"),
-            body: err instanceof TapeLimitError ? t("tape.limit") : t("tape.saveFailed"),
-          }),
-      },
-    );
-
   return (
     <div className="zf-page">
+      <LibraryTabs />
       <PageHeader
         title={t("tape.title")}
         lead={t("tape.lead")}
@@ -104,7 +67,6 @@ export default function TapePage() {
           </>
         }
       />
-      <LibraryTabs />
       {isError && (
         <div style={{ marginBottom: 20 }}>
           <ToastNote
@@ -146,6 +108,7 @@ export default function TapePage() {
               tape={tape}
               index={i}
               onUse={() => start(tape)}
+              onShare={() => setShareOne(tape)}
               onDelete={() =>
                 remove.mutate(tape.id, {
                   onSuccess: () => {
@@ -218,11 +181,15 @@ export default function TapePage() {
         </BulkBar>
       )}
       <ShareDialog
-        open={shareOpen}
-        sources={mine
-          .filter((x) => selection.ids.has(x.id))
-          .map((tape) => ({ kind: "tape" as const, tape }))}
-        onClose={() => setShareOpen(false)}
+        open={shareOpen || shareOne !== null}
+        sources={(shareOne
+          ? mine.filter((x) => x.id === shareOne.id)
+          : mine.filter((x) => selection.ids.has(x.id))
+        ).map((tape) => ({ kind: "tape" as const, tape }))}
+        onClose={() => {
+          setShareOpen(false);
+          setShareOne(null);
+        }}
         onDone={selection.stop}
       />
       <AddToCollectionDialog
@@ -256,24 +223,7 @@ export default function TapePage() {
             });
         }}
       />
-      <Dialog
-        open={open}
-        onOpenChange={setOpen}
-        width={1040}
-        sheet
-        seed="new-tape"
-        title={t("tape.newTitle")}
-      >
-        <div style={{ margin: "10px 0 6px" }}>
-          <TapeStudio
-            draft={draft}
-            onDraft={patch}
-            defaultName={t("tape.defaultName", { n: mine.length + 1 })}
-            onAdd={add}
-            adding={save.isPending}
-          />
-        </div>
-      </Dialog>
+      {making && <NewTapeDialog from={making.from} onClose={() => setMaking(null)} />}
     </div>
   );
 }

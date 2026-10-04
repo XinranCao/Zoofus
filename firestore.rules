@@ -51,7 +51,7 @@ service cloud.firestore {
         && p.width is int && p.width >= 300 && p.width <= 3000
         && p.height is int && p.height >= 300 && p.height <= 3000
         && p.paper in ['notebook', 'newspaper', 'magazine']
-        && p.pattern in ['ruled', 'grid', 'dots', 'cross', 'blank', 'columns', 'plain', 'gloss', 'matte']
+        && p.pattern in ['ruled', 'grid', 'dots', 'cross', 'blank', 'columns', 'plain', 'aged', 'gloss', 'matte']
         && userColour(p.color);
     }
 
@@ -181,7 +181,7 @@ service cloud.firestore {
           && exists(/databases/$(database)/documents/users/$(uid)/friends/$(request.auth.uid))
           && validShare(request.resource.data);
         allow update: if isOwner(uid)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seen']);
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seen', 'saved']);
         allow delete: if isOwner(uid) || resource.data.from == request.auth.uid;
       }
       // users/{uid}/sent/{sid}: what I shared, so I can take it back and clean up its files.
@@ -257,9 +257,10 @@ service cloud.firestore {
     match /publicProfiles/{uid} {
       allow get: if signedIn();
       allow create, update: if isOwner(uid)
-        && request.resource.data.keys().hasOnly(['nickname', 'avatarUrl', 'avatarKind', 'friendCode', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['nickname', 'avatarUrl', 'avatarKind', 'avatarKey', 'friendCode', 'updatedAt'])
         && isString(request.resource.data.nickname, 40) && request.resource.data.nickname.size() > 0
-        && isString(request.resource.data.avatarUrl, 2048)
+        && isString(request.resource.data.avatarUrl, 40000)
+        && (!('avatarKey' in request.resource.data) || isString(request.resource.data.avatarKey, 16))
         && (!('avatarKind' in request.resource.data) || request.resource.data.avatarKind in ['sticker', 'photo'])
         && request.resource.data.friendCode is string
         && request.resource.data.friendCode.matches('^[A-HJ-NP-Z2-9]{8}$')
@@ -336,7 +337,7 @@ service cloud.firestore {
       // one object on the page
       match /items/{iid} {
         function validItem(d) {
-          return d.keys().hasOnly(['t', 'by', 'upd', 'x', 'y', 'r', 'z', 'ref', 'sc', 'tape', 'len', 'text', 'font', 'size', 'color', 'bold', 'w', 'tool', 'pts'])
+          return d.keys().hasOnly(['t', 'by', 'upd', 'x', 'y', 'r', 'z', 'ref', 'sc', 'sy', 'tape', 'len', 'text', 'font', 'size', 'color', 'bold', 'w', 'tool', 'pts'])
             && d.t in ['s', 't', 'x', 'p']
             && d.by == request.auth.uid
             && d.upd == request.time
@@ -346,6 +347,7 @@ service cloud.firestore {
             && (!('z' in d) || d.z is int)
             && (!('ref' in d) || isString(d.ref, 70))
             && (!('sc' in d) || (d.sc is number && d.sc > 0.02 && d.sc < 40))
+            && (!('sy' in d) || (d.sy is number && d.sy > 0.04 && d.sy < 21))
             && (!('tape' in d) || d.tape is map)
             && (!('len' in d) || (d.len is number && d.len >= 10 && d.len <= 3000))
             && (!('text' in d) || isString(d.text, 500))
@@ -361,8 +363,8 @@ service cloud.firestore {
         allow create, update: if isMember(wid) && validItem(request.resource.data);
         allow delete: if isMember(wid);
       }
-      // something brought onto the shelf by one member, for everyone to use: a sticker (a copy of the
-      // picture in THEIR folder) or a tape (just its print)
+      // something brought onto the shelf by one member, for everyone to use: a sticker (its picture,
+      // shrunk, kept inside the entry: members cannot read each other's files) or a tape (its print)
       match /assets/{aid} {
         function ownCollabFile(path) {
           return isString(path, 512) && path.matches('^' + request.auth.uid + '/collab/.+');
@@ -374,8 +376,8 @@ service cloud.firestore {
           && isString(request.resource.data.name, 80)
           && (
             (request.resource.data.kind == 'sticker'
-              && isString(request.resource.data.url, 2048)
-              && ownCollabFile(request.resource.data.path)
+              && isString(request.resource.data.url, 160000)
+              && (!('path' in request.resource.data) || ownCollabFile(request.resource.data.path))
               && request.resource.data.w is int && request.resource.data.h is int)
             || (request.resource.data.kind == 'tape'
               && request.resource.data.tape is map

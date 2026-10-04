@@ -7,18 +7,20 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Dialog } from "@/components/ui/Dialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Paper } from "@/components/ui/Paper";
 import { SelectMark } from "@/components/ui/SelectMark";
 import { Skeleton } from "@/components/ui/Loader";
 import { Sticker as Art } from "@/components/ui/Sticker";
 import { TextField } from "@/components/ui/TextField";
 import { ToastNote, useToast } from "@/components/ui/Toast";
+import { useJournals } from "@/features/journal/useJournals";
 import { LibraryTabs } from "@/features/library/LibraryTabs";
+import { useStickers } from "@/features/stickers/library/useStickers";
 import { ensureFontsFor } from "@/lib/cjkFonts";
 import { cn } from "@/lib/cn";
 import { useMakeParam } from "@/lib/useMakeParam";
 import { useSelection } from "@/lib/useSelection";
 import { MAX_COLLECTION_NAME, type Collection } from "./collection.schema";
+import { FolderThumb } from "./FolderThumb";
 import { CollectionLimitError } from "./collections.api";
 import {
   useCollections,
@@ -66,6 +68,7 @@ export default function CollectionsPage() {
 
   return (
     <div className="zf-page">
+      <LibraryTabs />
       <PageHeader
         title={t("collections.title")}
         lead={t("collections.lead")}
@@ -93,7 +96,6 @@ export default function CollectionsPage() {
           </>
         }
       />
-      <LibraryTabs />
       {isError && (
         <ToastNote
           kind="error"
@@ -131,11 +133,10 @@ export default function CollectionsPage() {
       )}
       {list.length > 0 && (
         <div className="zf-grid-journal">
-          {list.map((c, i) => (
+          {list.map((c) => (
             <CollectionTile
               key={c.id}
               collection={c}
-              index={i}
               selecting={selection.active}
               selected={selection.ids.has(c.id)}
               onToggle={() => selection.toggle(c.id)}
@@ -237,40 +238,30 @@ export default function CollectionsPage() {
 
 function CollectionTile({
   collection,
-  index,
   selecting,
   selected,
   onToggle,
 }: {
   collection: Collection;
-  index: number;
   selecting: boolean;
   selected: boolean;
   onToggle: () => void;
 }) {
   const { t } = useTranslation();
+  const { data: stickers } = useStickers();
+  const { data: journals } = useJournals();
   ensureFontsFor(collection.name);
+  const pictures = collection.items
+    .flatMap((i) => {
+      if (i.k === "sticker") return stickers?.find((s) => s.id === i.id)?.imageUrl ?? [];
+      if (i.k === "journal") return journals?.find((j) => j.id === i.id)?.thumbUrl ?? [];
+      return [];
+    })
+    .slice(0, 5);
   const inner = (
     <>
       {selecting && <SelectMark selected={selected} />}
-      <Paper
-        seed={"ct" + collection.id}
-        size="md"
-        tone={index % 2 ? "scrap" : "scrap-warm"}
-        rotate={1.2}
-        w={190}
-        h={150}
-        style={{ width: "100%" }}
-        faceStyle={{
-          minHeight: 130,
-          padding: "20px 16px",
-          display: "grid",
-          placeItems: "center",
-        }}
-        tape={index % 2 === 0 ? undefined : undefined}
-      >
-        <Art art="folder" size={70} seed={"cf" + collection.id} rotate={3} />
-      </Paper>
+      <FolderThumb id={collection.id} pictures={pictures} />
       <span className="zf-tile__name" style={{ marginTop: 10 }}>
         {collection.name}
       </span>

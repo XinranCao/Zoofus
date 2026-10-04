@@ -159,10 +159,11 @@ function SharedCard({ share, index }: { share: Share; index: number }) {
         style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center" }}
       >
         <Button
-          variant="primary"
+          variant={share.saved ? "quiet" : "primary"}
           size="sm"
-          icon="download"
+          icon={share.saved ? "check" : "download"}
           seed={"ss" + share.id}
+          disabled={share.saved}
           loading={save.isPending && save.variables?.share.id === share.id}
           onClick={() =>
             save.mutate(
@@ -182,7 +183,7 @@ function SharedCard({ share, index }: { share: Share; index: number }) {
             )
           }
         >
-          {t(`shared.save.${share.kind}`)}
+          {share.saved ? t("shared.added") : t(`shared.save.${share.kind}`)}
         </Button>
         <Button
           variant="quiet"

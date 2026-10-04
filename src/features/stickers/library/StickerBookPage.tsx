@@ -40,6 +40,7 @@ export default function StickerBookPage() {
   const forget = useForgetItems();
   const [addOpen, setAddOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [shareOne, setShareOne] = useState<Sticker | null>(null);
   const [bulkDelete, setBulkDelete] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
   useMakeParam(() => setMakerOpen(true));
@@ -146,6 +147,7 @@ export default function StickerBookPage() {
 
   return (
     <div className="zf-page">
+      <LibraryTabs />
       <PageHeader
         title={t("book.title")}
         lead={t("book.lead")}
@@ -177,7 +179,6 @@ export default function StickerBookPage() {
           )
         }
       />
-      <LibraryTabs />
 
       {isError && (
         <ToastNote
@@ -220,16 +221,16 @@ export default function StickerBookPage() {
       )}
       {stickers.length > 0 && (
         <div className="zf-grid-book">
-          {stickers.map((s, i) => (
+          {stickers.map((s) => (
             <StickerTile
               key={s.id}
               sticker={s}
-              size={96}
-              tape={i % 5 === 2}
+              size={128}
               date={t("book.cutOn", { date: date(s) })}
               onOpen={() => setDetailId(s.id)}
               onRename={() => setRenamingId(s.id)}
               onDelete={() => setConfirmId(s.id)}
+              onShare={() => setShareOne(s)}
               renaming={renamingId === s.id}
               onRenameDone={(name) => onRenameDone(s.id, name)}
               selecting={selection.active}
@@ -281,11 +282,15 @@ export default function StickerBookPage() {
         </BulkBar>
       )}
       <ShareDialog
-        open={shareOpen}
-        sources={(data ?? [])
-          .filter((s) => selection.ids.has(s.id))
-          .map((sticker) => ({ kind: "sticker" as const, sticker }))}
-        onClose={() => setShareOpen(false)}
+        open={shareOpen || shareOne !== null}
+        sources={(shareOne
+          ? [shareOne]
+          : (data ?? []).filter((s) => selection.ids.has(s.id))
+        ).map((sticker) => ({ kind: "sticker" as const, sticker }))}
+        onClose={() => {
+          setShareOpen(false);
+          setShareOne(null);
+        }}
         onDone={selection.stop}
       />
       <AddToCollectionDialog

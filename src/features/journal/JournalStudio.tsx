@@ -19,6 +19,7 @@ import { Chip } from "@/components/ui/Chip";
 import { ColorPicker } from "@/components/ui/ColorPicker";
 import { Dialog } from "@/components/ui/Dialog";
 import { Paper } from "@/components/ui/Paper";
+import { Select } from "@/components/ui/Select";
 import { Slider } from "@/components/ui/Slider";
 import { TextField } from "@/components/ui/TextField";
 import { ToggleGroup } from "@/components/ui/ToggleGroup";
@@ -664,6 +665,19 @@ function ItemPanel({
             onChange={(v) => patch(item, { sc: v / 100 })}
           />
         )}
+        {item.t === "s" && item.sy !== undefined && (
+          <div>
+            <Button
+              variant="quiet"
+              size="sm"
+              icon="reset"
+              seed="junstretch"
+              onClick={() => patch(item, { sy: undefined })}
+            >
+              {t("journal.item.unstretch")}
+            </Button>
+          </div>
+        )}
 
         {item.t === "t" && (
           <>
@@ -706,13 +720,20 @@ function ItemPanel({
               <div className="zf-label" style={{ marginBottom: 8 }}>
                 {t("journal.item.font")}
               </div>
-              <ToggleGroup
+              <Select
                 label={t("journal.item.font")}
                 seed="jfont"
                 value={item.font}
+                groupLabels={
+                  t("journal.fonts.groups", {
+                    returnObjects: true,
+                  }) as Record<string, string>
+                }
                 options={FONTS.map((f) => ({
                   value: f.key,
                   label: t(`journal.fonts.${f.key}`),
+                  group: f.group,
+                  style: { fontFamily: f.family },
                 }))}
                 onChange={(font) => {
                   patch(item, { font });
