@@ -8,7 +8,12 @@ test("two people become friends, name each other, share and keep a sticker", asy
 }) => {
   test.setTimeout(150_000);
   const ctxA = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-  const ctxB = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  // Bobby opens the app by another address of the same machine, as a second laptop would: the
+  // links to Alice's pictures name "localhost", and must still reach his browser
+  const ctxB = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+    baseURL: String(test.info().project.use.baseURL).replace("localhost", "127.0.0.1"),
+  });
   const a = await ctxA.newPage();
   const b = await ctxB.newPage();
   for (const p of [a, b])
@@ -82,6 +87,24 @@ test("two people become friends, name each other, share and keep a sticker", asy
     .toBe(true);
 
   // Alice shares a sticker with Bobby straight from its tile (no need to pick it first)
+  const sentLeft = async () => {
+    const res = await a.request.post(
+      "http://127.0.0.1:8080/v1/projects/demo-zoofus/databases/(default)/documents:runQuery",
+      {
+        headers: { Authorization: "Bearer owner" },
+        data: {
+          structuredQuery: {
+            from: [{ collectionId: "sent", allDescendants: true }],
+            limit: 1000,
+          },
+        },
+      },
+    );
+    expect(res.ok()).toBe(true);
+    return ((await res.json()) as { document?: unknown }[]).filter((r) => r.document)
+      .length;
+  };
+  const base = await sentLeft();
   await a.goto("/stickers");
   await a.locator(".zf-tile").first().hover();
   await a.getByRole("button", { name: /^Share: Cut / }).click();
@@ -94,29 +117,19 @@ test("two people become friends, name each other, share and keep a sticker", asy
   });
 
   // (Alice's record of what she sent, and the files made for Bobby, exist until he is done)
-  const sentLeft = async () => {
-    const res = await a.request.post(
-      "http://127.0.0.1:8080/v1/projects/demo-zoofus/databases/(default)/documents:runQuery",
-      {
-        headers: { Authorization: "Bearer owner" },
-        data: {
-          structuredQuery: {
-            from: [{ collectionId: "sent", allDescendants: true }],
-            limit: 5,
-          },
-        },
-      },
-    );
-    expect(res.ok()).toBe(true);
-    return ((await res.json()) as { document?: unknown }[]).filter((r) => r.document)
-      .length;
-  };
-  expect(await sentLeft()).toBe(1);
+  expect(await sentLeft()).toBe(base + 1);
 
   // Bobby finds it in "Shared with you" and keeps it
   await b.goto("/friends");
   await b.getByRole("radio", { name: /Shared with you/ }).click();
   await expect(b.getByText("“For you!”")).toBeVisible({ timeout: 15000 });
+  await expect
+    .poll(() =>
+      b
+        .locator('img[src*=":9199/"]')
+        .evaluateAll((els) => els.map((e) => (e as HTMLImageElement).src)),
+    )
+    .toEqual(expect.arrayContaining([expect.stringContaining("http://127.0.0.1:9199/")]));
   await b.getByRole("button", { name: "Add to my stickers" }).click();
   await expect(b.getByText("Added to your stickers.").first()).toBeVisible({
     timeout: 15000,
@@ -130,7 +143,7 @@ test("two people become friends, name each other, share and keep a sticker", asy
   // Alice's copies made for Bobby are removed once he has kept his own: her record of the share
   // goes, and so do the files in her shares folder
   await a.goto("/stickers");
-  await expect.poll(sentLeft, { timeout: 20_000 }).toBe(0);
+  await expect.poll(sentLeft, { timeout: 20_000 }).toBe(base);
   for (const bucket of ["demo-zoofus.firebasestorage.app", "demo-zoofus.appspot.com"]) {
     const res = await a.request.get(`http://127.0.0.1:9199/v0/b/${bucket}/o`);
     if (!res.ok()) continue;

@@ -36,6 +36,9 @@ if (!useEmulators && env.VITE_APP_RECAPTCHA_SITE_KEY) {
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+// A failing connection must end in an error you can see, not a spinner for ten minutes (the default).
+storage.maxUploadRetryTime = 30_000;
+storage.maxOperationRetryTime = 30_000;
 
 if (useEmulators) {
   // The emulators run on the machine serving the page, so another device on the same network

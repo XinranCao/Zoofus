@@ -5,7 +5,27 @@ import {
   ref,
   type StorageReference,
 } from "firebase/storage";
+import { localizeUrl } from "./emulatorUrl";
 import { storage } from "./firebase";
+
+/** Give up on a step that never answers, saying which one, instead of waiting for ever. */
+export function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  label: string,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const late = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () =>
+        reject(
+          Object.assign(new Error(`Timed out: ${label}`), { code: `timeout/${label}` }),
+        ),
+      ms,
+    );
+  });
+  return Promise.race([promise, late]).finally(() => clearTimeout(timer));
+}
 
 /** Delete a file, treating "already gone" as success so cleanup can always finish. */
 export async function deleteFileIfExists(
@@ -32,12 +52,19 @@ export async function deleteFolder(path: string): Promise<void> {
  * cross-origin header, and is reused), so the cache is skipped. If that still fails, the Storage SDK
  * reads it (signed in, so it works for your own files).
  */
-export async function readPicture(url: string): Promise<Blob> {
+export async function readPicture(link: string): Promise<Blob> {
+  const url = localizeUrl(link);
   try {
-    const res = await fetch(url, { cache: "reload" });
-    if (res.ok) return await res.blob();
+    const controller = new AbortController();
+    const stop = setTimeout(() => controller.abort(), 20_000);
+    try {
+      const res = await fetch(url, { cache: "reload", signal: controller.signal });
+      if (res.ok) return await res.blob();
+    } finally {
+      clearTimeout(stop);
+    }
   } catch {
     /* try the SDK */
   }
-  return getBlob(ref(storage, url));
+  return withTimeout(getBlob(ref(storage, url)), 30_000, "read");
 }

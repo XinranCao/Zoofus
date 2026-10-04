@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Avatar } from "@/components/ui/Avatar";
@@ -31,6 +31,8 @@ export function ShareDialog({
   const [chosen, setChosen] = useState<Set<string>>(new Set());
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  /** Cancel while sending: nothing further is started; what is already under way finishes quietly. */
+  const cancelled = useRef(false);
 
   const toggle = (uid: string) =>
     setChosen((prev) => {
@@ -40,12 +42,20 @@ export function ShareDialog({
       return next;
     });
 
+  const cancel = () => {
+    cancelled.current = true;
+    setBusy(false);
+    onClose();
+  };
+
   const send = async () => {
+    cancelled.current = false;
     setBusy(true);
     let failed = 0;
     let code = "";
     for (const friend of chosen)
       for (const source of sources) {
+        if (cancelled.current) break;
         try {
           await share.mutateAsync({ friend, source, note });
         } catch (err) {
@@ -55,6 +65,7 @@ export function ShareDialog({
         }
       }
     setBusy(false);
+    if (cancelled.current) return;
     if (failed)
       toast.push({
         kind: "error",
@@ -73,7 +84,7 @@ export function ShareDialog({
   return (
     <Dialog
       open={open}
-      onOpenChange={(o) => !o && !busy && onClose()}
+      onOpenChange={(o) => !o && cancel()}
       width={520}
       sheet
       seed="share"
@@ -81,7 +92,7 @@ export function ShareDialog({
       title={t("share.title", { count: sources.length })}
       actions={
         <>
-          <Button variant="quiet" seed="shc" disabled={busy} onClick={onClose}>
+          <Button variant="quiet" seed="shc" onClick={cancel}>
             {t("common.cancel")}
           </Button>
           <Button

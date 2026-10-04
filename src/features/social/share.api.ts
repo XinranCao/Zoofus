@@ -7,7 +7,7 @@ import type { Sticker } from "@/features/stickers/library/sticker.schema";
 import { saveTape } from "@/features/tape/tape.api";
 import type { Tape } from "@/features/tape/tape.schema";
 import { db, storage } from "@/lib/firebase";
-import { deleteFileIfExists, readPicture } from "@/lib/storage";
+import { deleteFileIfExists, readPicture, withTimeout } from "@/lib/storage";
 import {
   journalPayloadSchema,
   stickerPayloadSchema,
@@ -33,8 +33,8 @@ async function fetchPicture(url: string): Promise<Blob> {
 
 async function putPicture(path: string, blob: Blob): Promise<string> {
   const r = ref(storage, path);
-  await uploadBytes(r, blob, { contentType: blob.type });
-  return getDownloadURL(r);
+  await withTimeout(uploadBytes(r, blob, { contentType: blob.type }), 45_000, "upload");
+  return withTimeout(getDownloadURL(r), 20_000, "link");
 }
 
 const extOf = (b: Blob) => (b.type === "image/png" ? "png" : "webp");
@@ -160,10 +160,12 @@ export async function shareWith(
       files,
       createdAt: serverTimestamp(),
     });
-    await batch.commit();
+    await withTimeout(batch.commit(), 30_000, "send");
     return sid;
   } catch (err) {
-    await Promise.allSettled(files.map((p) => deleteObject(ref(storage, p))));
+    // a send that merely timed out may still arrive later: its files must stay
+    if ((err as { code?: string }).code !== "timeout/send")
+      await Promise.allSettled(files.map((p) => deleteObject(ref(storage, p))));
     throw err;
   }
 }
