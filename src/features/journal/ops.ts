@@ -57,12 +57,37 @@ export function applyOps(
 export const topZ = (items: Item[]) => items.reduce((m, i) => Math.max(m, i.z), -1) + 1;
 export const bottomZ = (items: Item[]) => items.reduce((m, i) => Math.min(m, i.z), 0) - 1;
 
-/** Moves an item to the front or the back of the stack (nothing to do if it is already there). */
-export function reorder(items: Item[], id: string, where: "front" | "back"): Op[] {
+/**
+ * Moves an item in the stack: to the front or the back, or one place up or down (past the
+ * neighbour above or below it). Nothing to do if it is already there.
+ */
+export function reorder(
+  items: Item[],
+  id: string,
+  where: "front" | "back" | "up" | "down",
+): Op[] {
   const item = items.find((i) => i.id === id);
   if (!item) return [];
   const others = items.filter((i) => i.id !== id);
   if (others.length === 0) return [];
+  if (where === "up" || where === "down") {
+    const sorted = [...items].sort((a, b) => a.z - b.z || a.id.localeCompare(b.id));
+    const at = sorted.findIndex((i) => i.id === id);
+    const next = sorted[where === "up" ? at + 1 : at - 1];
+    if (!next) return [];
+    // swap places with the neighbour; if they share a level, nudge past it
+    if (next.z === item.z)
+      return [
+        {
+          k: "put",
+          item: { ...item, z: item.z + (where === "up" ? 1 : -1) },
+        },
+      ];
+    return [
+      { k: "put", item: { ...item, z: next.z } },
+      { k: "put", item: { ...next, z: item.z } },
+    ];
+  }
   if (where === "front") {
     if (others.every((i) => i.z <= item.z)) return [];
     return [{ k: "put", item: { ...item, z: topZ(others) } }];

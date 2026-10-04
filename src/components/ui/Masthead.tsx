@@ -10,7 +10,7 @@ import { Avatar } from "./Avatar";
 import { Button, ButtonLink } from "./Button";
 import { Icon, type IconName } from "./Icon";
 import { Paper } from "./Paper";
-import { Divider, Scribble } from "./Scribble";
+import { Circled, Divider, Scribble } from "./Scribble";
 import { Wordmark } from "./Wordmark";
 
 export interface MastheadUser {
@@ -94,7 +94,7 @@ function ItemRow({ it }: { it: MenuItem }) {
         >
           <Icon name={it.icon} />
           {it.label}
-          {it.dot && <span className="zf-dot" role="img" aria-label={it.dot} />}
+          {it.dot && <span className="zf-alertdot" role="img" aria-label={it.dot} />}
         </Link>
       ) : (
         <button type="button" className="zf-menu__item">
@@ -196,7 +196,7 @@ export function LanguageSwitch() {
           onClick={() => void i18n.changeLanguage(l.code)}
         >
           {l.code === "en" ? "EN" : l.label}
-          {current === l.code && <Scribble seed={"lang" + l.code} weight={2} />}
+          {current === l.code && <Circled seed={"lang" + l.code} weight={1.8} />}
         </button>
       ))}
     </div>
@@ -280,7 +280,6 @@ export function Masthead({
                   <RMenu.Trigger asChild>
                     <button type="button" className="zf-nav__make">
                       {t("nav.make")}
-                      <Icon name="plus" style={{ width: 14, height: 14 }} />
                     </button>
                   </RMenu.Trigger>
                   <MenuContent groups={[makeItems]} seed="make" align="start" />
@@ -305,7 +304,7 @@ export function Masthead({
                   {t("nav.together")}
                   {invites > 0 && (
                     <span
-                      className="zf-dot"
+                      className="zf-alertdot"
                       role="img"
                       aria-label={t("nav.invites", { count: invites })}
                     />

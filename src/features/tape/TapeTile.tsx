@@ -21,6 +21,7 @@ export function TapeTile({
   onUse,
   onDelete,
   onShare,
+  onRename,
 }: {
   tape: TapeEntry;
   index: number;
@@ -33,6 +34,7 @@ export function TapeTile({
   onUse?: () => void;
   onDelete?: () => void;
   onShare?: () => void;
+  onRename?: () => void;
 }) {
   const { t } = useTranslation();
   ensureFontsFor(tape.name);
@@ -107,6 +109,18 @@ export function TapeTile({
               onClick={onShare}
             >
               {t("bulk.share")}
+            </Button>
+          )}
+          {!starter && onRename && (
+            <Button
+              variant="quiet"
+              size="sm"
+              icon="pencil"
+              seed={"ren" + key}
+              aria-label={`${t("common.rename")}: ${tape.name}`}
+              onClick={onRename}
+            >
+              {t("common.rename")}
             </Button>
           )}
           {onUse && (

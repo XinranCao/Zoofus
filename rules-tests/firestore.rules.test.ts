@@ -195,6 +195,30 @@ describe("users/{uid}/stickers/{id}", () => {
     await assertFails(updateDoc(ref, { createdAt: new Date(2020, 1, 1) }));
   });
 
+  it("lets the owner edit a sticker an earlier version saved with older values in fields not being touched", async () => {
+    await env.withSecurityRulesDisabled((ctx) =>
+      setDoc(doc(ctx.firestore(), "users/alice/stickers/old"), {
+        ...sticker("alice"),
+        name: "x".repeat(90), // longer than names are now allowed to be
+        width: 311.5, // not a whole number
+      }),
+    );
+    const ref = doc(
+      env.authenticatedContext("alice").firestore(),
+      "users/alice/stickers/old",
+    );
+    await assertSucceeds(
+      updateDoc(ref, {
+        storagePath: "alice/stickers/old_v2.webp",
+        imageUrl: "https://example.com/v2.webp",
+        edge: { shape: "smooth", scale: 1, fill: { kind: "solid", bg: "sheet-50" } },
+      }),
+    );
+    // what is changed is still checked
+    await assertFails(updateDoc(ref, { name: "y".repeat(90) }));
+    await assertFails(updateDoc(ref, { width: 12.5 }));
+  });
+
   it("keeps the source, thumbnail and unknown fields fixed after creation", async () => {
     const db = env.authenticatedContext("alice").firestore();
     const ref = doc(db, "users/alice/stickers/s1");

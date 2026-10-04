@@ -6,6 +6,7 @@ import { Dialog } from "@/components/ui/Dialog";
 import { Icon } from "@/components/ui/Icon";
 import { Paper } from "@/components/ui/Paper";
 import { useToast } from "@/components/ui/Toast";
+import { Tooltip } from "@/components/ui/Tooltip";
 import { friendName } from "@/features/social/social.schema";
 import { useFriends } from "@/features/social/useSocial";
 import { cn } from "@/lib/cn";
@@ -26,6 +27,7 @@ export function MembersPanel({
 }) {
   const { t } = useTranslation();
   const profiles = usePublicProfiles([...workspace.members, ...workspace.invited]);
+  const { data: friends = [] } = useFriends();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -47,51 +49,48 @@ export function MembersPanel({
       <h2 className="zf-h2" style={{ fontSize: 15, marginBottom: 8 }}>
         {t("together.here")}
       </h2>
-      <ul className="zf-people" style={{ gap: 6 }}>
-        {workspace.members.map((uid) => {
+      <ul className="zf-faces">
+        {[...workspace.members, ...workspace.invited].map((uid) => {
+          const invited = !workspace.members.includes(uid);
           const p = profiles.get(uid);
-          const isOnline = online.has(uid) || uid === me;
+          // my own name for a friend if I gave one, else theirs
+          const friend = friends.find((f) => f.uid === uid);
+          const name =
+            uid === me
+              ? `${p?.nickname ?? ""} (${t("together.you")})`
+              : friend
+                ? friendName(friend, t("friends.someone"))
+                : (p?.nickname ?? t("friends.someone"));
+          const isOnline = !invited && (online.has(uid) || uid === me);
+          const status = invited
+            ? t("together.invitedShort")
+            : isOnline
+              ? t("together.online")
+              : t("together.away");
           return (
-            <li key={uid} className="zf-person" style={{ gap: 8, flexWrap: "nowrap" }}>
-              <Avatar
-                name={p?.nickname ?? "?"}
-                src={p?.avatarUrl}
-                kind={p?.avatarKind}
-                size={30}
-                seed={"mp" + uid}
-                asStatic
-              />
-              <span style={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" }}>
-                {p?.nickname ?? t("friends.someone")}
-                {uid === me ? ` (${t("together.you")})` : ""}
-              </span>
-              <span
-                className={cn("zf-dot", isOnline && "is-on")}
-                role="img"
-                aria-label={isOnline ? t("together.online") : t("together.away")}
-              />
-            </li>
-          );
-        })}
-        {workspace.invited.map((uid) => {
-          const p = profiles.get(uid);
-          return (
-            <li
-              key={uid}
-              className="zf-person zf-muted"
-              style={{ gap: 8, flexWrap: "nowrap" }}
-            >
-              <Avatar
-                name={p?.nickname ?? "?"}
-                src={p?.avatarUrl}
-                kind={p?.avatarKind}
-                size={30}
-                seed={"mi" + uid}
-                asStatic
-              />
-              <span style={{ flex: 1, minWidth: 0 }}>
-                {p?.nickname ?? t("friends.someone")} · {t("together.invitedShort")}
-              </span>
+            <li key={uid}>
+              <Tooltip label={`${name} · ${status}`}>
+                <button
+                  type="button"
+                  className={cn("zf-face-chip", invited && "is-invited")}
+                  aria-label={`${name} · ${status}`}
+                >
+                  <Avatar
+                    name={name}
+                    src={p?.avatarUrl}
+                    kind={p?.avatarKind}
+                    size={34}
+                    seed={"mp" + uid}
+                    asStatic
+                  />
+                  {!invited && (
+                    <span
+                      className={cn("zf-dot", isOnline && "is-on")}
+                      aria-hidden="true"
+                    />
+                  )}
+                </button>
+              </Tooltip>
             </li>
           );
         })}

@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { scribblePath } from "@/paper/scribble";
+import { circlePath, scribblePath } from "@/paper/scribble";
 import { useSeed } from "@/paper/useTorn";
 
 /** A seeded hand-drawn line: input underline, current-page underline, quiet-button hover. */
@@ -33,6 +33,29 @@ export function Scribble({
         strokeLinecap="round"
         vectorEffect="non-scaling-stroke"
         strokeDasharray={variant === "dashed" ? "7 5 3 6 9 5" : undefined}
+      />
+    </svg>
+  );
+}
+
+/** A seeded hand-drawn loop round its parent, to mark the chosen one (e.g. the language). */
+export function Circled({ seed, weight = 1.8 }: { seed?: string; weight?: number }) {
+  const s = useSeed(seed);
+  return (
+    <svg
+      className="zf-circled"
+      viewBox="0 0 100 40"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <path
+        d={circlePath(s)}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={weight}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
       />
     </svg>
   );

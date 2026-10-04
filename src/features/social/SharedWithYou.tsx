@@ -27,7 +27,9 @@ import {
 /** What friends have shared with you: look, keep it as your own, or let it go. */
 export function SharedWithYou() {
   const { t } = useTranslation();
-  const { data: inbox = [], isPending } = useInbox();
+  const { data: all = [], isPending } = useInbox();
+  // what I have kept is mine now: it leaves this list
+  const inbox = all.filter((s) => !s.saved);
   const mark = useMarkSeen();
 
   // looking at them is what marks them seen
@@ -159,31 +161,30 @@ function SharedCard({ share, index }: { share: Share; index: number }) {
         style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center" }}
       >
         <Button
-          variant={share.saved ? "quiet" : "primary"}
+          variant="primary"
           size="sm"
-          icon={share.saved ? "check" : "download"}
+          icon="download"
           seed={"ss" + share.id}
-          disabled={share.saved}
           loading={save.isPending && save.variables?.share.id === share.id}
           onClick={() =>
-            save.mutate(
-              { share, journals: journals.length },
-              {
-                onSuccess: () =>
-                  toast.push({ kind: "success", title: t(`shared.saved.${share.kind}`) }),
-                onError: (err) => {
-                  console.error("Saving a shared item failed", err);
-                  toast.push({
-                    kind: "error",
-                    title: t("auth.errors.toastTitle"),
-                    body: t("shared.saveFailed"),
-                  });
-                },
-              },
-            )
+            // awaited here (not a mutate callback): this card leaves the list once the share is kept,
+            // and the note must still appear
+            void save
+              .mutateAsync({ share, journals: journals.length })
+              .then(() =>
+                toast.push({ kind: "success", title: t(`shared.saved.${share.kind}`) }),
+              )
+              .catch((err) => {
+                console.error("Saving a shared item failed", err);
+                toast.push({
+                  kind: "error",
+                  title: t("auth.errors.toastTitle"),
+                  body: `${t("shared.saveFailed")} (${(err as { code?: string }).code ?? (err as Error).name ?? "error"})`,
+                });
+              })
           }
         >
-          {share.saved ? t("shared.added") : t(`shared.save.${share.kind}`)}
+          {t(`shared.save.${share.kind}`)}
         </Button>
         <Button
           variant="quiet"

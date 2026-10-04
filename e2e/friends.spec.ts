@@ -101,8 +101,9 @@ test("two people become friends, name each other, share and keep a sticker", asy
   await expect(b.getByText("Added to your stickers.").first()).toBeVisible({
     timeout: 15000,
   });
-  // it can be kept only once: the button now says so and is disabled
-  await expect(b.getByRole("button", { name: "Added to yours" })).toBeDisabled();
+  // what is kept leaves "Shared with you" (so it cannot be kept twice)
+  await expect(b.getByRole("button", { name: "Add to my stickers" })).toHaveCount(0);
+  await expect(b.getByRole("radio", { name: /Shared with you · 0/ })).toBeVisible();
   await b.goto("/stickers");
   await expect(b.getByRole("button", { name: /^Open Cut / })).toBeVisible();
 

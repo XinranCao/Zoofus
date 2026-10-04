@@ -41,7 +41,7 @@ test("two friends make a journal page together and each keeps a copy", async ({
   await dlg.getByRole("button", { name: /Bobby/ }).click();
   await dlg.getByRole("button", { name: "Start", exact: true }).click();
   await expect(a).toHaveURL(/\/together\/.+/);
-  await expect(a.getByText("Bobby")).toBeVisible({ timeout: 15000 });
+  await expect(a.getByRole("button", { name: /Bobby/ })).toBeVisible({ timeout: 15000 });
 
   // Bobby, wherever he is, sees a red dot on Together, then the invitation itself
   await expect(b.getByRole("img", { name: /invitation waiting/ })).toBeVisible({
@@ -53,7 +53,7 @@ test("two friends make a journal page together and each keeps a copy", async ({
   await expect(b.getByText("You joined Trip page").first()).toBeVisible();
   await b.getByRole("link", { name: /Open Trip page/ }).click();
   await expect(b).toHaveURL(/\/together\/.+/);
-  await expect(b.getByText("Alice").first()).toBeVisible({ timeout: 15000 });
+  await expect(b.getByRole("button", { name: /Alice/ })).toBeVisible({ timeout: 15000 });
 
   // Alice brings a sticker to the shelf; Bobby can pick it
   await makeSticker(a);

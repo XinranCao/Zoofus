@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Reel } from "@/components/ui/Loader";
 import { useToast } from "@/components/ui/Toast";
@@ -19,7 +18,7 @@ import { useProfile } from "@/features/profile/useProfile";
 import { downloadBlob } from "@/features/stickers/studio/export";
 import { BringInDialog, ShelfStickerPicker, ShelfTapePicker } from "./ShelfDialogs";
 import { MembersPanel } from "./MembersPanel";
-import { useLeaveWorkspace, usePublicProfiles } from "./useTogether";
+import { usePublicProfiles } from "./useTogether";
 import {
   heartbeat,
   leavePresence,
@@ -128,12 +127,10 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
   const store = useJournalStore();
   const { data: profile } = useProfile(me);
   const { data: journals = [] } = useJournals();
-  const leave = useLeaveWorkspace();
   const [shelf, setShelf] = useState<ShelfEntry[]>([]);
   const [presence, setPresence] = useState<Presence[]>([]);
   const [title, setTitle] = useState(workspace.title);
   const [bringOpen, setBringOpen] = useState(false);
-  const [leaving, setLeaving] = useState(false);
   const [saving, setSaving] = useState(false);
   const exportRef = useRef<JournalExport>(null);
   const latest = useRef(workspace);
@@ -250,14 +247,13 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
       toast.push({
         kind: "error",
         title: t("auth.errors.toastTitle"),
-        body: t("together.copyFailed"),
+        body: `${t("together.copyFailed")} (${(err as { code?: string }).code ?? (err as Error).name ?? "error"})`,
       });
     } finally {
       setSaving(false);
     }
   };
 
-  const owner = workspace.ownerUid === me;
   return (
     <div className="zf-page zf-page--wide">
       <JournalStudio
@@ -282,6 +278,16 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
         header={
           <>
             <Button
+              variant="primary"
+              size="sm"
+              icon="check"
+              seed="wcopy"
+              loading={saving}
+              onClick={() => void keepCopy()}
+            >
+              {t("together.saveCopy")}
+            </Button>
+            <Button
               variant="secondary"
               size="sm"
               icon="download"
@@ -299,16 +305,6 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
             >
               {t("journal.download")}
             </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              icon="check"
-              seed="wcopy"
-              loading={saving}
-              onClick={() => void keepCopy()}
-            >
-              {t("together.saveCopy")}
-            </Button>
           </>
         }
         aside={
@@ -323,17 +319,6 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
               {t("together.bringIn")}
             </Button>
             <MembersPanel workspace={workspace} presence={presence} me={me} />
-            {!owner && (
-              <Button
-                variant="quiet"
-                size="sm"
-                icon="logout"
-                seed="wleave"
-                onClick={() => setLeaving(true)}
-              >
-                {t("together.leave")}
-              </Button>
-            )}
           </div>
         }
       />
@@ -343,22 +328,6 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
         onClose={() => setBringOpen(false)}
         workspaceId={workspace.id}
         me={me}
-      />
-      <ConfirmDialog
-        open={leaving}
-        title={t("together.leaveTitle", { title: workspace.title })}
-        body={t("together.leaveBody")}
-        confirmLabel={t("together.leave")}
-        loading={leave.isPending}
-        onCancel={() => setLeaving(false)}
-        onConfirm={() =>
-          leave.mutate(workspace.id, {
-            onSuccess: () => {
-              toast.push({ kind: "info", title: t("together.left") });
-              navigate("/together");
-            },
-          })
-        }
       />
     </div>
   );

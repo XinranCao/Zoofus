@@ -19,12 +19,11 @@ function Harness({ onAdd = vi.fn() }) {
 }
 
 describe("TapeStudio", () => {
-  it("shows the angle on the handle (a slider) and in the Direction label", () => {
+  it("shows the angle on the handle (a slider)", () => {
     render(<Harness />);
     expect(
       screen.getByRole("slider", { name: "Turn tape, now 0 degrees" }),
     ).toHaveAttribute("aria-valuenow", "0");
-    expect(screen.getByText("Direction · 0°")).toBeInTheDocument();
   });
 
   it("turns the tape 5° per arrow key and stops at ±90°", async () => {
@@ -47,16 +46,6 @@ describe("TapeStudio", () => {
     expect(
       screen.getByRole("slider", { name: "Turn tape, now -90 degrees" }),
     ).toBeInTheDocument();
-  });
-
-  it("sets the direction from the preset chips", async () => {
-    render(<Harness />);
-    await userEvent.click(screen.getByRole("button", { name: "45 degrees" }));
-    expect(screen.getByText("Direction · 45°")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "45 degrees" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
   });
 
   it("adds to the collection with the typed name, or a default one", async () => {

@@ -225,7 +225,7 @@ export default function StickerBookPage() {
             <StickerTile
               key={s.id}
               sticker={s}
-              size={128}
+              size={168}
               date={t("book.cutOn", { date: date(s) })}
               onOpen={() => setDetailId(s.id)}
               onRename={() => setRenamingId(s.id)}

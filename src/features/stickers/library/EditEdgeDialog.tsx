@@ -10,6 +10,7 @@ import {
   renderSticker,
   type EdgeSpec,
 } from "@/paper/renderSticker";
+import { readPicture } from "@/lib/storage";
 import { StickerEdgeStudio } from "../studio/StickerEdgeStudio";
 import type { Sticker } from "./sticker.schema";
 import { useUpdateStickerEdge } from "./useStickers";
@@ -28,20 +29,36 @@ export function EditEdgeDialog({
   ) : null;
 }
 
+/** Load a picture for drawing; if the browser refuses the direct load, read it through Storage. */
+async function loadWithFallback(url: string): Promise<HTMLImageElement> {
+  try {
+    return await loadImage(url, "anonymous");
+  } catch {
+    const blob = await readPicture(url);
+    const local = URL.createObjectURL(blob);
+    try {
+      return await loadImage(local);
+    } finally {
+      URL.revokeObjectURL(local);
+    }
+  }
+}
+
 function EditEdgeBody({ sticker, onClose }: { sticker: Sticker; onClose: () => void }) {
   const { t } = useTranslation();
   const toast = useToast();
   const update = useUpdateStickerEdge();
   const [source, setSource] = useState<HTMLCanvasElement | null>(null);
   const [edge, setEdge] = useState<EdgeSpec>(sticker.edge ?? DEFAULT_EDGE);
-  const [failed, setFailed] = useState(!sticker.sourceUrl);
+  const sourceUrl = sticker.sourceUrl;
+  const [failed, setFailed] = useState(!sourceUrl);
   const [reason, setReason] = useState<string | null>(null);
   const seed = sticker.seed ?? sticker.id;
 
   useEffect(() => {
-    if (!sticker.sourceUrl) return;
+    if (!sourceUrl) return;
     let alive = true;
-    loadImage(sticker.sourceUrl, "anonymous")
+    loadWithFallback(sourceUrl)
       .then((img) => {
         if (!alive) return;
         const c = document.createElement("canvas");
@@ -52,14 +69,14 @@ function EditEdgeBody({ sticker, onClose }: { sticker: Sticker; onClose: () => v
       })
       .catch(() => {
         if (!alive) return;
-        console.error("Could not open the sticker's original", sticker.sourceUrl);
+        console.error("Could not open the sticker's original", sourceUrl);
         setReason("source");
         setFailed(true);
       });
     return () => {
       alive = false;
     };
-  }, [sticker.sourceUrl]);
+  }, [sourceUrl]);
 
   const save = async () => {
     if (!source) return;

@@ -133,18 +133,23 @@ export function JournalStudio({
     const grab = async (maxSide: number, quality: number, mime: string) => {
       const st = stage.current;
       if (!st) throw new Error("No page");
-      store.getState().select(null); // no handles in the picture
-      await new Promise((r) => requestAnimationFrame(() => r(null)));
-      const k = st.scaleX();
-      const ratio = Math.min(2, maxSide / (page.width * k) || 1);
-      const canvas = st.toCanvas({ pixelRatio: ratio });
-      return canvasToBlob(canvas, mime, quality);
+      // no handles in the picture (hidden for a moment; the choice stays)
+      const handles = st.find("Transformer");
+      handles.forEach((h) => h.visible(false));
+      try {
+        const k = st.scaleX();
+        const ratio = Math.min(2, maxSide / (page.width * k) || 1);
+        const canvas = st.toCanvas({ pixelRatio: ratio });
+        return await canvasToBlob(canvas, mime, quality);
+      } finally {
+        handles.forEach((h) => h.visible(true));
+      }
     };
     return {
       png: () => grab(2000, 1, "image/png"),
       thumb: () => grab(480, 0.8, "image/webp"),
     };
-  }, [store, page.width]);
+  }, [page.width]);
 
   const apply = store.getState().apply;
   const patch = useCallback(
@@ -601,6 +606,24 @@ function ItemPanel({
     >
       <div style={{ display: "grid", gap: 16 }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+          <Button
+            variant="quiet"
+            size="sm"
+            icon="up"
+            seed="jup"
+            onClick={() => store.getState().apply(reorder(items, item.id, "up"))}
+          >
+            {t("journal.item.up")}
+          </Button>
+          <Button
+            variant="quiet"
+            size="sm"
+            icon="down"
+            seed="jdown"
+            onClick={() => store.getState().apply(reorder(items, item.id, "down"))}
+          >
+            {t("journal.item.down")}
+          </Button>
           <Button
             variant="quiet"
             size="sm"

@@ -43,6 +43,7 @@ export function ShareDialog({
   const send = async () => {
     setBusy(true);
     let failed = 0;
+    let code = "";
     for (const friend of chosen)
       for (const source of sources) {
         try {
@@ -50,6 +51,7 @@ export function ShareDialog({
         } catch (err) {
           console.error("Sharing failed", err);
           failed++;
+          code = (err as { code?: string }).code ?? (err as Error).name ?? "error";
         }
       }
     setBusy(false);
@@ -57,7 +59,7 @@ export function ShareDialog({
       toast.push({
         kind: "error",
         title: t("auth.errors.toastTitle"),
-        body: t("share.failed", { count: failed }),
+        body: `${t("share.failed", { count: failed })} (${code})`,
       });
     else {
       toast.push({ kind: "success", title: t("share.sent", { count: sources.length }) });
@@ -96,6 +98,36 @@ export function ShareDialog({
       }
     >
       <div style={{ display: "grid", gap: 16, margin: "10px 0 6px" }}>
+        {sources.length > 0 && (
+          <ul className="zf-faces" aria-label={t("share.sending")}>
+            {sources.slice(0, 8).map((s, i) => {
+              const src =
+                s.kind === "sticker"
+                  ? s.sticker.imageUrl
+                  : s.kind === "journal"
+                    ? s.journal.thumbUrl
+                    : undefined;
+              const name =
+                s.kind === "sticker"
+                  ? s.sticker.name
+                  : s.kind === "journal"
+                    ? s.journal.title
+                    : s.tape.name;
+              return (
+                <li key={i} title={name}>
+                  {src ? (
+                    <img src={src} alt={name} style={{ height: 54, width: "auto" }} />
+                  ) : (
+                    <span className="zf-muted">
+                      <Icon name={s.kind === "tape" ? "tape" : "journal"} /> {name}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+            {sources.length > 8 && <li className="zf-muted">+{sources.length - 8}</li>}
+          </ul>
+        )}
         {!isPending && friends.length === 0 ? (
           <p style={{ margin: 0 }}>
             {t("share.noFriends")} <Link to="/friends">{t("share.addFriends")}</Link>

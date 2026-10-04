@@ -995,11 +995,14 @@
     outline: 2px solid var(--plum-900);
     outline-offset: 1px;
   }
-  .zf-lang .zf-scribble {
+  .zf-lang .zf-circled {
     position: absolute;
-    left: 6px;
-    bottom: 3px;
-    width: calc(100% - 12px);
+    left: -2px;
+    top: 1px;
+    width: calc(100% + 4px);
+    height: calc(100% - 2px);
+    overflow: visible;
+    pointer-events: none;
   }
   .zf-badge {
     display: inline-grid;
@@ -1013,7 +1016,7 @@
     color: var(--on-accent);
     clip-path: polygon(6% 12%, 94% 0, 100% 88%, 4% 100%);
   }
-  .zf-dot {
+  .zf-alertdot {
     display: inline-block;
     width: 10px;
     height: 10px;
@@ -1030,7 +1033,7 @@
   .zf-grid-book {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 22px 14px;
+    gap: 10px 6px;
   }
   @media (max-width: 759px) {
     .zf-masthead__row {
@@ -1064,7 +1067,7 @@
     }
     .zf-grid-book {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 20px 10px;
+      gap: 8px 4px;
     }
     .zf-hide-m {
       display: none !important;
@@ -1454,6 +1457,18 @@
   transition: transform 340ms var(--ease-paper) var(--d);
   filter: none;
 }
+.zf-fold__paper {
+  width: 24%;
+  line-height: 0;
+}
+.zf-fold__paper canvas {
+  width: 100% !important;
+  height: auto !important;
+}
+.zf-fold__tape {
+  width: 40%;
+  height: 22%;
+}
 .zf-tile:hover .zf-fold__item,
 .zf-tile:focus-within .zf-fold__item {
   transform: translate(calc(-50% + var(--fx)), calc(-50% + var(--fy)))
@@ -1623,6 +1638,10 @@
   position: relative;
   display: block;
   height: 86px;
+  transition: transform var(--dur-quick, 160ms);
+}
+.zf-tapetile:not(.is-selecting):hover .zf-tapetile__stage {
+  transform: rotate(0) translateY(-2px) scale(1.03);
 }
 .zf-tapetile__name {
   font-family: var(--font-display);
@@ -1861,4 +1880,32 @@
 }
 .zf-dot.is-on {
   background: var(--olive-500);
+}
+
+/* who is on a shared page: faces only, the name appears on hover or focus */
+.zf-faces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.zf-face-chip {
+  all: unset;
+  position: relative;
+  display: inline-flex;
+  cursor: default;
+}
+.zf-face-chip.is-invited {
+  opacity: 0.55;
+}
+.zf-face-chip:focus-visible {
+  outline: 2px solid var(--plum-900);
+  outline-offset: 3px;
+}
+.zf-face-chip .zf-dot {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
 }

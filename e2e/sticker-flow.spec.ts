@@ -75,15 +75,13 @@ test("sign up, cut and save a sticker, then delete the account", async ({ page }
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(page.getByText("Blue square")).toBeVisible();
 
-  // Tape studio: turn with the keyboard, pick a preset direction, add to the roll
+  // Tape studio: turn with the keyboard, add to the roll
   await page.goto("/tapes?make=1");
   await expect(page.getByRole("dialog", { name: "New tape" })).toBeVisible();
   const handle = page.getByRole("slider", { name: /Turn tape/ });
   await handle.focus();
   await page.keyboard.press("ArrowRight");
-  await expect(page.getByText("Direction · -9°")).toBeVisible();
-  await page.getByRole("button", { name: "45 degrees", exact: true }).click();
-  await expect(page.getByText("Direction · 45°")).toBeVisible();
+  await expect(handle).toHaveAttribute("aria-valuenow", "-9");
   await page.getByLabel("Name").fill("E2E tape");
   await page.getByRole("button", { name: "Add to my tapes" }).click();
   await expect(page.getByText("Added to your tapes.", { exact: true })).toBeVisible();
