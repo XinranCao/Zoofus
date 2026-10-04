@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
+import { TextField } from "@/components/ui/TextField";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ToastNote, useToast } from "@/components/ui/Toast";
@@ -12,10 +14,10 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { AddToCollectionDialog } from "@/features/collections/AddToCollectionDialog";
 import { ShareDialog } from "@/features/social/ShareDialog";
 import { useForgetItems } from "@/features/collections/useCollections";
-import { STARTER_TAPES, type TapeSpec } from "./tape.schema";
+import { MAX_TAPE_NAME, STARTER_TAPES, type TapeSpec } from "./tape.schema";
 import { NewTapeDialog } from "./NewTapeDialog";
 import { TapeTile } from "./TapeTile";
-import { useDeleteTape, useTapes } from "./useTapes";
+import { useDeleteTape, useRenameTape, useTapes } from "./useTapes";
 
 /** The tape collection: your tapes and the starters. A new tape is made in a dialog. */
 export default function TapePage() {
@@ -23,6 +25,8 @@ export default function TapePage() {
   const toast = useToast();
   const { data: tapes, isError } = useTapes();
   const remove = useDeleteTape();
+  const rename = useRenameTape();
+  const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
   /** The dialog is open when this is set; `from` is the tape it starts from, if any. */
   const [making, setMaking] = useState<{ from?: TapeSpec } | null>(null);
   const selection = useSelection();
@@ -109,6 +113,7 @@ export default function TapePage() {
               index={i}
               onUse={() => start(tape)}
               onShare={() => setShareOne(tape)}
+              onRename={() => setRenaming({ id: tape.id, name: tape.name })}
               onDelete={() =>
                 remove.mutate(tape.id, {
                   onSuccess: () => {
@@ -223,6 +228,55 @@ export default function TapePage() {
             });
         }}
       />
+      <Dialog
+        open={renaming !== null}
+        onOpenChange={(o) => !o && setRenaming(null)}
+        width={420}
+        seed="trename"
+        tapes={1}
+        title={t("tape.renameTitle")}
+        actions={
+          <>
+            <Button variant="quiet" seed="trc" onClick={() => setRenaming(null)}>
+              {t("common.cancel")}
+            </Button>
+            <Button
+              variant="primary"
+              icon="check"
+              seed="trs"
+              disabled={!renaming?.name.trim()}
+              loading={rename.isPending}
+              onClick={() =>
+                renaming &&
+                rename.mutate(
+                  { id: renaming.id, name: renaming.name.trim() },
+                  {
+                    onSuccess: () => setRenaming(null),
+                    onError: () =>
+                      toast.push({
+                        kind: "error",
+                        title: t("auth.errors.toastTitle"),
+                        body: t("tape.renameFailed"),
+                      }),
+                  },
+                )
+              }
+            >
+              {t("common.save")}
+            </Button>
+          </>
+        }
+      >
+        <div style={{ margin: "8px 0 6px" }}>
+          <TextField
+            label={t("tape.nameLabel")}
+            seed="trt"
+            value={renaming?.name ?? ""}
+            maxLength={MAX_TAPE_NAME}
+            onChange={(e) => setRenaming((r) => r && { ...r, name: e.target.value })}
+          />
+        </div>
+      </Dialog>
       {making && <NewTapeDialog from={making.from} onClose={() => setMaking(null)} />}
     </div>
   );

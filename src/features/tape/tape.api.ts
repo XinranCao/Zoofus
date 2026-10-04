@@ -8,6 +8,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { cleanForFirestore } from "@/paper/patternSchema";
@@ -44,6 +45,10 @@ export async function saveTape(uid: string, tape: TapeSpec): Promise<string> {
     createdAt: serverTimestamp(),
   });
   return id;
+}
+
+export async function renameTape(uid: string, id: string, name: string): Promise<void> {
+  await updateDoc(doc(tapesRef(uid), id), { name });
 }
 
 export async function deleteTape(uid: string, id: string): Promise<void> {

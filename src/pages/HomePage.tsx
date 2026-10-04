@@ -121,7 +121,7 @@ export default function HomePage() {
           />
         </Paper>
         <div className="zf-hide-m" style={{ flex: "0 0 360px" }}>
-          <Collage arts={["pear", "cup", "cherry", "leaf"]} size={120} gap={24} />
+          <Collage arts={["pear", "cup", "cherry", "leaf"]} size={150} gap={24} />
         </div>
       </div>
 

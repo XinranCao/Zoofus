@@ -21,7 +21,7 @@ import type { Sticker } from "@/features/stickers/library/sticker.schema";
 import type { TapeSpec } from "@/features/tape/tape.schema";
 import { db, storage } from "@/lib/firebase";
 import { toInlinePicture } from "@/lib/inlinePicture";
-import { deleteFolder } from "@/lib/storage";
+import { deleteFolder, readPicture } from "@/lib/storage";
 import { cleanForFirestore } from "@/paper/patternSchema";
 import {
   itemFromDoc,
@@ -347,9 +347,9 @@ export async function saveCopy(
       const entry = shelf.get(aid);
       if (!entry || entry.kind !== "sticker") continue; // its picture was taken off the shelf
       if (!assets[aid]) {
-        const res = await fetch(entry.url);
-        if (!res.ok) continue;
-        const raw = await res.blob();
+        // a picture that cannot be read leaves its place empty rather than losing the whole copy
+        const raw = await readPicture(entry.url).catch(() => null);
+        if (!raw) continue;
         const blob =
           raw.type === "image/png" || raw.type === "image/webp"
             ? raw

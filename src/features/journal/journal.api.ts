@@ -93,7 +93,7 @@ export async function saveJournal(
   uid: string,
   journal: Pick<Journal, "id" | "thumbPath">,
   changes: JournalChanges,
-): Promise<void> {
+): Promise<string | undefined> {
   if (changes.items && changes.items.length > MAX_JOURNAL_ITEMS)
     throw new JournalLimitError();
   const update: Record<string, unknown> = { updatedAt: serverTimestamp() };
@@ -112,6 +112,7 @@ export async function saveJournal(
   await updateDoc(doc(journalsRef(uid), journal.id), update);
   if (newThumbPath && journal.thumbPath && journal.thumbPath !== newThumbPath)
     await deleteFileIfExists(ref(storage, journal.thumbPath)).catch(() => {});
+  return newThumbPath; // the caller keeps it, so the next save knows what to replace
 }
 
 export async function renameJournal(uid: string, id: string, title: string) {

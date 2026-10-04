@@ -77,10 +77,11 @@ function Editor({ journal }: { journal: Journal }) {
   const persist = async (withThumb: boolean) => {
     const { page, items } = store.getState();
     const thumb = withThumb ? await exportRef.current?.thumb().catch(() => null) : null;
-    await save.mutateAsync({
+    const result = await save.mutateAsync({
       journal: { id: journal.id, thumbPath: thumbPath.current },
       changes: { title: title.trim() || journal.title, page, items, thumb },
     });
+    if (result) thumbPath.current = result;
     store.getState().markSaved();
   };
 
@@ -109,7 +110,7 @@ function Editor({ journal }: { journal: Journal }) {
       if (!s.dirty || (s.items === prev.items && s.page === prev.page)) return;
       if (timer) clearTimeout(timer);
       timer = setTimeout(
-        () => void latest.current.persist(false).catch(() => {}),
+        () => void latest.current.persist(true).catch(() => {}),
         AUTOSAVE_MS,
       );
     });
@@ -139,6 +140,17 @@ function Editor({ journal }: { journal: Journal }) {
         header={
           <>
             <Button
+              variant="primary"
+              size="sm"
+              icon="check"
+              seed="jsave"
+              disabled={!dirty && !titleDirty}
+              loading={save.isPending}
+              onClick={() => void saveNow()}
+            >
+              {dirty || titleDirty ? t("common.save") : t("journal.savedShort")}
+            </Button>
+            <Button
               variant="secondary"
               size="sm"
               icon="download"
@@ -155,17 +167,6 @@ function Editor({ journal }: { journal: Journal }) {
               }
             >
               {t("journal.download")}
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              icon="check"
-              seed="jsave"
-              disabled={!dirty && !titleDirty}
-              loading={save.isPending}
-              onClick={() => void saveNow()}
-            >
-              {dirty || titleDirty ? t("common.save") : t("journal.savedShort")}
             </Button>
           </>
         }

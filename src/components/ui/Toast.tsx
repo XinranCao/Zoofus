@@ -103,8 +103,7 @@ interface Item extends ToastInput {
 }
 
 /**
- * Radix Toast. Bottom-centre on mobile, bottom-right on desktop; success lasts 4s, an error stays
- * until dismissed; never more than three at once.
+ * Radix Toast. Bottom-centre on mobile, bottom-right on desktop; success lasts 4s, an error 8s; never more than three at once.
  */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<Item[]>([]);
@@ -128,7 +127,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={item.id}
             asChild
             type={item.kind === "error" ? "foreground" : "background"}
-            duration={item.kind === "error" ? Infinity : item.action ? 6000 : 4000}
+            duration={item.kind === "error" ? 8000 : item.action ? 6000 : 4000}
             onOpenChange={(open) => !open && dismiss(item.id)}
           >
             <ToastNote

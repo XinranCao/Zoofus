@@ -76,3 +76,24 @@ describe("reorder", () => {
     expect(topZ(items)).toBe(3);
   });
 });
+
+describe("reorder one place", () => {
+  const order = (items: Item[]) => items.map((i) => i.id);
+  it("moves an item past its neighbour, up or down, with three or more layers", () => {
+    const items = [sticker("a", 0), sticker("b", 1), sticker("c", 2)];
+    const up = applyOps(start(items), reorder(items, "a", "up")).state.items;
+    expect(order(up)).toEqual(["b", "a", "c"]);
+    const down = applyOps(start(items), reorder(items, "c", "down")).state.items;
+    expect(order(down)).toEqual(["a", "c", "b"]);
+    const mid = applyOps(start(items), reorder(items, "b", "up")).state.items;
+    expect(order(mid)).toEqual(["a", "c", "b"]);
+  });
+  it("does nothing at the ends, and separates items that share a level", () => {
+    const items = [sticker("a", 0), sticker("b", 1)];
+    expect(reorder(items, "b", "up")).toEqual([]);
+    expect(reorder(items, "a", "down")).toEqual([]);
+    const same = [sticker("a", 3), sticker("b", 3)];
+    const moved = applyOps(start(same), reorder(same, "a", "up")).state.items;
+    expect(moved.find((i) => i.id === "a")!.z).toBeGreaterThan(3);
+  });
+});

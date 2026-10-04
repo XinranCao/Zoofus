@@ -11,12 +11,32 @@ export function useLoadedImage(src: string | null, crossOrigin?: "anonymous") {
     img.onload = () => {
       if (!cancelled) setImage(img);
     };
+    let objectUrl: string | null = null;
     img.onerror = () => {
-      if (!cancelled) setImage(null);
+      // A live bucket can refuse a cross-origin load of a file the browser already cached from a
+      // plain <img>; read it with the Storage SDK and draw from the bytes instead (once).
+      if (
+        cancelled ||
+        !crossOrigin ||
+        img.src.startsWith("blob:") ||
+        !/^https?:/.test(src)
+      ) {
+        if (!cancelled) setImage(null);
+        return;
+      }
+      void import("./storage")
+        .then((m) => m.readPicture(src))
+        .then((blob) => {
+          if (cancelled) return;
+          objectUrl = URL.createObjectURL(blob);
+          img.src = objectUrl;
+        })
+        .catch(() => !cancelled && setImage(null));
     };
     img.src = src;
     return () => {
       cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
       setImage(null);
     };
   }, [src, crossOrigin]);

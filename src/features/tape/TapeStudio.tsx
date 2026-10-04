@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
-import { Chip } from "@/components/ui/Chip";
 import { Icon } from "@/components/ui/Icon";
 import { Paper } from "@/components/ui/Paper";
 import { PatternEditor } from "@/components/ui/PatternEditor";
@@ -20,7 +19,6 @@ import {
   type TapeEnds,
 } from "./tape.schema";
 
-const PRESET_ANGLES = [-45, -15, 0, 15, 45, 90];
 const STAGE_TOP = 70;
 
 /** The tape a user is designing: everything except the saved name. */
@@ -181,38 +179,6 @@ export function TapeStudio({
       </div>
 
       <div className="zf-studio__controls">
-        <div>
-          <div className="zf-label" style={{ marginBottom: 8 }}>
-            {t("tape.direction", { angle: draft.angle })}
-          </div>
-          <div
-            className="zf-toggle-group"
-            role="group"
-            aria-label={t("tape.direction", { angle: draft.angle })}
-          >
-            {PRESET_ANGLES.map((d) => (
-              <Chip
-                key={d}
-                seed={"dir" + d}
-                selected={draft.angle === d}
-                aria-label={t("tape.directionPreset", { angle: d })}
-                onClick={() => onDraft({ angle: d })}
-              >
-                <span
-                  aria-hidden="true"
-                  style={{
-                    display: "inline-block",
-                    width: 18,
-                    height: 3,
-                    background: "currentColor",
-                    transform: `rotate(${d}deg)`,
-                  }}
-                />
-                {(d > 0 ? "+" : "") + d + "°"}
-              </Chip>
-            ))}
-          </div>
-        </div>
         <div
           style={{
             display: "grid",

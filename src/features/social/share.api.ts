@@ -7,7 +7,7 @@ import type { Sticker } from "@/features/stickers/library/sticker.schema";
 import { saveTape } from "@/features/tape/tape.api";
 import type { Tape } from "@/features/tape/tape.schema";
 import { db, storage } from "@/lib/firebase";
-import { deleteFileIfExists } from "@/lib/storage";
+import { deleteFileIfExists, readPicture } from "@/lib/storage";
 import {
   journalPayloadSchema,
   stickerPayloadSchema,
@@ -25,9 +25,7 @@ const inbox = (uid: string, id: string) => doc(db, "users", uid, "inbox", id);
 const sent = (uid: string, id: string) => doc(db, "users", uid, "sent", id);
 
 async function fetchPicture(url: string): Promise<Blob> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Could not read a picture (${res.status})`);
-  const blob = await res.blob();
+  const blob = await readPicture(url);
   return blob.type === "image/png" || blob.type === "image/webp"
     ? blob
     : new Blob([blob], { type: "image/webp" });

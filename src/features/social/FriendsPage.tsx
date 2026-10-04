@@ -46,7 +46,7 @@ export default function FriendsPage() {
   const { data: friends = [] } = useFriends();
   const { data: incoming = [] } = useIncomingRequests();
   const { data: inbox = [] } = useInbox();
-  const unseen = inbox.filter((s) => !s.seen).length;
+  const waiting = inbox.filter((s) => !s.saved).length; // what is still in "Shared with you"
   const [tab, setTab] = useState<Tab>("friends");
   useMakeParam(() => setTab("friends"));
 
@@ -76,7 +76,7 @@ export default function FriendsPage() {
               value: "requests",
               label: t("friends.tabRequests", { count: incoming.length }),
             },
-            { value: "shared", label: t("friends.tabShared", { count: unseen }) },
+            { value: "shared", label: t("friends.tabShared", { count: waiting }) },
           ]}
         />
       </div>

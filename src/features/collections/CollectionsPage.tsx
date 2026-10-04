@@ -15,12 +15,13 @@ import { ToastNote, useToast } from "@/components/ui/Toast";
 import { useJournals } from "@/features/journal/useJournals";
 import { LibraryTabs } from "@/features/library/LibraryTabs";
 import { useStickers } from "@/features/stickers/library/useStickers";
+import { useTapes } from "@/features/tape/useTapes";
 import { ensureFontsFor } from "@/lib/cjkFonts";
 import { cn } from "@/lib/cn";
 import { useMakeParam } from "@/lib/useMakeParam";
 import { useSelection } from "@/lib/useSelection";
 import { MAX_COLLECTION_NAME, type Collection } from "./collection.schema";
-import { FolderThumb } from "./FolderThumb";
+import { FolderThumb, type FolderPiece } from "./FolderThumb";
 import { CollectionLimitError } from "./collections.api";
 import {
   useCollections,
@@ -251,17 +252,28 @@ function CollectionTile({
   const { data: stickers } = useStickers();
   const { data: journals } = useJournals();
   ensureFontsFor(collection.name);
-  const pictures = collection.items
-    .flatMap((i) => {
-      if (i.k === "sticker") return stickers?.find((s) => s.id === i.id)?.imageUrl ?? [];
-      if (i.k === "journal") return journals?.find((j) => j.id === i.id)?.thumbUrl ?? [];
-      return [];
+  const { data: tapes } = useTapes();
+  const pieces: FolderPiece[] = collection.items
+    .flatMap((i): FolderPiece[] => {
+      if (i.k === "sticker") {
+        const src = stickers?.find((s) => s.id === i.id)?.imageUrl;
+        return src ? [{ k: "img", src }] : [];
+      }
+      if (i.k === "journal") {
+        const j = journals?.find((x) => x.id === i.id);
+        if (!j) return [];
+        return j.thumbUrl
+          ? [{ k: "img", src: j.thumbUrl }]
+          : [{ k: "paper", page: j.page }];
+      }
+      const tape = tapes?.find((x) => x.id === i.id);
+      return tape ? [{ k: "tape", tape }] : [];
     })
     .slice(0, 5);
   const inner = (
     <>
       {selecting && <SelectMark selected={selected} />}
-      <FolderThumb id={collection.id} pictures={pictures} />
+      <FolderThumb id={collection.id} pieces={pieces} />
       <span className="zf-tile__name" style={{ marginTop: 10 }}>
         {collection.name}
       </span>

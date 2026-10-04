@@ -1,5 +1,29 @@
 # Changelog
 
+## v1.2.0 – 2026-10-04
+
+### Features
+
+- Tapes behave like stickers in the library: the same hover lift, and Share and Rename on hover.
+- A collection's folder shows everything in it when you point at it: stickers, tapes and journals.
+- A journal's picture in the list is refreshed every time the page is saved (also by autosave).
+- Layers in the journal studio (and in Together) can be moved one step forward or backward, not only to the very front or back.
+- Together: the "here now" list shows only faces, with the name (the one you gave your friend) on hover; no more Leave button inside a page.
+- The chosen language on the bar is circled by hand instead of underlined.
+- Sharing shows what is being shared.
+
+### Fixes
+
+- Sharing a sticker, editing its edge and saving a copy of a shared page could fail on the live site when the browser had already cached the picture from a plain image. Pictures are now read around that (cache skipped, then through Storage), a failure says why in a short code, and error notes disappear on their own after a few seconds.
+- Editing a sticker's edge no longer stops over older values in parts of the sticker that are not being changed (the rules check only what changes).
+- "Shared with you" counts what is waiting, and what you keep leaves the list.
+- The red dot for Together invitations was drawn in the wrong colour; fixed.
+
+### Other
+
+- Stickers in the library are larger and closer together; the tape studio loses its preset angle buttons (turn the tape by hand); "Make" has no plus; collection names are no longer suggested.
+- New security rules (sticker updates check only what changes): **deploy them before releasing**.
+
 ## v1.1.0 – 2026-10-04
 
 ### Features

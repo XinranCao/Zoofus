@@ -112,6 +112,16 @@ test("the book and the tape roll still load stickers and tapes saved by an earli
   await expect(page.getByRole("button", { name: "Open Plain old" })).toBeVisible();
   await expect(page.getByText("We couldn’t load your stickers")).toHaveCount(0);
 
+  // an older sticker with no original opens, and says why its edge cannot be changed
+  await page.getByRole("button", { name: "Open Plain old" }).click();
+  await expect(
+    page
+      .getByRole("dialog")
+      .getByText(/Made before edge editing/)
+      .first(),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+
   await page.goto("/tapes");
   await expect(
     page.getByRole("button", { name: "Make a tape like Old tape" }),

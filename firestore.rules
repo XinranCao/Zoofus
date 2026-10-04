@@ -244,10 +244,21 @@ service cloud.firestore {
         allow create: if isOwner(uid)
           && validSticker(request.resource.data)
           && request.resource.data.createdAt == request.time;
-        // After creation: rename, or redo the edge (new image file, edge settings and size).
+        // After creation: rename, or redo the edge (new image file, edge settings and size). Only what
+        // changes is checked: a sticker saved by an earlier version may hold older values in fields
+        // that are not being touched (a long name, a different size type), and must still be editable.
+        function touched(d, key) {
+          return d.diff(resource.data).affectedKeys().hasAny([key]);
+        }
         allow update: if isOwner(uid)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'storagePath', 'imageUrl', 'edge', 'seed', 'width', 'height'])
-          && validSticker(request.resource.data);
+          && (!touched(request.resource.data, 'name') || (isString(request.resource.data.name, 60) && request.resource.data.name.size() > 0))
+          && (!touched(request.resource.data, 'storagePath') || ownFile(request.resource.data.storagePath))
+          && (!touched(request.resource.data, 'imageUrl') || isString(request.resource.data.imageUrl, 2048))
+          && (!touched(request.resource.data, 'edge') || validEdge(request.resource.data.edge))
+          && (!touched(request.resource.data, 'seed') || isString(request.resource.data.seed, 64))
+          && (!touched(request.resource.data, 'width') || (request.resource.data.width is int && request.resource.data.width > 0))
+          && (!touched(request.resource.data, 'height') || (request.resource.data.height is int && request.resource.data.height > 0));
         allow delete: if isOwner(uid);
       }
     }
