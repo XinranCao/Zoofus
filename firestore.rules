@@ -10,6 +10,16 @@ service cloud.firestore {
     function isOwner(uid) {
       return signedIn() && request.auth.uid == uid;
     }
+    // Project managers: the people allowed to open the /diagnostics page. To add or remove one,
+    // edit this list and deploy the rules (see docs/debugging.md). The e-mail must be verified,
+    // so nobody can claim a manager's address by signing up with it.
+    function isManager() {
+      return signedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in [
+          'xinrancao.xc@gmail.com'
+        ];
+    }
     function isString(value, maxLen) {
       return value is string && value.size() <= maxLen;
     }
@@ -284,6 +294,13 @@ service cloud.firestore {
           && (!touched(request.resource.data, 'height') || (request.resource.data.height is int && request.resource.data.height > 0));
         allow delete: if isOwner(uid);
       }
+    }
+
+    // adminCheck/{doc}: nothing is stored here. The /diagnostics page tries to read one document, and
+    // the read is allowed only for a project manager, so the page learns from the rules themselves
+    // whether the person may use it. Nobody can write.
+    match /adminCheck/{doc} {
+      allow get: if isManager();
     }
 
     // publicProfiles/{uid}: what a friend (or someone with my friend code) may see: my nickname and

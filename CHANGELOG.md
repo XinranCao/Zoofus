@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.6.0 – 2026-10-05
+
+### Features
+
+- A `/diagnostics` page for project managers (and nobody else): it checks App Check, Firestore and Storage, lists the recent errors with their codes and copies a report. Access is decided by a manager list in the security rules.
+- Errors are recorded (and counted in Google Analytics as `app_error`), App Check token failures are logged, and `?debug=1` turns on Firestore's verbose log.
+- `docs/debugging.md`: one page on how to debug production and the emulators.
+
+### Fixes
+
+- Sharing can no longer hang or trap its dialog: every step has a time limit, Cancel always works, and lists refresh in the background. Pictures shared through the local emulators now load on other devices.
+
+### Other
+
+- New security rule (`adminCheck`): **deploy it before releasing**.
+
 ## v1.5.0 – 2026-10-04
 
 ### Features

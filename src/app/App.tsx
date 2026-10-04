@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppShell } from "@/components/layout/AppShell";
+import { ManagerGate } from "@/features/admin/ManagerGate";
 import { ProtectedRoute } from "@/features/auth/ProtectedRoute";
 
 const LoginPage = lazy(() => import("@/features/auth/pages/LoginPage"));
@@ -48,7 +49,14 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/diagnostics" element={<DiagnosticsPage />} />
+            <Route
+              path="/diagnostics"
+              element={
+                <ManagerGate>
+                  <DiagnosticsPage />
+                </ManagerGate>
+              }
+            />
             {DesignSystemPage && (
               <Route path="/dev/design-system" element={<DesignSystemPage />} />
             )}

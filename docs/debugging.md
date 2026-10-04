@@ -4,6 +4,8 @@ Start here when something fails. Work from the symptom to the tool, in this orde
 
 ## 1. The `/diagnostics` page (works in production and in the emulators)
 
+**Who can open it.** Only project managers. Everyone else (and anyone signed out) sees the ordinary "not found" page. The list lives in `isManager()` in `firestore.rules` (an e-mail list; the e-mail must be **verified**, so on an e-mail-and-password account use the "I verified" link in the banner first, or sign in with Google). The page asks the rules whether it may open (`adminCheck/ping` can be read only by a manager), so the list exists in one place and cannot be bypassed in the browser. To add or remove a manager: edit the list, run `npm run test:rules`, and deploy the rules (`npx firebase-tools@14 deploy --only firestore:rules --project zoofus-48264`). The local emulators let everyone in. The page can only touch the signed-in person's own data.
+
 Open `/diagnostics` while signed in, press **Run checks**, then **Copy report** and paste it into the bug report. It shows:
 
 | Check                 | Tells you                                                                         |
