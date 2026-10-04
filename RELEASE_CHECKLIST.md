@@ -1,6 +1,8 @@
 # Release checklist
 
-For the redesign (design-system rounds 1 and 2) on `dev`. Nothing here has been run. Steps that change production are marked **PRODUCTION**.
+For the next release from `dev` (journals, collections, friends, together). Nothing here has been run.
+
+> **New rules must be deployed first.** The app now uses `journals`, `collections`, `friends`, `requests`, `inbox`, `sent`, `publicProfiles`, `friendCodes` and `workspaces` (with `items`, `assets`, `presence`) in Firestore, and `{uid}/journals`, `{uid}/shares`, `{uid}/collab` in Storage. Until `firestore.rules` and `storage.rules` are deployed, `npm run dev` against production fails on those features. Use the emulators meanwhile. Steps that change production are marked **PRODUCTION**.
 
 ## 0. Before anything
 

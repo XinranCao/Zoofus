@@ -38,6 +38,7 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
 - `src/features/pages/` – collage page data model (schema, pure ops, API, hooks; no UI yet). `src/features/account/` – account page (export/delete), email verification banner
 - `docs/app-check.md` – one-time App Check console setup
 - `src/components/ErrorBoundary.tsx`, `src/pages/NotFoundPage.tsx` – error and 404 handling
+- `src/features/library/` (tabs), `tape/` (tape studio + page), `journal/` (page model in `journal.schema.ts`, ops with inverses in `ops.ts`, store, Konva studio), `collections/`, `social/` (friends, friend codes, sharing, inbox), `together/` (workspaces: live items, shelf, presence, `saveCopy`). Data model in `docs/data-model.md`. Journal items are one compact doc; workspace items are one doc per object.
 - `src/pages/HomePage.tsx` – opens the editor in a dialog
 - `design-system/` – the Zoofus design system (reference docs and code, never imported); `ADOPTION_PLAN.md`, `ADOPTION_REPORT.md`, `verification/` screenshots
 - `src/paper/` – ported paper primitives (torn clip pairs, patterns, dieCut, renderSticker) with tests; `src/styles/` – Tailwind theme, tokens, components.css; `src/components/ui/` – Radix-based UI kit, gallery at `/dev/design-system` (dev only); `src/i18n/` – locales; `src/features/tape/` – tape studio (`/tape`)
