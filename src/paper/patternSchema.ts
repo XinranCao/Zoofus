@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { MAX_DOODLE_STROKES, PATTERN_KINDS, USER_COLORS, isSafeStroke } from "./pattern";
+import {
+  MAX_DOODLE_STROKES,
+  PATTERN_KINDS,
+  USER_COLORS,
+  isSafeStroke,
+  type PatternKind,
+} from "./pattern";
 import type { EdgeSpec } from "./renderSticker";
 
 /** Users print with the 16 palette colours only. */
@@ -16,7 +22,7 @@ const strokes = z
   .transform((list) => list.filter(isSafeStroke).slice(0, MAX_DOODLE_STROKES));
 
 export const patternSpecSchema = z.object({
-  kind: z.enum(PATTERN_KINDS as [string, ...string[]]),
+  kind: z.enum(PATTERN_KINDS as [PatternKind, ...PatternKind[]]),
   bg: userColour.catch("sheet-50"),
   ink: userColour.optional().catch(undefined),
   scale: z.number().min(6).max(28).optional().catch(undefined),

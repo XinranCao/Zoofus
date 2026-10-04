@@ -7,6 +7,11 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { ToastNote, useToast } from "@/components/ui/Toast";
 import { LibraryTabs } from "@/features/library/LibraryTabs";
 import { useMakeParam } from "@/lib/useMakeParam";
+import { useSelection } from "@/lib/useSelection";
+import { BulkBar } from "@/components/ui/BulkBar";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { AddToCollectionDialog } from "@/features/collections/AddToCollectionDialog";
+import { useForgetItems } from "@/features/collections/useCollections";
 import { TapeLimitError } from "./tape.api";
 import { STARTER_TAPES, type TapeSpec } from "./tape.schema";
 import { DEFAULT_DRAFT, TapeStudio, type TapeDraft } from "./TapeStudio";
@@ -30,6 +35,11 @@ export default function TapePage() {
   const remove = useDeleteTape();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<TapeDraft>(DEFAULT_DRAFT);
+  const selection = useSelection();
+  const forget = useForgetItems();
+  const [addOpen, setAddOpen] = useState(false);
+  const [bulkDelete, setBulkDelete] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const start = (from?: TapeSpec) => {
     setDraft(from ? draftOf(from) : DEFAULT_DRAFT);
@@ -70,9 +80,21 @@ export default function TapePage() {
         lead={t("tape.lead")}
         art={["roll", "scissors"]}
         actions={
-          <Button variant="primary" icon="plus" seed="newtape" onClick={() => start()}>
-            {t("tape.new")}
-          </Button>
+          <>
+            {mine.length > 0 && (
+              <Button
+                variant="quiet"
+                icon="select"
+                seed="tsel"
+                onClick={selection.active ? selection.stop : selection.start}
+              >
+                {selection.active ? t("bulk.done") : t("bulk.select")}
+              </Button>
+            )}
+            <Button variant="primary" icon="plus" seed="newtape" onClick={() => start()}>
+              {t("tape.new")}
+            </Button>
+          </>
         }
       />
       <LibraryTabs />
@@ -119,9 +141,15 @@ export default function TapePage() {
               onUse={() => start(tape)}
               onDelete={() =>
                 remove.mutate(tape.id, {
-                  onSuccess: () => toast.push({ kind: "info", title: t("tape.removed") }),
+                  onSuccess: () => {
+                    void forget([{ k: "tape", id: tape.id }]);
+                    toast.push({ kind: "info", title: t("tape.removed") });
+                  },
                 })
               }
+              selecting={selection.active}
+              selected={selection.ids.has(tape.id)}
+              onToggle={() => selection.toggle(tape.id)}
             />
           ))}
         </div>
@@ -142,6 +170,67 @@ export default function TapePage() {
         ))}
       </div>
 
+      {selection.active && (
+        <BulkBar
+          count={selection.count}
+          total={mine.length}
+          onSelectAll={() => selection.set(mine.map((x) => x.id))}
+          onClear={selection.clear}
+          onDone={selection.stop}
+        >
+          <Button
+            variant="secondary"
+            size="sm"
+            icon="folder"
+            seed="tbacol"
+            disabled={selection.count === 0}
+            onClick={() => setAddOpen(true)}
+          >
+            {t("bulk.addToCollection")}
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            icon="trash"
+            seed="tbadel"
+            disabled={selection.count === 0}
+            onClick={() => setBulkDelete(true)}
+          >
+            {t("bulk.delete")}
+          </Button>
+        </BulkBar>
+      )}
+      <AddToCollectionDialog
+        open={addOpen}
+        items={[...selection.ids].map((id) => ({ k: "tape" as const, id }))}
+        onClose={() => setAddOpen(false)}
+        onDone={selection.stop}
+      />
+      <ConfirmDialog
+        open={bulkDelete}
+        title={t("tape.bulkDeleteTitle", { count: selection.count })}
+        confirmLabel={t("common.delete")}
+        loading={bulkBusy}
+        onCancel={() => setBulkDelete(false)}
+        onConfirm={() => {
+          const ids = [...selection.ids];
+          setBulkBusy(true);
+          void Promise.allSettled(ids.map((id) => remove.mutateAsync(id)))
+            .then(async (results) => {
+              await forget(
+                ids
+                  .filter((_, i) => results[i]!.status === "fulfilled")
+                  .map((id) => ({ k: "tape" as const, id })),
+              );
+              toast.push({ kind: "info", title: t("tape.removed") });
+            })
+            .finally(() => {
+              setBulkBusy(false);
+              setBulkDelete(false);
+              selection.stop();
+            });
+        }}
+      />
       <Dialog
         open={open}
         onOpenChange={setOpen}

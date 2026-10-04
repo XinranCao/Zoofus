@@ -7,6 +7,11 @@ import { Skeleton } from "@/components/ui/Loader";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { LibraryTabs } from "@/features/library/LibraryTabs";
 import { useMakeParam } from "@/lib/useMakeParam";
+import { useSelection } from "@/lib/useSelection";
+import { BulkBar } from "@/components/ui/BulkBar";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { AddToCollectionDialog } from "@/features/collections/AddToCollectionDialog";
+import { useForgetItems } from "@/features/collections/useCollections";
 import { Sticker as DemoSticker } from "@/components/ui/Sticker";
 import { ToastNote, useToast } from "@/components/ui/Toast";
 import { preloadStickerMaker, StickerMakerDialog } from "../editor/LazyStickerMaker";
@@ -30,6 +35,11 @@ export default function StickerBookPage() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [editEdgeId, setEditEdgeId] = useState<string | null>(null);
   const [makerOpen, setMakerOpen] = useState(false);
+  const selection = useSelection();
+  const forget = useForgetItems();
+  const [addOpen, setAddOpen] = useState(false);
+  const [bulkDelete, setBulkDelete] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
   useMakeParam(() => setMakerOpen(true));
   // Deleted stickers disappear at once; the real delete runs after the Undo window.
   const [hidden, setHidden] = useState<Set<string>>(new Set());
@@ -56,6 +66,7 @@ export default function StickerBookPage() {
 
   const runDelete = (sticker: Sticker) => {
     pending.current.delete(sticker.id);
+    void forget([{ k: "sticker", id: sticker.id }]);
     remove.mutate(sticker, {
       onError: () => {
         setHidden((h) => {
@@ -139,16 +150,28 @@ export default function StickerBookPage() {
         art={["star", "pear"]}
         actions={
           !empty && (
-            <Button
-              variant="primary"
-              icon="plus"
-              seed="nw"
-              onPointerEnter={preloadStickerMaker}
-              onFocus={preloadStickerMaker}
-              onClick={() => setMakerOpen(true)}
-            >
-              {t("book.newSticker")}
-            </Button>
+            <>
+              {stickers.length > 0 && (
+                <Button
+                  variant="quiet"
+                  icon="select"
+                  seed="sel"
+                  onClick={selection.active ? selection.stop : selection.start}
+                >
+                  {selection.active ? t("bulk.done") : t("bulk.select")}
+                </Button>
+              )}
+              <Button
+                variant="primary"
+                icon="plus"
+                seed="nw"
+                onPointerEnter={preloadStickerMaker}
+                onFocus={preloadStickerMaker}
+                onClick={() => setMakerOpen(true)}
+              >
+                {t("book.newSticker")}
+              </Button>
+            </>
           )
         }
       />
@@ -207,11 +230,88 @@ export default function StickerBookPage() {
               onDelete={() => setConfirmId(s.id)}
               renaming={renamingId === s.id}
               onRenameDone={(name) => onRenameDone(s.id, name)}
+              selecting={selection.active}
+              selected={selection.ids.has(s.id)}
+              onToggle={() => selection.toggle(s.id)}
             />
           ))}
         </div>
       )}
 
+      {selection.active && (
+        <BulkBar
+          count={selection.count}
+          total={stickers.length}
+          onSelectAll={() => selection.set(stickers.map((s) => s.id))}
+          onClear={selection.clear}
+          onDone={selection.stop}
+        >
+          <Button
+            variant="secondary"
+            size="sm"
+            icon="folder"
+            seed="bacol"
+            disabled={selection.count === 0}
+            onClick={() => setAddOpen(true)}
+          >
+            {t("bulk.addToCollection")}
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            icon="trash"
+            seed="badel"
+            disabled={selection.count === 0}
+            onClick={() => setBulkDelete(true)}
+          >
+            {t("bulk.delete")}
+          </Button>
+        </BulkBar>
+      )}
+      <AddToCollectionDialog
+        open={addOpen}
+        items={[...selection.ids].map((id) => ({ k: "sticker" as const, id }))}
+        onClose={() => setAddOpen(false)}
+        onDone={selection.stop}
+      />
+      <ConfirmDialog
+        open={bulkDelete}
+        title={t("book.bulkDeleteTitle", { count: selection.count })}
+        body={t("book.deleteBody")}
+        confirmLabel={t("common.delete")}
+        loading={bulkBusy}
+        onCancel={() => setBulkDelete(false)}
+        onConfirm={() => {
+          const chosen = (data ?? []).filter((s) => selection.ids.has(s.id));
+          setBulkBusy(true);
+          void Promise.allSettled(chosen.map((s) => remove.mutateAsync(s)))
+            .then(async (results) => {
+              const failed = results.filter((r) => r.status === "rejected").length;
+              await forget(
+                chosen
+                  .filter((_, i) => results[i]!.status === "fulfilled")
+                  .map((s) => ({ k: "sticker" as const, id: s.id })),
+              );
+              if (failed)
+                toast.push({
+                  kind: "error",
+                  title: t("auth.errors.toastTitle"),
+                  body: t("book.deleteFailed"),
+                });
+              else
+                toast.push({
+                  kind: "info",
+                  title: t("book.deleted"),
+                  body: t("book.bulkDeleted", { count: chosen.length }),
+                });
+            })
+            .finally(() => {
+              setBulkBusy(false);
+              setBulkDelete(false);
+              selection.stop();
+            });
+        }}
+      />
       <StickerDetailDialog
         sticker={detail}
         date={detail ? longDate(detail) : ""}

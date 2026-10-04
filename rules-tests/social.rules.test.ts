@@ -36,7 +36,9 @@ beforeEach(() => env.clearFirestore());
 
 const as = (uid: string) => env.authenticatedContext(uid).firestore();
 const seed = (fn: (db: ReturnType<typeof as>) => Promise<unknown>) =>
-  env.withSecurityRulesDisabled((ctx) => fn(ctx.firestore() as never));
+  env.withSecurityRulesDisabled(async (ctx) => {
+    await fn(ctx.firestore() as never);
+  });
 
 const page = {
   width: 840,

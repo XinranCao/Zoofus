@@ -4,14 +4,16 @@ import { buildExport } from "./account.export";
 describe("buildExport", () => {
   it("includes everything and a timestamp", () => {
     const out = buildExport(
-      { profile: null, stickers: [], pages: [] },
+      { profile: null, stickers: [], tapes: [], journals: [], collections: [] },
       new Date("2026-10-03T00:00:00Z"),
     );
     expect(out).toEqual({
       exportedAt: "2026-10-03T00:00:00.000Z",
       profile: null,
       stickers: [],
-      pages: [],
+      tapes: [],
+      journals: [],
+      collections: [],
     });
   });
 
@@ -32,7 +34,9 @@ describe("buildExport", () => {
             createdAt,
           },
         ],
-        pages: [],
+        tapes: [],
+        journals: [],
+        collections: [],
       }),
     );
     expect(json).toContain("2026-10-02T10:00:00.000Z");

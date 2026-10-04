@@ -12,6 +12,10 @@ const DesignSystemPage = import.meta.env.DEV
   ? lazy(() => import("@/pages/dev/DesignSystemPage"))
   : null;
 const TapePage = lazy(() => import("@/features/tape/TapePage"));
+const JournalsPage = lazy(() => import("@/features/journal/JournalsPage"));
+const JournalPage = lazy(() => import("@/features/journal/JournalPage"));
+const CollectionsPage = lazy(() => import("@/features/collections/CollectionsPage"));
+const CollectionPage = lazy(() => import("@/features/collections/CollectionPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const StickerBookPage = lazy(() => import("@/features/stickers/library/StickerBookPage"));
 
@@ -48,6 +52,38 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <TapePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/journals"
+              element={
+                <ProtectedRoute>
+                  <JournalsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/journals/:id"
+              element={
+                <ProtectedRoute>
+                  <JournalPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/collections"
+              element={
+                <ProtectedRoute>
+                  <CollectionsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/collections/:id"
+              element={
+                <ProtectedRoute>
+                  <CollectionPage />
                 </ProtectedRoute>
               }
             />

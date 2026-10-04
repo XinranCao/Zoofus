@@ -17,6 +17,7 @@ export function TapeTile({
   selecting,
   selected,
   onToggle,
+  pickMode,
   onUse,
   onDelete,
 }: {
@@ -26,6 +27,8 @@ export function TapeTile({
   selecting?: boolean;
   selected?: boolean;
   onToggle?: () => void;
+  /** A picking list: the tile is a plain button (no tick mark). */
+  pickMode?: boolean;
   onUse?: () => void;
   onDelete?: () => void;
 }) {
@@ -34,7 +37,7 @@ export function TapeTile({
   const key = tape.id ?? "starter" + index;
   const body = (
     <>
-      {selecting && <SelectMark selected={Boolean(selected)} />}
+      {selecting && !pickMode && <SelectMark selected={Boolean(selected)} />}
       <span className="zf-tapetile__stage">
         <Paper
           seed={"tt" + key}
@@ -75,7 +78,7 @@ export function TapeTile({
         <button
           type="button"
           className="zf-tapetile__open"
-          aria-pressed={Boolean(selected)}
+          aria-pressed={pickMode ? undefined : Boolean(selected)}
           aria-label={tape.name}
           onClick={onToggle}
         >
