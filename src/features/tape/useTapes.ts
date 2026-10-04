@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/features/auth/useAuth";
-import { deleteTape, listTapes, renameTape, saveTape } from "./tape.api";
+import { deleteTape, listTapes, renameTape, saveTape, updateTape } from "./tape.api";
 import type { TapeSpec } from "./tape.schema";
 
 const key = (uid: string) => ["tapes", uid] as const;
@@ -23,6 +23,19 @@ export function useSaveTape() {
     mutationFn: (tape: TapeSpec) => {
       if (!uid) throw new Error("Not signed in");
       return saveTape(uid, tape);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: key(uid ?? "") }),
+  });
+}
+
+export function useUpdateTape() {
+  const { currentUser } = useAuth();
+  const uid = currentUser?.uid;
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, tape }: { id: string; tape: TapeSpec }) => {
+      if (!uid) throw new Error("Not signed in");
+      return updateTape(uid, id, tape);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key(uid ?? "") }),
   });

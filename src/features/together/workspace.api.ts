@@ -150,6 +150,11 @@ export async function renameWorkspace(id: string, title: string): Promise<void> 
   await updateDoc(ws(id), { title, updatedAt: serverTimestamp() });
 }
 
+/** Keep a small picture of the page, so the list shows what is on it. */
+export async function setWorkspaceThumb(id: string, thumb: string): Promise<void> {
+  await updateDoc(ws(id), { thumb, updatedAt: serverTimestamp() });
+}
+
 export async function setWorkspacePage(id: string, page: PageSpec): Promise<void> {
   await updateDoc(ws(id), {
     page: cleanForFirestore(page),
@@ -337,6 +342,7 @@ export async function saveCopy(
   items: Item[],
   shelf: Map<string, ShelfEntry>,
   existing: number,
+  thumb?: Blob | null,
 ): Promise<string> {
   const id = crypto.randomUUID();
   const assets: Record<string, Asset> = {};
@@ -368,10 +374,21 @@ export async function saveCopy(
     }
     kept.push(item);
   }
+  let thumbPath: string | undefined;
+  let thumbUrl: string | undefined;
+  if (thumb) {
+    // the copy opens in the list looking like the page, not like bare paper
+    thumbPath = `${me}/journals/${id}/thumb_${Date.now()}.webp`;
+    const r = ref(storage, thumbPath);
+    await uploadBytes(r, thumb, { contentType: "image/webp" });
+    thumbUrl = await getDownloadURL(r);
+  }
   return createJournal(
     me,
     {
       id,
+      thumbUrl,
+      thumbPath,
       title: w.title,
       page: w.page,
       items: kept,

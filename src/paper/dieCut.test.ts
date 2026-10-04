@@ -147,3 +147,20 @@ describe("edgeRadius", () => {
     expect(edgeRadius("smooth", "x", 12)(0.3).f).toBe(0);
   });
 });
+
+describe("torn edge has no spikes", () => {
+  it("never jumps between neighbouring angles, so stamps cannot smear into spikes", () => {
+    const bw = 20;
+    for (const seed of ["a", "b", "c", "d", "e", "f", "g", "h"]) {
+      const rad = edgeRadius("torn", seed, bw);
+      const N = 720;
+      for (let i = 0; i < N; i++) {
+        const a = rad(i / N);
+        const b = rad(((i + 1) % N) / N);
+        // only the eased bites change fast, and they only go inwards
+        expect(Math.abs(a.r - b.r)).toBeLessThan(bw * 0.32);
+        expect(Math.abs(a.f - b.f)).toBeLessThan(bw * 0.07);
+      }
+    }
+  });
+});

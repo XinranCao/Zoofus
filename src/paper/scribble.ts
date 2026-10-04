@@ -32,37 +32,56 @@ export function scribblePath(
 }
 
 /**
- * Path data for a hand-drawn loop round something, as if circled with a pen: an ellipse that wanders a
- * little and overshoots where it started (viewBox 0 0 100 40).
+ * Path data for a hand-drawn loop round something, as if circled with a pencil in one go: a smooth
+ * oval, a little tilted, that wanders gently, starts and ends in different places and overshoots
+ * so the line crosses itself (viewBox 0 0 100 40). The line is a Catmull-Rom curve through many
+ * points, so it flows without corners.
  */
 export function circlePath(seed: string): string {
   const R = rng("c" + seed);
   const cx = 50;
   const cy = 20;
-  const rx = 46;
-  const ry = 16.5;
-  const steps = 12;
-  const start = -Math.PI * 0.62 + (R() - 0.5) * 0.4;
-  const sweep = Math.PI * 2 + 0.55 + R() * 0.25; // past the start: the pen overlaps itself
+  const rx = 45;
+  const ry = 15.5;
+  const tilt = (-2.5 + (R() - 0.5) * 3) * (Math.PI / 180);
+  const steps = 28;
+  const start = -Math.PI * 0.55 + (R() - 0.5) * 0.35;
+  const sweep = Math.PI * 2 + 0.6 + R() * 0.3; // past the start: the pen overlaps itself
+  // slow waves in the radius (two or three of them), never jitter
+  const w1 = R() * 6.28;
+  const w2 = R() * 6.28;
   const pts: [number, number][] = [];
   for (let i = 0; i <= steps; i++) {
-    const a = start + (sweep * i) / steps;
-    const drift = 1 + (i / steps) * 0.07 - 0.03 + (R() - 0.5) * 0.06; // the loop spirals slightly
-    pts.push([cx + Math.cos(a) * rx * drift, cy + Math.sin(a) * ry * drift]);
+    const u = i / steps;
+    const a = start + sweep * u;
+    const k =
+      1 + u * 0.06 - 0.02 + 0.025 * Math.sin(a * 2 + w1) + 0.015 * Math.sin(a * 3 + w2);
+    const x = Math.cos(a) * rx * k;
+    const y = Math.sin(a) * ry * k;
+    pts.push([
+      cx + x * Math.cos(tilt) - y * Math.sin(tilt),
+      cy + x * Math.sin(tilt) + y * Math.cos(tilt),
+    ]);
   }
   let d = "M" + f1(pts[0]![0]) + " " + f1(pts[0]![1]);
-  for (let i = 1; i < pts.length; i++) {
-    const [px, py] = pts[i - 1]!;
-    const [x, y] = pts[i]!;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)]!;
+    const p1 = pts[i]!;
+    const p2 = pts[i + 1]!;
+    const p3 = pts[Math.min(pts.length - 1, i + 2)]!;
     d +=
-      " Q" +
-      f1(px + (x - px) * 0.5 + (R() - 0.5)) +
+      " C" +
+      f1(p1[0] + (p2[0] - p0[0]) / 6) +
       " " +
-      f1(py + (y - py) * 0.5 + (R() - 0.5)) +
+      f1(p1[1] + (p2[1] - p0[1]) / 6) +
       " " +
-      f1(x) +
+      f1(p2[0] - (p3[0] - p1[0]) / 6) +
       " " +
-      f1(y);
+      f1(p2[1] - (p3[1] - p1[1]) / 6) +
+      " " +
+      f1(p2[0]) +
+      " " +
+      f1(p2[1]);
   }
   return d;
 }

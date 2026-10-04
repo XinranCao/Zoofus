@@ -22,6 +22,7 @@ export function TapeTile({
   onDelete,
   onShare,
   onRename,
+  onEdit,
 }: {
   tape: TapeEntry;
   index: number;
@@ -35,6 +36,7 @@ export function TapeTile({
   onDelete?: () => void;
   onShare?: () => void;
   onRename?: () => void;
+  onEdit?: () => void;
 }) {
   const { t } = useTranslation();
   ensureFontsFor(tape.name);
@@ -42,6 +44,7 @@ export function TapeTile({
   const body = (
     <>
       {selecting && !pickMode && <SelectMark selected={Boolean(selected)} />}
+      <span className="zf-tapetile__name">{tape.name}</span>
       <span className="zf-tapetile__stage">
         <Paper
           seed={"tt" + key}
@@ -67,7 +70,6 @@ export function TapeTile({
           seed={"tp" + key}
         />
       </span>
-      <span className="zf-tapetile__name">{tape.name}</span>
     </>
   );
   return (
@@ -121,6 +123,18 @@ export function TapeTile({
               onClick={onRename}
             >
               {t("common.rename")}
+            </Button>
+          )}
+          {!starter && onEdit && (
+            <Button
+              variant="quiet"
+              size="sm"
+              icon="pen"
+              seed={"edt" + key}
+              aria-label={t("tape.editNamed", { name: tape.name })}
+              onClick={onEdit}
+            >
+              {t("tape.edit")}
             </Button>
           )}
           {onUse && (

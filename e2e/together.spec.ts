@@ -59,11 +59,13 @@ test("two friends make a journal page together and each keeps a copy", async ({
   await makeSticker(a);
   await a.goBack().catch(() => {});
   await a.goto(b.url().replace(/^.*\/together/, "/together"));
-  await a.getByRole("button", { name: "Bring in" }).click();
-  const bring = a.getByRole("dialog", { name: /Bring in/ });
+  await a.getByRole("button", { name: "Add from my library" }).click();
+  const bring = a.getByRole("dialog", { name: "Add my stickers and tapes" });
   await bring.getByRole("button", { name: /^Cut / }).first().click();
-  await bring.getByRole("button", { name: "Bring in 1" }).click();
-  await expect(a.getByText(/Brought in 1 piece/).first()).toBeVisible({ timeout: 20000 });
+  await bring.getByRole("button", { name: "Add 1" }).click();
+  await expect(a.getByText(/Added 1 piece to this page/).first()).toBeVisible({
+    timeout: 20000,
+  });
 
   await b.getByRole("button", { name: "Sticker" }).first().click();
   // the sticker Alice brought is visible to Bobby (it lives in the shelf entry, not in her files)
@@ -83,8 +85,22 @@ test("two friends make a journal page together and each keeps a copy", async ({
   await expect(b.getByText("A copy is in your journals").first()).toBeVisible({
     timeout: 20000,
   });
+  // the copy and the list both show the page as it looks, not bare paper
+  await b.waitForTimeout(3500);
   await b.goto("/journals");
-  await expect(b.getByRole("link", { name: /Open Trip page/ })).toBeVisible();
+  const copy = b.getByRole("link", { name: /Open Trip page/ });
+  await expect(copy).toBeVisible();
+  await expect
+    .poll(() =>
+      copy
+        .locator("img")
+        .evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0),
+    )
+    .toBe(true);
+  await b.goto("/together");
+  await expect(
+    b.getByRole("link", { name: /Open Trip page/ }).locator('img[src^="data:"]'),
+  ).toBeVisible({ timeout: 15_000 });
 
   await ctxA.close();
   await ctxB.close();

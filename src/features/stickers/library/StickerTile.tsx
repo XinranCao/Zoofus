@@ -121,9 +121,10 @@ export function StickerTile({
   const body = (
     <>
       {selecting && <SelectMark selected={Boolean(selected)} />}
+      <div className="zf-tile__name">{sticker.name}</div>
       <div
         style={{
-          height: size + 34,
+          height: size + 14,
           display: "grid",
           placeItems: "center",
           position: "relative",
@@ -131,8 +132,7 @@ export function StickerTile({
       >
         <StickerImage sticker={sticker} size={size} interactive />
       </div>
-      <div className="zf-tile__name">{sticker.name}</div>
-      <div className="zf-tile__meta">{date}</div>
+      {date && <div className="zf-tile__meta">{date}</div>}
     </>
   );
 
@@ -152,10 +152,10 @@ export function StickerTile({
         </button>
       ) : renaming ? (
         <>
-          <div style={{ height: size + 34, display: "grid", placeItems: "center" }}>
+          <RenameField sticker={sticker} onDone={(name) => onRenameDone?.(name)} />
+          <div style={{ height: size + 14, display: "grid", placeItems: "center" }}>
             <StickerImage sticker={sticker} size={size} />
           </div>
-          <RenameField sticker={sticker} onDone={(name) => onRenameDone?.(name)} />
         </>
       ) : onOpen ? (
         <button

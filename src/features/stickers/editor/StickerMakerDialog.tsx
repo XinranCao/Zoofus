@@ -2,8 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogBody } from "@/components/ui/Dialog";
+import { TextField } from "@/components/ui/TextField";
 import { ToastNote, useToast } from "@/components/ui/Toast";
-import { StickerLimitError } from "@/features/stickers/library/sticker.schema";
+import {
+  MAX_STICKER_NAME,
+  StickerLimitError,
+} from "@/features/stickers/library/sticker.schema";
 import { useSaveSticker } from "@/features/stickers/library/useStickers";
 import { renderSticker } from "@/paper/renderSticker";
 import { StickerEdgeStudio } from "../studio/StickerEdgeStudio";
@@ -79,6 +83,7 @@ function MakerBody({
 
   const [leaving, setLeaving] = useState(false);
   const [savedKey, setSavedKey] = useState<string | null>(null);
+  const [name, setName] = useState("");
 
   // A photo handed over from Home.
   useEffect(() => {
@@ -135,7 +140,7 @@ function MakerBody({
         month: "short",
       }).format(new Date());
       await save.mutateAsync({
-        name: t("maker.edge.defaultName", { date }),
+        name: name.trim() || t("maker.edge.defaultName", { date }),
         sticker,
         source,
         edge,
@@ -270,6 +275,18 @@ function MakerBody({
         )}
         {view === "result" ? (
           <div style={{ marginTop: 10, marginBottom: 22 }}>
+            {!onAvatar && (
+              <div style={{ maxWidth: 360, marginBottom: 18 }}>
+                <TextField
+                  label={t("maker.edge.nameLabel")}
+                  hint={t("maker.edge.nameHint")}
+                  value={name}
+                  maxLength={MAX_STICKER_NAME}
+                  seed="stname"
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+            )}
             <StickerEdgeStudio
               source={source}
               edge={edge}

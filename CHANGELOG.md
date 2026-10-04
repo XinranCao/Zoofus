@@ -1,5 +1,26 @@
 # Changelog
 
+## v1.3.0 – 2026-10-04
+
+### Features
+
+- Stickers can be named when you save them (the date is only the default).
+- Tapes in the library get the same hover actions as stickers (Share, Rename, Delete) and can now be edited afterwards: change the print, size, ends and name in place.
+- Names sit above the picture on stickers, tapes, journals, collections and Together pages.
+- Together: the list and the copy you save now show the page as it looks (a small picture kept up to date as people edit), not just the paper.
+- The Together "bring in" window is now "Add to this page": one card per sticker or tape with its tick and name together, a clear "Add 3" button, and a shorter "Add from my library" button that matches the others.
+- The circle round the chosen language is a smoother, rounder, pencil-like loop.
+
+### Fixes
+
+- The torn sticker edge could grow thin spikes; the edge is now smooth noise with eased bites, and a test keeps it that way.
+- Tape tiles' hover actions did not appear; they do now.
+
+### Other
+
+- New security rules (tapes can be edited; a Together page can carry a thumbnail): **deploy them before releasing**.
+- The release process in `CLAUDE.md` now says that "release" is standing permission for the whole process, and that the README and other docs are brought up to date before every release.
+
 ## v1.2.0 – 2026-10-04
 
 ### Features

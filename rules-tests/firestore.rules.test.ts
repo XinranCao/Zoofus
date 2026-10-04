@@ -252,6 +252,30 @@ describe("users/{uid}/tapes/{id}", () => {
     await assertSucceeds(deleteDoc(ref));
   });
 
+  it("lets the owner change a tape's looks, but not its date or extra fields", async () => {
+    const db = env.authenticatedContext("alice").firestore();
+    const ref = doc(db, "users/alice/tapes/t1");
+    await assertSucceeds(setDoc(ref, tape()));
+    await assertSucceeds(
+      updateDoc(ref, {
+        name: "Bluer",
+        thickness: 30,
+        opacity: 0.6,
+        ends: "pinked",
+        pattern: {
+          kind: "dots",
+          bg: "pink-200",
+          ink: "sheet-50",
+          scale: 12,
+          weight: 0.4,
+        },
+      }),
+    );
+    await assertFails(updateDoc(ref, { thickness: 99 }));
+    await assertFails(updateDoc(ref, { extra: 1 }));
+    await assertFails(updateDoc(ref, { createdAt: serverTimestamp() }));
+  });
+
   it("denies other users and anonymous visitors", async () => {
     await assertFails(
       setDoc(
@@ -388,14 +412,15 @@ describe("users/{uid}/tapes/{id}", () => {
     });
   });
 
-  it("allows only renaming after creation", async () => {
+  it("allows changing the looks and name after creation, but not the date", async () => {
     const ref = doc(
       env.authenticatedContext("alice").firestore(),
       "users/alice/tapes/t1",
     );
     await setDoc(ref, tape());
-    await assertFails(updateDoc(ref, { thickness: 30 }));
-    await assertFails(updateDoc(ref, { ends: "cut" }));
+    await assertSucceeds(updateDoc(ref, { thickness: 30, ends: "cut" }));
+    await assertFails(updateDoc(ref, { ownerUid: "bob" }));
+    await assertFails(updateDoc(ref, { createdAt: serverTimestamp() }));
   });
 });
 

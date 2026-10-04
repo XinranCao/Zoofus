@@ -15,6 +15,7 @@ import {
 } from "@/features/journal/store/journalStore";
 import type { Op } from "@/features/journal/ops";
 import { useProfile } from "@/features/profile/useProfile";
+import { toInlinePicture } from "@/lib/inlinePicture";
 import { downloadBlob } from "@/features/stickers/studio/export";
 import { BringInDialog, ShelfStickerPicker, ShelfTapePicker } from "./ShelfDialogs";
 import { MembersPanel } from "./MembersPanel";
@@ -27,6 +28,7 @@ import {
   renameWorkspace,
   saveCopy,
   setWorkspacePage,
+  setWorkspaceThumb,
   watchItems,
   watchPresence,
   watchShelf,
@@ -143,10 +145,26 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
     [people],
   );
 
+  // a small picture of the page, kept a moment after the last change, for the list
+  const thumbTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const scheduleThumb = () => {
+    clearTimeout(thumbTimer.current);
+    thumbTimer.current = setTimeout(() => {
+      void (async () => {
+        const blob = await exportRef.current?.thumb();
+        if (!blob) return;
+        const small = await toInlinePicture(blob, { maxSide: 360, maxChars: 55000 });
+        await setWorkspaceThumb(latest.current.id, small.url);
+      })().catch((err) => console.warn("The page picture was not kept", err));
+    }, 2500);
+  };
+  useEffect(() => () => clearTimeout(thumbTimer.current), []);
+
   // the page: what is already there, then every change anyone makes
   useEffect(() => {
     store.getState().load(workspace.page, []);
     store.getState().bind((ops: Op[]) => {
+      scheduleThumb();
       for (const op of ops) {
         const run =
           op.k === "put"
@@ -227,12 +245,14 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
   const keepCopy = async () => {
     setSaving(true);
     try {
+      const thumb = await exportRef.current?.thumb().catch(() => null);
       const id = await saveCopy(
         me,
         latest.current,
         store.getState().items,
         shelfMap,
         journals.length,
+        thumb,
       );
       toast.push({
         kind: "success",
@@ -312,11 +332,11 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
             <Button
               variant="secondary"
               size="sm"
-              icon="folder"
+              icon="plus"
               seed="wbring"
               onClick={() => setBringOpen(true)}
             >
-              {t("together.bringIn")}
+              {t("together.addFromLibrary")}
             </Button>
             <MembersPanel workspace={workspace} presence={presence} me={me} />
           </div>

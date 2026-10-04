@@ -273,10 +273,10 @@ function CollectionTile({
   const inner = (
     <>
       {selecting && <SelectMark selected={selected} />}
-      <FolderThumb id={collection.id} pieces={pieces} />
-      <span className="zf-tile__name" style={{ marginTop: 10 }}>
+      <span className="zf-tile__name" style={{ marginBottom: 4 }}>
         {collection.name}
       </span>
+      <FolderThumb id={collection.id} pieces={pieces} />
       <span className="zf-tile__meta">
         {t("collections.count", { count: collection.items.length })}
       </span>

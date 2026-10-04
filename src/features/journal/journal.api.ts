@@ -56,6 +56,8 @@ export interface NewJournal {
   origin?: { from?: string; workspace?: string };
   /** Use this id (when files for the journal were already stored under it). */
   id?: string;
+  thumbUrl?: string;
+  thumbPath?: string;
 }
 
 export async function createJournal(
@@ -73,6 +75,9 @@ export async function createJournal(
     items: cleanForFirestore(items),
     ...(input.assets && Object.keys(input.assets).length
       ? { assets: cleanForFirestore(input.assets) }
+      : {}),
+    ...(input.thumbUrl && input.thumbPath
+      ? { thumbUrl: input.thumbUrl, thumbPath: input.thumbPath }
       : {}),
     ...(input.origin ? { origin: cleanForFirestore(input.origin) } : {}),
     createdAt: serverTimestamp(),
