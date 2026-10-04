@@ -7,10 +7,12 @@ import { Reel } from "@/components/ui/Loader";
 import { useToast } from "@/components/ui/Toast";
 import { useAuth } from "@/features/auth/useAuth";
 import { JournalStudio, type JournalExport } from "@/features/journal/JournalStudio";
+import { AUTOSAVE_MS } from "@/features/journal/autosave";
 import type { StickerResolver } from "@/features/journal/JournalCanvas";
 import { useJournals } from "@/features/journal/useJournals";
 import {
   JournalStoreProvider,
+  useJournalState,
   useJournalStore,
 } from "@/features/journal/store/journalStore";
 import type { Op } from "@/features/journal/ops";
@@ -134,6 +136,8 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
   const [title, setTitle] = useState(workspace.title);
   const [bringOpen, setBringOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [copying, setCopying] = useState(false);
+  const unsaved = useJournalState((s) => s.dirty);
   const exportRef = useRef<JournalExport>(null);
   const latest = useRef(workspace);
   useEffect(() => {
@@ -145,20 +149,47 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
     [people],
   );
 
-  // a small picture of the page, kept a moment after the last change, for the list
+  // A small picture of the page for the list. Edits themselves reach everyone at once; this only
+  // refreshes the picture, at most once a minute while there are changes (the timer is not pushed
+  // back by every edit) and whenever Save is pressed.
   const thumbTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const scheduleThumb = () => {
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const keepPicture = async () => {
     clearTimeout(thumbTimer.current);
+    thumbTimer.current = undefined;
+    const blob = await exportRef.current?.thumb();
+    if (!blob) return;
+    const small = await toInlinePicture(blob, { maxSide: 360, maxChars: 55000 });
+    await setWorkspaceThumb(latest.current.id, small.url);
+    store.getState().markSaved();
+    setSavedAt(new Date());
+  };
+  const scheduleThumb = () => {
+    if (thumbTimer.current) return;
     thumbTimer.current = setTimeout(() => {
-      void (async () => {
-        const blob = await exportRef.current?.thumb();
-        if (!blob) return;
-        const small = await toInlinePicture(blob, { maxSide: 360, maxChars: 55000 });
-        await setWorkspaceThumb(latest.current.id, small.url);
-      })().catch((err) => console.warn("The page picture was not kept", err));
-    }, 2500);
+      thumbTimer.current = undefined;
+      void keepPicture().catch((err) =>
+        console.warn("The page picture was not kept", err),
+      );
+    }, AUTOSAVE_MS);
   };
   useEffect(() => () => clearTimeout(thumbTimer.current), []);
+  const saveNow = async () => {
+    setSaving(true);
+    try {
+      await keepPicture();
+      toast.push({ kind: "success", title: t("together.saved") });
+    } catch (err) {
+      console.error("Saving the page failed", err);
+      toast.push({
+        kind: "error",
+        title: t("auth.errors.toastTitle"),
+        body: `${t("journal.saveFailed")} (${(err as { code?: string }).code ?? (err as Error).name ?? "error"})`,
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // the page: what is already there, then every change anyone makes
   useEffect(() => {
@@ -184,16 +215,24 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
     });
     const stopItems = watchItems(
       workspace.id,
-      ({ put, del }) =>
+      ({ put, del }) => {
+        // what is already on the page exactly as it comes in (the echo of my own change) is left
+        // alone, so a quiet update never redraws something I am in the middle of editing
+        const have = new Map(
+          store.getState().items.map((i) => [i.id, JSON.stringify(i)]),
+        );
+        const news = put.filter((item) => have.get(item.id) !== JSON.stringify(item));
+        if (!news.length && !del.length) return;
         store
           .getState()
           .apply(
             [
-              ...put.map((item) => ({ k: "put" as const, item })),
+              ...news.map((item) => ({ k: "put" as const, item })),
               ...del.map((id) => ({ k: "del" as const, id })),
             ],
             { record: false, remote: true },
-          ),
+          );
+      },
       () => navigate("/together"),
     );
     const stopShelf = watchShelf(workspace.id, setShelf);
@@ -243,7 +282,7 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
   );
 
   const keepCopy = async () => {
-    setSaving(true);
+    setCopying(true);
     try {
       const thumb = await exportRef.current?.thumb().catch(() => null);
       const id = await saveCopy(
@@ -270,7 +309,7 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
         body: `${t("together.copyFailed")} (${(err as { code?: string }).code ?? (err as Error).name ?? "error"})`,
       });
     } finally {
-      setSaving(false);
+      setCopying(false);
     }
   };
 
@@ -301,8 +340,18 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
               variant="primary"
               size="sm"
               icon="check"
-              seed="wcopy"
+              seed="wsave"
               loading={saving}
+              onClick={() => void saveNow()}
+            >
+              {unsaved ? t("common.save") : t("journal.savedShort")}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon="copy"
+              seed="wcopy"
+              loading={copying}
               onClick={() => void keepCopy()}
             >
               {t("together.saveCopy")}
@@ -329,6 +378,16 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
         }
         aside={
           <div style={{ display: "grid", gap: 10, width: "100%" }}>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--ink-muted)" }}>
+              {savedAt
+                ? t("together.savedAt", {
+                    time: new Intl.DateTimeFormat(undefined, {
+                      hour: "numeric",
+                      minute: "2-digit",
+                    }).format(savedAt),
+                  })
+                : t("together.saveHint")}
+            </p>
             <Button
               variant="secondary"
               size="sm"

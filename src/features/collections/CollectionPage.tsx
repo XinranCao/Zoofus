@@ -176,7 +176,7 @@ export default function CollectionPage() {
           {t("collections.emptyOneBody")}
         </EmptyState>
       ) : (
-        <div className="zf-grid-journal">
+        <div className="zf-grid-book">
           {resolved.map((r, i) => {
             const key = itemKey(r.item);
             const picked = selection.ids.has(key);
@@ -185,7 +185,7 @@ export default function CollectionPage() {
                 <StickerTile
                   key={key}
                   sticker={r.sticker}
-                  size={92}
+                  size={168}
                   date={date(r.sticker.createdAt)}
                   onOpen={() => setPreviewId(r.sticker.id)}
                   selecting={selection.active}

@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.4.0 – 2026-10-04
+
+### Features
+
+- Together: **Save** is now the main button (with a "Saved" state and a note on when it last happened); Save a copy is the second one. Edits still reach everyone live; Save refreshes the page's picture in the list.
+- The tools in the journal and Together studios sit two to a row.
+- The pages in Collections use the same size and spacing as the sticker library (a collection's contents too, with stickers at the library size).
+
+### Fixes
+
+- Autosave no longer interrupts you: the picture is drawn from the layers into a separate canvas (the selection handles used to be hidden for a moment, which looked like a refresh), changes that only echo your own edit are ignored, and autosave runs at most once a minute (it was every four seconds in journals).
+- The small pixel preview in the tape studio now follows the pixel size you choose, as well as the turn.
+
 ## v1.3.0 – 2026-10-04
 
 ### Features

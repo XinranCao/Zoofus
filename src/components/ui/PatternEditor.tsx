@@ -361,7 +361,7 @@ export function PatternEditor({
           />
           <div style={{ display: "grid", gap: 6 }}>
             <div className="zf-pattern-swatch" style={{ width: 96, height: 96 }}>
-              <PatternFill spec={{ ...s, scale: 6 }} />
+              <PatternFill spec={s} />
             </div>
             <Button
               variant="quiet"

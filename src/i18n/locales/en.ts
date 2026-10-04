@@ -643,6 +643,10 @@ export const en = {
     bringCount_other: "Add {{count}}",
     nothingToBring: "Nothing to bring yet",
     nothingToBringBody: "Make a sticker or a tape first, then bring it here.",
+    saved: "Saved. The page picture in the list is up to date.",
+    saveHint:
+      "Everyone’s changes appear live. Press Save to refresh the page picture in the list.",
+    savedAt: "Saved at {{time}}.",
     addFromLibrary: "Add from my library",
     bringIn: "Add my stickers and tapes",
     bringInBody:

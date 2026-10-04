@@ -1779,6 +1779,22 @@
   color: inherit;
   justify-items: stretch;
 }
+.zf-grid-book .zf-tile__open {
+  width: 100%;
+}
+.zf-grid-book .zf-jtile {
+  justify-items: stretch;
+}
+.zf-grid-book .zf-jtile .zf-tile__open {
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+  justify-items: stretch;
+}
+.zf-grid-book .zf-jtile .zf-tile__name,
+.zf-grid-book .zf-jtile .zf-tile__meta {
+  text-align: center;
+}
 .zf-grid-journal .zf-tile .zf-tile__name,
 .zf-grid-journal .zf-tile .zf-tile__meta {
   text-align: center;
@@ -1801,17 +1817,30 @@
 }
 .zf-jstudio__body {
   display: grid;
-  grid-template-columns: 140px minmax(0, 1fr) 300px;
+  grid-template-columns: 236px minmax(0, 1fr) 300px;
   gap: 22px;
   align-items: start;
 }
 .zf-jstudio__tools {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
   gap: 10px;
   position: sticky;
   top: 90px;
+}
+.zf-jstudio__tools .zf-chip {
+  width: 100%;
+}
+.zf-jstudio__tools .zf-chip .zf-face {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+}
+.zf-jstudio__tools > :not(.zf-chip, button) {
+  grid-column: 1 / -1;
 }
 .zf-jstudio__area {
   min-width: 0;
@@ -1841,8 +1870,7 @@
   }
   .zf-jstudio__tools {
     position: static;
-    flex-direction: row;
-    flex-wrap: wrap;
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
   }
   .zf-jstudio__area {
     max-height: none;
