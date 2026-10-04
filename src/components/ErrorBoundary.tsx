@@ -50,7 +50,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // Hook for error reporting (see issue #19).
+    // recorded for /diagnostics by the console.error hook (see src/lib/diagnostics.ts)
     console.error("Unhandled UI error", error, info.componentStack);
   }
 

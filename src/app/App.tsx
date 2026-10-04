@@ -19,6 +19,7 @@ const CollectionPage = lazy(() => import("@/features/collections/CollectionPage"
 const FriendsPage = lazy(() => import("@/features/social/FriendsPage"));
 const TogetherPage = lazy(() => import("@/features/together/TogetherPage"));
 const WorkspacePage = lazy(() => import("@/features/together/WorkspacePage"));
+const DiagnosticsPage = lazy(() => import("@/pages/DiagnosticsPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const StickerBookPage = lazy(() => import("@/features/stickers/library/StickerBookPage"));
 
@@ -47,6 +48,7 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/diagnostics" element={<DiagnosticsPage />} />
             {DesignSystemPage && (
               <Route path="/dev/design-system" element={<DesignSystemPage />} />
             )}

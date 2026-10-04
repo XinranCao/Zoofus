@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { fileURLToPath, URL } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
@@ -35,7 +36,12 @@ function preloadFonts(): Plugin {
 }
 
 // NOTE: keep rollup pinned (see package.json overrides): 4.64.0 hangs `vite build`.
+const { version } = JSON.parse(readFileSync("./package.json", "utf8")) as {
+  version: string;
+};
+
 export default defineConfig({
+  define: { __APP_VERSION__: JSON.stringify(version) },
   plugins: [react(), tailwindcss(), preloadFonts()],
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
