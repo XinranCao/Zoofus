@@ -14,6 +14,8 @@ App Check makes Firestore, Storage and Auth reject requests that do not come fro
 
 The local emulators ignore App Check.
 
+If the metrics show many _unverified: invalid_ requests, or sharing/uploads hang in production, follow `docs/debugging.md` section 4 (the `/diagnostics` page shows the token and which app it is for).
+
 ## Also worth setting
 
 - A **budget alert** in Google Cloud Billing, so abuse shows up as an email.

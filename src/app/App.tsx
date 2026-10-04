@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppShell } from "@/components/layout/AppShell";
+import { ManagerGate } from "@/features/admin/ManagerGate";
 import { ProtectedRoute } from "@/features/auth/ProtectedRoute";
 
 const LoginPage = lazy(() => import("@/features/auth/pages/LoginPage"));
@@ -19,6 +20,7 @@ const CollectionPage = lazy(() => import("@/features/collections/CollectionPage"
 const FriendsPage = lazy(() => import("@/features/social/FriendsPage"));
 const TogetherPage = lazy(() => import("@/features/together/TogetherPage"));
 const WorkspacePage = lazy(() => import("@/features/together/WorkspacePage"));
+const DiagnosticsPage = lazy(() => import("@/pages/DiagnosticsPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const StickerBookPage = lazy(() => import("@/features/stickers/library/StickerBookPage"));
 
@@ -45,6 +47,14 @@ export default function App() {
                 <ProtectedRoute>
                   <AccountPage />
                 </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/diagnostics"
+              element={
+                <ManagerGate>
+                  <DiagnosticsPage />
+                </ManagerGate>
               }
             />
             {DesignSystemPage && (

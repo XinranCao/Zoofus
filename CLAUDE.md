@@ -36,7 +36,7 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
 - `firestore.rules`, `storage.rules`, `rules-tests/` – owner-only security rules and their emulator tests. Deploying rules changes production. They go out with a release, first, with `npx firebase-tools@14 deploy --only firestore:rules,storage --project zoofus-48264` (the owner has pre-approved this for every release; outside a release, ask).
 - `e2e/` – Playwright tests; `src/**/*.test.tsx` – Testing Library component tests
 - `src/features/pages/` – collage page data model (schema, pure ops, API, hooks; no UI yet). `src/features/account/` – account page (export/delete), email verification banner
-- `docs/app-check.md` – one-time App Check console setup
+- `docs/app-check.md` – one-time App Check console setup. `docs/debugging.md` – how to debug in production and the emulators (symptom → tool; error codes; App Check playbook). `src/lib/diagnostics.ts` (flight recorder: recent errors, Analytics `app_error` counts), `src/lib/healthChecks.ts` and `src/pages/DiagnosticsPage.tsx` behind `features/admin/ManagerGate.tsx` (project managers only: the e-mail list is `isManager()` in `firestore.rules`, see docs/debugging.md) (`/diagnostics`: App Check token, Firestore, Storage checks and a copyable report; English only on purpose, a developer tool)
 - `src/components/ErrorBoundary.tsx`, `src/pages/NotFoundPage.tsx` – error and 404 handling
 - `src/features/library/` (tabs), `tape/` (tape studio + page), `journal/` (autosave interval in `autosave.ts` (60 s, throttled, not reset by each edit); the picture for a thumbnail or PNG is drawn from the canvas layers into a separate canvas, so saving never touches the page being edited; page model in `journal.schema.ts`, ops with inverses in `ops.ts`, store, Konva studio), `collections/`, `social/` (friends, friend codes, sharing, inbox), `together/` (workspaces: live items, shelf, presence, a page thumbnail kept in the workspace doc, `saveCopy` with a thumbnail). Library tiles (sticker, tape, journal, folder) show the name above the picture and the same hover actions; tapes can be edited in place (`NewTapeDialog` with `edit`). Data model in `docs/data-model.md`. Journal items are one compact doc; workspace items are one doc per object.
 - `src/pages/HomePage.tsx` – opens the editor in a dialog
@@ -109,7 +109,7 @@ Stored images are compressed on save by `encodeWithin` + `COMPRESSION` in `src/l
 - Workflows that build the app need the repo secrets `VITE_APP_*` plus `FIREBASE_SERVICE_ACCOUNT_ZOOFUS_48264`.
 - The redesign (#16) and i18n (#15) shipped in v0.4.0. The design system lives in `design-system/` (reference, not imported); `RELEASE_CHECKLIST.md` is the release runbook.
 - App Check, the budget alert and the Auth restrictions are set up and enforced in the consoles (`docs/app-check.md`, `docs/security-setup.md`). Local dev against the real backend needs the debug token in `.env.development.local`.
-- Not done yet: pinch-zoom on the canvas, HEIC support (non-Safari browsers), error monitoring (skipped by decision), thumbnails for pre-existing stickers.
+- Not done yet: pinch-zoom on the canvas, HEIC support (non-Safari browsers), full error monitoring (only the light `app_error` Analytics counts and `/diagnostics` exist, by decision), thumbnails for pre-existing stickers.
 - PR previews use the production backend; do not test destructive flows there.
 - Freehand strokes can be moved with the arrow keys but have no resize handles (only shapes have a transformer).
 

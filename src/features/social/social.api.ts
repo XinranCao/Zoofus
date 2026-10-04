@@ -12,6 +12,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { localizeUrls } from "@/lib/emulatorUrl";
 import { toInlinePicture } from "@/lib/inlinePicture";
 import { isCode, makeFriendCode, normalizeCode } from "./friendCode";
 import {
@@ -274,7 +275,9 @@ export async function listInbox(me: string): Promise<Share[]> {
   const snap = await getDocs(query(userCol(me, "inbox"), orderBy("createdAt", "desc")));
   return snap.docs.flatMap((d) => {
     const r = shareDocSchema.safeParse(d.data());
-    return r.success ? [{ id: d.id, ...r.data }] : [];
+    return r.success
+      ? [{ id: d.id, ...r.data, payload: localizeUrls(r.data.payload) }]
+      : [];
   });
 }
 

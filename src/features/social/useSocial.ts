@@ -122,12 +122,12 @@ function useAct<A, R>(
       if (!uid) throw new Error("Not signed in");
       return fn(uid, arg);
     },
-    onSuccess: () =>
-      Promise.all(
-        invalidate(uid ?? "").map((k) =>
-          qc.invalidateQueries({ queryKey: k as unknown[] }),
-        ),
-      ),
+    // the lists reload in the background: the action itself is done, and must not wait on (or be
+    // held up by) a slow refresh of a list
+    onSuccess: () => {
+      for (const k of invalidate(uid ?? ""))
+        void qc.invalidateQueries({ queryKey: k as unknown[] });
+    },
   });
 }
 

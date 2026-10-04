@@ -689,3 +689,33 @@ describe("workspaces (working together)", () => {
     await assertSucceeds(getDoc(doc(as("bob"), "workspaces/w1/presence/alice")));
   });
 });
+
+describe("adminCheck (who may open /diagnostics)", () => {
+  const read = (ctx: ReturnType<typeof env.authenticatedContext>) =>
+    getDoc(doc(ctx.firestore(), "adminCheck/ping"));
+  const manager = { email: "XinranCao.XC@gmail.com", email_verified: true };
+
+  it("lets a project manager with a verified e-mail in", async () => {
+    await assertSucceeds(read(env.authenticatedContext("m", manager)));
+  });
+  it("keeps everyone else out", async () => {
+    await assertFails(
+      read(env.authenticatedContext("m", { ...manager, email_verified: false })),
+    );
+    await assertFails(
+      read(
+        env.authenticatedContext("x", {
+          email: "someone@example.com",
+          email_verified: true,
+        }),
+      ),
+    );
+    await assertFails(read(env.authenticatedContext("n")));
+    await assertFails(read(env.unauthenticatedContext()));
+  });
+  it("cannot be written or listed by anyone", async () => {
+    const db = env.authenticatedContext("m", manager).firestore();
+    await assertFails(setDoc(doc(db, "adminCheck/ping"), { a: 1 }));
+    await assertFails(getDocs(collection(db, "adminCheck")));
+  });
+});

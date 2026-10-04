@@ -14,7 +14,7 @@
 
 ## How it is built
 
-React 19, Vite 7, TypeScript (strict), Tailwind CSS v4 with Radix UI, react-router 7, TanStack Query, Zustand (editor stores with undo/redo), Konva/react-konva (canvases), polygon-clipping, react-i18next, zod, Firebase 12 (Auth, Firestore, Storage, App Check, Analytics, Hosting). The data model and the security rules are described in [`docs/data-model.md`](docs/data-model.md); the visual language in [`design-system/`](design-system/).
+React 19, Vite 7, TypeScript (strict), Tailwind CSS v4 with Radix UI, react-router 7, TanStack Query, Zustand (editor stores with undo/redo), Konva/react-konva (canvases), polygon-clipping, react-i18next, zod, Firebase 12 (Auth, Firestore, Storage, App Check, Analytics, Hosting). The data model and the security rules are described in [`docs/data-model.md`](docs/data-model.md); the visual language in [`design-system/`](design-system/). When something fails, open `/diagnostics` in the app and read [`docs/debugging.md`](docs/debugging.md).
 
 ## Setup
 

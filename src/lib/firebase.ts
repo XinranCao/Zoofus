@@ -1,11 +1,17 @@
 import { initializeApp } from "firebase/app";
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
+import {
+  initializeAppCheck,
+  onTokenChanged,
+  ReCaptchaEnterpriseProvider,
+  type AppCheck,
+} from "firebase/app-check";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
-import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
+import { connectFirestoreEmulator, getFirestore, setLogLevel } from "firebase/firestore";
 import { connectStorageEmulator, getStorage } from "firebase/storage";
 import { env } from "./env";
+import { record } from "./diagnostics";
 
-const app = initializeApp({
+export const app = initializeApp({
   apiKey: env.VITE_APP_API_KEY,
   authDomain: env.VITE_APP_AUTH_DOMAIN,
   projectId: env.VITE_APP_PROJECT_ID,
@@ -15,7 +21,10 @@ const app = initializeApp({
   measurementId: env.VITE_APP_MEASUREMENT_ID,
 });
 
-const useEmulators = env.VITE_USE_EMULATORS === "true";
+export const useEmulators = env.VITE_USE_EMULATORS === "true";
+
+/** The App Check instance, or null when it is off (emulators, or no site key). */
+export let appCheck: AppCheck | null = null;
 
 // App Check must be initialised before any other service is used, so it goes first.
 // It proves requests come from this app, not a script using the public API key.
@@ -27,15 +36,41 @@ if (!useEmulators && env.VITE_APP_RECAPTCHA_SITE_KEY) {
       self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: string | boolean }
     ).FIREBASE_APPCHECK_DEBUG_TOKEN = env.VITE_APPCHECK_DEBUG_TOKEN ?? true;
   }
-  initializeAppCheck(app, {
+  appCheck = initializeAppCheck(app, {
     provider: new ReCaptchaEnterpriseProvider(env.VITE_APP_RECAPTCHA_SITE_KEY),
     isTokenAutoRefreshEnabled: true,
   });
+  // Without a token every request is refused while App Check is enforced, so a failure to get
+  // one is written to the log (and counted in Analytics) with the reason; see docs/debugging.md.
+  onTokenChanged(
+    appCheck,
+    () => record("appcheck", "App Check token ready"),
+    (err) =>
+      record(
+        "error",
+        `App Check could not get a token: ${err.message}`,
+        (err as { code?: string }).code ?? "appCheck/unknown",
+      ),
+  );
 }
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+// A failing connection must end in an error you can see, not a spinner for ten minutes (the default).
+storage.maxUploadRetryTime = 30_000;
+storage.maxOperationRetryTime = 30_000;
+
+// `?debug=1` (or localStorage zf-debug=1) turns on Firestore's own verbose log in the console.
+try {
+  if (new URLSearchParams(window.location.search).get("debug") === "1")
+    localStorage.setItem("zf-debug", "1");
+  if (new URLSearchParams(window.location.search).get("debug") === "0")
+    localStorage.removeItem("zf-debug");
+  if (localStorage.getItem("zf-debug") === "1") setLogLevel("debug");
+} catch {
+  /* storage can be blocked */
+}
 
 if (useEmulators) {
   // The emulators run on the machine serving the page, so another device on the same network
