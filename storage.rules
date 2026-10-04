@@ -1,10 +1,18 @@
 rules_version = '2';
 
 // Files live under their owner's uid. Only the owner can read or write, images only.
+// (Friends and workspace members see pictures through the download links stored in documents;
+// every shared or collaborative picture is a copy in its sender's own folder.)
 service firebase.storage {
   match /b/{bucket}/o {
     function isOwner(uid) {
       return request.auth != null && request.auth.uid == uid;
+    }
+    // The saved sticker is WebP (≤ 2 MB, the compression policy); PNGs (the edge-less source,
+    // thumbnails and the PNG fallback) may be up to 10 MB.
+    function validPicture() {
+      return (request.resource.contentType == 'image/png' && request.resource.size <= 10 * 1024 * 1024)
+        || (request.resource.contentType == 'image/webp' && request.resource.size < 2 * 1024 * 1024);
     }
 
     match /{uid}/profile/profile_pic/{file=**} {
@@ -15,15 +23,25 @@ service firebase.storage {
       allow delete: if isOwner(uid);
     }
 
+    // stickers, journal thumbnails and pictures, copies made for sharing, copies made for working together
     match /{uid}/stickers/{file=**} {
       allow read: if isOwner(uid);
-      // The saved sticker is WebP (≤ 2 MB, the compression policy); PNGs (the edge-less source
-      // and the PNG fallback) may be up to 10 MB.
-      allow create, update: if isOwner(uid)
-        && (
-          (request.resource.contentType == 'image/png' && request.resource.size <= 10 * 1024 * 1024)
-          || (request.resource.contentType == 'image/webp' && request.resource.size < 2 * 1024 * 1024)
-        );
+      allow create, update: if isOwner(uid) && validPicture();
+      allow delete: if isOwner(uid);
+    }
+    match /{uid}/journals/{file=**} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid) && validPicture();
+      allow delete: if isOwner(uid);
+    }
+    match /{uid}/shares/{file=**} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid) && validPicture();
+      allow delete: if isOwner(uid);
+    }
+    match /{uid}/collab/{file=**} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid) && validPicture();
       allow delete: if isOwner(uid);
     }
   }

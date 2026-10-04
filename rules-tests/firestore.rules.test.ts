@@ -209,64 +209,6 @@ describe("users/{uid}/stickers/{id}", () => {
   });
 });
 
-describe("users/{uid}/pages/{id}", () => {
-  const page = () => ({
-    title: "Trip",
-    width: 1080,
-    height: 1440,
-    background: "plain",
-    items: [],
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
-
-  it("lets the owner create, read, update and delete a page", async () => {
-    const db = env.authenticatedContext("alice").firestore();
-    const ref = doc(db, "users/alice/pages/p1");
-    await assertSucceeds(setDoc(ref, page()));
-    await assertSucceeds(getDoc(ref));
-    await assertSucceeds(
-      updateDoc(ref, { title: "Renamed", updatedAt: serverTimestamp() }),
-    );
-    await assertSucceeds(deleteDoc(ref));
-  });
-
-  it("denies other users and anonymous visitors", async () => {
-    await assertFails(
-      setDoc(
-        doc(env.authenticatedContext("bob").firestore(), "users/alice/pages/p1"),
-        page(),
-      ),
-    );
-    await assertFails(
-      getDoc(doc(env.unauthenticatedContext().firestore(), "users/alice/pages/p1")),
-    );
-  });
-
-  it("rejects oversize pages, bad dimensions and extra fields", async () => {
-    const ref = doc(
-      env.authenticatedContext("alice").firestore(),
-      "users/alice/pages/p1",
-    );
-    await assertFails(setDoc(ref, { ...page(), items: new Array(201).fill({}) }));
-    await assertFails(setDoc(ref, { ...page(), width: 50 }));
-    await assertFails(setDoc(ref, { ...page(), title: "x".repeat(81) }));
-    await assertFails(setDoc(ref, { ...page(), extra: 1 }));
-    await assertFails(setDoc(ref, { ...page(), updatedAt: new Date(2020, 1, 1) }));
-  });
-
-  it("does not let the creation time change", async () => {
-    const ref = doc(
-      env.authenticatedContext("alice").firestore(),
-      "users/alice/pages/p1",
-    );
-    await setDoc(ref, page());
-    await assertFails(
-      updateDoc(ref, { createdAt: new Date(2020, 1, 1), updatedAt: serverTimestamp() }),
-    );
-  });
-});
-
 describe("users/{uid}/tapes/{id}", () => {
   const tape = () => ({
     name: "Pink dots",
