@@ -200,6 +200,16 @@ describe("friend requests and friendships", () => {
     await assertSucceeds(getDoc(doc(as("alice"), "users/bob/requests/alice")));
     await assertFails(getDoc(doc(as("carol"), "users/bob/requests/alice")));
   });
+  it("my record of a sent request can be removed by me or by the person I asked", async () => {
+    await seed((db) =>
+      setDoc(doc(db, "users/alice/sentRequests/bob"), {
+        to: "bob",
+        createdAt: new Date(),
+      }),
+    );
+    await assertFails(deleteDoc(doc(as("carol"), "users/alice/sentRequests/bob")));
+    await assertSucceeds(deleteDoc(doc(as("bob"), "users/alice/sentRequests/bob")));
+  });
   it("accepting writes both friend documents in one batch", async () => {
     await seed((db) =>
       setDoc(doc(db, "users/bob/requests/alice"), {

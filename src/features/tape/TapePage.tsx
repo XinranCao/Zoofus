@@ -11,6 +11,7 @@ import { useSelection } from "@/lib/useSelection";
 import { BulkBar } from "@/components/ui/BulkBar";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { AddToCollectionDialog } from "@/features/collections/AddToCollectionDialog";
+import { ShareDialog } from "@/features/social/ShareDialog";
 import { useForgetItems } from "@/features/collections/useCollections";
 import { TapeLimitError } from "./tape.api";
 import { STARTER_TAPES, type TapeSpec } from "./tape.schema";
@@ -38,6 +39,7 @@ export default function TapePage() {
   const selection = useSelection();
   const forget = useForgetItems();
   const [addOpen, setAddOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [bulkDelete, setBulkDelete] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
 
@@ -189,6 +191,16 @@ export default function TapePage() {
             {t("bulk.addToCollection")}
           </Button>
           <Button
+            variant="secondary"
+            size="sm"
+            icon="send"
+            seed="tbashare"
+            disabled={selection.count === 0}
+            onClick={() => setShareOpen(true)}
+          >
+            {t("bulk.share")}
+          </Button>
+          <Button
             variant="danger"
             size="sm"
             icon="trash"
@@ -200,6 +212,14 @@ export default function TapePage() {
           </Button>
         </BulkBar>
       )}
+      <ShareDialog
+        open={shareOpen}
+        sources={mine
+          .filter((x) => selection.ids.has(x.id))
+          .map((tape) => ({ kind: "tape" as const, tape }))}
+        onClose={() => setShareOpen(false)}
+        onDone={selection.stop}
+      />
       <AddToCollectionDialog
         open={addOpen}
         items={[...selection.ids].map((id) => ({ k: "tape" as const, id }))}

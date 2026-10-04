@@ -6,6 +6,7 @@ import { VerifyEmailBanner } from "@/features/account/VerifyEmailBanner";
 import { useAuth } from "@/features/auth/useAuth";
 import { ProfileSetupDialog } from "@/features/profile/ProfileSetupDialog";
 import { useProfile } from "@/features/profile/useProfile";
+import { useMyPublicProfile, usePending } from "@/features/social/useSocial";
 
 const TITLE_KEYS: [string, string][] = [
   ["/stickers", "pageTitle.book"],
@@ -33,6 +34,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { t, i18n } = useTranslation();
   const { currentUser, logout } = useAuth();
   const { data: profile } = useProfile(currentUser?.uid);
+  useMyPublicProfile(); // publish my nickname, picture and friend code for friends
+  const pending = usePending();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -58,6 +61,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 email: currentUser.email ?? undefined,
                 avatar: profile?.profilePictureUrl || null,
                 avatarKind: profile?.avatarKind,
+                pending,
               }
             : null
         }

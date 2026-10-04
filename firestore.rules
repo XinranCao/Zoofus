@@ -153,7 +153,9 @@ service cloud.firestore {
       }
       // users/{uid}/sentRequests/{to}: my own record of a request I sent (to list and cancel it).
       match /sentRequests/{to} {
-        allow read, delete: if isOwner(uid);
+        allow read: if isOwner(uid);
+        // I cancel it, or the person it was sent to answers it
+        allow delete: if isOwner(uid) || request.auth.uid == to;
         allow create: if isOwner(uid) && uid != to
           && request.resource.data.keys().hasOnly(['to', 'createdAt'])
           && request.resource.data.to == to

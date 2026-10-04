@@ -54,6 +54,8 @@ export interface NewJournal {
   items?: Item[];
   assets?: Record<string, Asset>;
   origin?: { from?: string; workspace?: string };
+  /** Use this id (when files for the journal were already stored under it). */
+  id?: string;
 }
 
 export async function createJournal(
@@ -64,7 +66,7 @@ export async function createJournal(
   if (existing >= MAX_JOURNALS) throw new JournalLimitError();
   const items = input.items ?? [];
   if (items.length > MAX_JOURNAL_ITEMS) throw new JournalLimitError();
-  const id = crypto.randomUUID();
+  const id = input.id ?? crypto.randomUUID();
   await setDoc(doc(journalsRef(uid), id), {
     title: input.title,
     page: cleanForFirestore(input.page),

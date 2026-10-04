@@ -11,6 +11,7 @@ import { useSelection } from "@/lib/useSelection";
 import { BulkBar } from "@/components/ui/BulkBar";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { AddToCollectionDialog } from "@/features/collections/AddToCollectionDialog";
+import { ShareDialog } from "@/features/social/ShareDialog";
 import { useForgetItems } from "@/features/collections/useCollections";
 import { Sticker as DemoSticker } from "@/components/ui/Sticker";
 import { ToastNote, useToast } from "@/components/ui/Toast";
@@ -38,6 +39,7 @@ export default function StickerBookPage() {
   const selection = useSelection();
   const forget = useForgetItems();
   const [addOpen, setAddOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [bulkDelete, setBulkDelete] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
   useMakeParam(() => setMakerOpen(true));
@@ -257,6 +259,16 @@ export default function StickerBookPage() {
             {t("bulk.addToCollection")}
           </Button>
           <Button
+            variant="secondary"
+            size="sm"
+            icon="send"
+            seed="bashare"
+            disabled={selection.count === 0}
+            onClick={() => setShareOpen(true)}
+          >
+            {t("bulk.share")}
+          </Button>
+          <Button
             variant="danger"
             size="sm"
             icon="trash"
@@ -268,6 +280,14 @@ export default function StickerBookPage() {
           </Button>
         </BulkBar>
       )}
+      <ShareDialog
+        open={shareOpen}
+        sources={(data ?? [])
+          .filter((s) => selection.ids.has(s.id))
+          .map((sticker) => ({ kind: "sticker" as const, sticker }))}
+        onClose={() => setShareOpen(false)}
+        onDone={selection.stop}
+      />
       <AddToCollectionDialog
         open={addOpen}
         items={[...selection.ids].map((id) => ({ k: "sticker" as const, id }))}

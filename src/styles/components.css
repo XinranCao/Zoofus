@@ -1716,3 +1716,44 @@
   outline: 2px solid var(--plum-900);
   outline-offset: 2px;
 }
+.zf-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.zf-fieldset legend {
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+/* ---------- friends ---------- */
+.zf-friends-top {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+.zf-code {
+  font-family: var(--font-display);
+  font-size: 34px;
+  letter-spacing: 0.08em;
+  color: var(--ink-deep);
+  margin: 0 0 14px;
+  overflow-wrap: anywhere;
+}
+.zf-people {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+.zf-person {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.zf-people .zf-person {
+  padding: 8px 4px;
+}

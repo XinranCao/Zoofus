@@ -67,8 +67,8 @@ export interface NewSticker {
   name: string;
   /** The finished sticker: the cut-out with its edge baked in (what the grid and the PNG show). */
   sticker: Blob;
-  /** The edge-less cut-out, kept so "Edit edge" can redo the edge later. */
-  source: Blob;
+  /** The edge-less cut-out, kept so "Edit edge" can redo the edge later. Missing for stickers that never had one. */
+  source?: Blob;
   width: number;
   height: number;
   edge: EdgeSpec;
@@ -92,7 +92,7 @@ function assertSize(...blobs: Blob[]) {
 
 /** Uploads the finished sticker and its edge-less source, then writes the metadata document. */
 export async function saveSticker(uid: string, input: NewSticker): Promise<string> {
-  assertSize(input.sticker, input.source);
+  assertSize(...(input.source ? [input.sticker, input.source] : [input.sticker]));
   const { count } = (await getCountFromServer(stickersRef(uid))).data();
   if (count >= MAX_STICKERS) {
     throw new StickerLimitError(
@@ -103,18 +103,21 @@ export async function saveSticker(uid: string, input: NewSticker): Promise<strin
 
   const id = crypto.randomUUID();
   const storagePath = `${uid}/stickers/${id}.${extensionFor(input.sticker)}`;
-  const sourcePath = `${uid}/stickers/${id}_src.${extensionFor(input.source)}`;
+  const sourcePath = input.source
+    ? `${uid}/stickers/${id}_src.${extensionFor(input.source)}`
+    : undefined;
   try {
     const [imageUrl, sourceUrl] = await Promise.all([
       upload(storagePath, input.sticker),
-      upload(sourcePath, input.source),
+      sourcePath && input.source
+        ? upload(sourcePath, input.source)
+        : Promise.resolve(undefined),
     ]);
     await setDoc(doc(stickersRef(uid), id), {
       name: input.name,
       storagePath,
       imageUrl,
-      sourcePath,
-      sourceUrl,
+      ...(sourcePath && sourceUrl ? { sourcePath, sourceUrl } : {}),
       // only the edge is cleaned: the timestamp below is a sentinel object that must stay intact
       edge: cleanForFirestore(input.edge),
       seed: input.seed,
@@ -126,7 +129,9 @@ export async function saveSticker(uid: string, input: NewSticker): Promise<strin
   } catch (err) {
     // Don't leave files behind that no sticker document points at.
     await Promise.allSettled(
-      [storagePath, sourcePath].map((p) => deleteFileIfExists(ref(storage, p))),
+      [storagePath, sourcePath].flatMap((p) =>
+        p ? [deleteFileIfExists(ref(storage, p))] : [],
+      ),
     );
     throw err;
   }

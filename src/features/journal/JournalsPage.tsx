@@ -11,6 +11,8 @@ import { Sticker } from "@/components/ui/Sticker";
 import { TextField } from "@/components/ui/TextField";
 import { ToastNote, useToast } from "@/components/ui/Toast";
 import { AddToCollectionDialog } from "@/features/collections/AddToCollectionDialog";
+import { ShareDialog } from "@/features/social/ShareDialog";
+import { useStickers } from "@/features/stickers/library/useStickers";
 import { useForgetItems } from "@/features/collections/useCollections";
 import { LibraryTabs } from "@/features/library/LibraryTabs";
 import { useMakeParam } from "@/lib/useMakeParam";
@@ -34,6 +36,8 @@ export default function JournalsPage() {
   const [renameText, setRenameText] = useState("");
   const [deleting, setDeleting] = useState<Journal[] | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const { data: stickers } = useStickers();
   useMakeParam(() => setNewOpen(true));
 
   const list = data ?? [];
@@ -170,6 +174,16 @@ export default function JournalsPage() {
             {t("bulk.addToCollection")}
           </Button>
           <Button
+            variant="secondary"
+            size="sm"
+            icon="send"
+            seed="jbashare"
+            disabled={selection.count === 0}
+            onClick={() => setShareOpen(true)}
+          >
+            {t("bulk.share")}
+          </Button>
+          <Button
             variant="danger"
             size="sm"
             icon="trash"
@@ -186,6 +200,18 @@ export default function JournalsPage() {
         open={newOpen}
         onClose={() => setNewOpen(false)}
         existing={list.length}
+      />
+      <ShareDialog
+        open={shareOpen}
+        sources={list
+          .filter((j) => selection.ids.has(j.id))
+          .map((journal) => ({
+            kind: "journal" as const,
+            journal,
+            stickers: new Map((stickers ?? []).map((s) => [s.id, s])),
+          }))}
+        onClose={() => setShareOpen(false)}
+        onDone={selection.stop}
       />
       <AddToCollectionDialog
         open={addOpen}

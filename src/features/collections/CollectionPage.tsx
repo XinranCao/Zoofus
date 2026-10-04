@@ -20,6 +20,8 @@ import { StickerTile } from "@/features/stickers/library/StickerTile";
 import { useStickers } from "@/features/stickers/library/useStickers";
 import { TapeTile } from "@/features/tape/TapeTile";
 import { useTapes } from "@/features/tape/useTapes";
+import { ShareDialog } from "@/features/social/ShareDialog";
+import type { ShareSource } from "@/features/social/share.api";
 import { useSelection } from "@/lib/useSelection";
 import { itemKey, MAX_COLLECTION_NAME, type CollectionItem } from "./collection.schema";
 import {
@@ -52,6 +54,7 @@ export default function CollectionPage() {
   const [name, setName] = useState("");
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [previewId, setPreviewId] = useState<string | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const collection = collections?.find((c) => c.id === id);
   const loaded = Boolean(stickers && tapes && journals);
@@ -106,6 +109,16 @@ export default function CollectionPage() {
   const chosen: CollectionItem[] = resolved
     .filter((r) => selection.ids.has(itemKey(r.item)))
     .map((r) => r.item);
+  const stickerMap = new Map((stickers ?? []).map((s) => [s.id, s]));
+  const shareSources: ShareSource[] = resolved
+    .filter((r) => selection.ids.has(itemKey(r.item)))
+    .map((r) =>
+      "sticker" in r
+        ? { kind: "sticker" as const, sticker: r.sticker }
+        : "tape" in r
+          ? { kind: "tape" as const, tape: r.tape }
+          : { kind: "journal" as const, journal: r.journal, stickers: stickerMap },
+    );
   const preview = (stickers ?? []).find((s) => s.id === previewId) ?? null;
 
   return (
@@ -217,6 +230,16 @@ export default function CollectionPage() {
           <Button
             variant="secondary"
             size="sm"
+            icon="send"
+            seed="colshare"
+            disabled={selection.count === 0}
+            onClick={() => setShareOpen(true)}
+          >
+            {t("bulk.share")}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             icon="minus"
             seed="colbarm"
             disabled={selection.count === 0}
@@ -240,6 +263,12 @@ export default function CollectionPage() {
         </BulkBar>
       )}
 
+      <ShareDialog
+        open={shareOpen}
+        sources={shareSources}
+        onClose={() => setShareOpen(false)}
+        onDone={selection.stop}
+      />
       <StickerDetailDialog
         sticker={preview}
         date={preview ? date(preview.createdAt) : ""}
