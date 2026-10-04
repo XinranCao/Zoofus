@@ -158,6 +158,15 @@ export const COMPRESSION = {
     minSide: 480,
     maxBytes: 400 * 1024,
   },
+  /** A sticker-shaped profile picture: transparent, tiny. */
+  stickerAvatar: {
+    format: "webp",
+    maxSide: 256,
+    quality: 0.85,
+    minQuality: 0.6,
+    minSide: 96,
+    maxBytes: 60 * 1024,
+  },
   avatar: {
     format: "jpeg",
     maxSide: 512,

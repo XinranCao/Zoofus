@@ -165,6 +165,11 @@ export const zh: Messages = {
     deselect: "去掉",
     shape: "形状",
     shapes: { freehand: "手绘", triangle: "三角形", rectangle: "矩形", star: "星形" },
+    avatarTitle: {
+      empty: "做你的头像",
+      lasso: "沿着你画一圈",
+      result: "你的头像",
+    },
     hint: {
       freehand: "沿着想留下的部分画一圈,然后松手。",
       shape: "在照片上拖动来画出形状。键盘:先聚焦照片,再按空格。",
@@ -268,6 +273,17 @@ export const zh: Messages = {
     resend: "重新发送邮件",
     sent: "已发送",
     verified: "我已验证",
+    profileTitle: "我的资料",
+    makePicture: "做一张贴纸头像",
+    pickPicture: "用我的一张贴纸",
+    pickPictureTitle: "选一张贴纸做头像",
+    removePicture: "移除头像",
+    pictureSaved: "头像已更新。",
+    pictureFailed: "没能更新头像。再试一次。",
+    usePicture: "用作我的头像",
+    nicknameSaved: "昵称已保存。",
+    nicknameFailed: "没能保存昵称。再试一次。",
+    nicknameHint: "朋友会看到这个名字,随时可以改。",
   },
   tape: {
     title: "胶带",
@@ -339,5 +355,15 @@ export const zh: Messages = {
     tapes: "胶带",
     journals: "手账",
     collections: "收藏夹",
+  },
+  picker: {
+    title: "选一张贴纸",
+    empty: "你还没有贴纸。先剪一张。",
+  },
+  profileSetup: {
+    kicker: "只差一步",
+    title: "怎么称呼你?",
+    body: "取个昵称。朋友会在你的贴纸和手账旁边看到它,以后也能改。",
+    go: "继续",
   },
 };

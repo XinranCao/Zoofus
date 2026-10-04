@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Masthead } from "@/components/ui/Masthead";
 import { VerifyEmailBanner } from "@/features/account/VerifyEmailBanner";
 import { useAuth } from "@/features/auth/useAuth";
+import { ProfileSetupDialog } from "@/features/profile/ProfileSetupDialog";
 import { useProfile } from "@/features/profile/useProfile";
 
 const TITLE_KEYS: [string, string][] = [
@@ -56,6 +57,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 name,
                 email: currentUser.email ?? undefined,
                 avatar: profile?.profilePictureUrl || null,
+                avatarKind: profile?.avatarKind,
               }
             : null
         }
@@ -63,6 +65,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         onLogout={() => void logout().then(() => navigate("/login"))}
       />
       <VerifyEmailBanner />
+      <ProfileSetupDialog />
       <main id="main" tabIndex={-1}>
         {children}
       </main>

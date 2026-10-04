@@ -168,6 +168,11 @@ export const en = {
       rectangle: "Rectangle",
       star: "Star",
     },
+    avatarTitle: {
+      empty: "Make your picture",
+      lasso: "Draw around you",
+      result: "Your picture",
+    },
     hint: {
       freehand: "Draw around what you want to keep, then let go.",
       shape:
@@ -277,6 +282,17 @@ export const en = {
     resend: "Resend email",
     sent: "Sent",
     verified: "I verified",
+    profileTitle: "Your profile",
+    makePicture: "Make a sticker picture",
+    pickPicture: "Use one of my stickers",
+    pickPictureTitle: "Pick a sticker for your picture",
+    removePicture: "Remove picture",
+    pictureSaved: "Your picture is updated.",
+    pictureFailed: "We couldn’t update your picture. Try again.",
+    usePicture: "Use as my picture",
+    nicknameSaved: "Nickname saved.",
+    nicknameFailed: "We couldn’t save your nickname. Try again.",
+    nicknameHint: "Friends see this name. You can change it any time.",
   },
   tape: {
     title: "Tapes",
@@ -348,6 +364,16 @@ export const en = {
     tapes: "Tapes",
     journals: "Journals",
     collections: "Collections",
+  },
+  picker: {
+    title: "Pick a sticker",
+    empty: "You have no stickers yet. Cut one out first.",
+  },
+  profileSetup: {
+    kicker: "One quick thing",
+    title: "What should we call you?",
+    body: "Pick a nickname. Friends see it next to your stickers and journals, and you can change it later.",
+    go: "Continue",
   },
 };
 

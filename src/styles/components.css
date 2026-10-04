@@ -1534,3 +1534,45 @@
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 30px 24px;
 }
+.zf-grid-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 18px 12px;
+}
+.zf-picker__item {
+  all: unset;
+  cursor: pointer;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  min-height: 44px;
+  box-sizing: border-box;
+  text-align: center;
+}
+.zf-picker__item:focus-visible {
+  outline: 2px solid var(--plum-900);
+  outline-offset: 2px;
+}
+.zf-profile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px 36px;
+  margin-top: 16px;
+  align-items: flex-start;
+}
+.zf-profile__pic {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+.zf-profile__picbtns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+.zf-profile__name {
+  flex: 1 1 260px;
+  min-width: 0;
+  max-width: 420px;
+}

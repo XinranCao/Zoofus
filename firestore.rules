@@ -48,9 +48,11 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if isOwner(uid);
       allow create, update: if isOwner(uid)
-        && request.resource.data.keys().hasOnly(['uid', 'nickname', 'profilePictureUrl', 'email'])
+        && request.resource.data.keys().hasOnly(['uid', 'nickname', 'profilePictureUrl', 'email', 'avatarKind', 'avatarPath'])
         && request.resource.data.uid == uid
-        && isString(request.resource.data.nickname, 40)
+        && isString(request.resource.data.nickname, 40) && request.resource.data.nickname.size() > 0
+        && (!('avatarKind' in request.resource.data) || request.resource.data.avatarKind in ['sticker', 'photo'])
+        && (!('avatarPath' in request.resource.data) || isString(request.resource.data.avatarPath, 512))
         && isString(request.resource.data.profilePictureUrl, 2048)
         && isString(request.resource.data.email, 320);
       // Deleting the profile is part of deleting the account (the app removes the rest first).
