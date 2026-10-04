@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.6.2 – 2026-10-05
+
+### Fixes
+
+- The live site is rebuilt with the reCAPTCHA key that is registered in Firebase App Check (it was built with an older key, so App Check could never get a token).
+- Reading pictures (sharing, editing a sticker's edge, saving a copy of a Together page) needs a CORS policy on the Storage bucket; `cors.json` and the steps to apply it are in the repo and in `docs/debugging.md`.
+
+### Other
+
+- `docs/debugging.md` covers the App Check key mismatch and the CORS error.
+
 ## v1.6.1 – 2026-10-05
 
 ### Fixes
