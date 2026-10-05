@@ -135,6 +135,31 @@ describe("listing and deleting (account deletion)", () => {
 });
 
 describe("profile pictures", () => {
+  it("accepts a profile picture as png, jpeg or webp, and nothing else (no SVG or HTML)", async () => {
+    const storage = env.authenticatedContext("alice").storage();
+    for (const [name, contentType] of [
+      ["a.png", "image/png"],
+      ["a.jpg", "image/jpeg"],
+      ["a.webp", "image/webp"],
+    ] as const)
+      await assertSucceeds(
+        uploadBytes(ref(storage, `alice/profile/profile_pic/${name}`), bytes(100), {
+          contentType,
+        }),
+      );
+    for (const [name, contentType] of [
+      ["a.svg", "image/svg+xml"],
+      ["a.html", "text/html"],
+      ["a.gif", "image/gif"],
+      ["a.txt", "text/plain"],
+    ] as const)
+      await assertFails(
+        uploadBytes(ref(storage, `alice/profile/profile_pic/${name}`), bytes(100), {
+          contentType,
+        }),
+      );
+  });
+
   it("lets the owner upload an image under 5 MB", async () => {
     const storage = env.authenticatedContext("alice").storage();
     await assertSucceeds(
