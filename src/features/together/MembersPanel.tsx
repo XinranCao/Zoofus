@@ -165,10 +165,23 @@ function InviteDialog({
               invite.mutate(
                 { id: workspace.id, uids: [...chosen] },
                 {
-                  onSuccess: () => {
+                  onSuccess: ({ invited, failed }) => {
+                    if (failed.length) {
+                      // keep the dialog open with only the ones that failed, ready to send again
+                      toast.push({
+                        kind: "error",
+                        title: t("auth.errors.toastTitle"),
+                        body: t("together.invitedSome", {
+                          done: invited.length,
+                          total: invited.length + failed.length,
+                        }),
+                      });
+                      setChosen(new Set(failed));
+                      return;
+                    }
                     toast.push({
                       kind: "success",
-                      title: t("together.invited", { count: chosen.size }),
+                      title: t("together.invited", { count: invited.length }),
                     });
                     setChosen(new Set());
                     onClose();

@@ -259,7 +259,8 @@ function WorkspaceCard({
           rotate={1.1}
           w={190}
           h={260}
-          style={{ width: "100%" }}
+          // as wide as the picture and its margin (170 + 6 + 6), so no pale strip is left beside it
+          style={{ width: 182, justifySelf: "center" }}
           faceStyle={{ padding: 6 }}
           tape={
             index % 2 === 0 ? (
@@ -276,7 +277,7 @@ function WorkspaceCard({
           {workspace.thumb ? (
             <img
               src={workspace.thumb}
-              alt=""
+              alt={t("together.pagePicture", { title: workspace.title })}
               width={170}
               style={{ display: "block", width: 170, height: "auto" }}
             />

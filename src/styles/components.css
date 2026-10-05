@@ -2148,3 +2148,10 @@
   font-family: var(--font-display);
   font-size: 14px;
 }
+
+.zf-savestate {
+  align-self: center;
+  font-size: 13px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
