@@ -1,3 +1,4 @@
+import { dataUrlToBlob } from "./dataUrl";
 import {
   deleteObject,
   getBlob,
@@ -56,6 +57,8 @@ export async function deleteFolder(path: string): Promise<void> {
 export async function readPicture(link: string): Promise<Blob> {
   const url = localizeUrl(link);
   assertTrustedPictureUrl(url);
+  // a picture kept inside a document: decode it here, the CSP does not let `fetch` read `data:`
+  if (/^data:/i.test(url)) return dataUrlToBlob(url);
   try {
     const controller = new AbortController();
     const stop = setTimeout(() => controller.abort(), 20_000);

@@ -308,7 +308,7 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
     setCopying(true);
     try {
       const thumb = await exportRef.current?.thumb().catch(() => null);
-      const id = await saveCopy(
+      const { id, skipped } = await saveCopy(
         me,
         latest.current,
         store.getState().items,
@@ -317,8 +317,9 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
         thumb,
       );
       toast.push({
-        kind: "success",
+        kind: skipped ? "info" : "success",
         title: t("together.copySaved"),
+        ...(skipped ? { body: t("together.copySkipped", { count: skipped }) } : {}),
         action: {
           label: t("together.openCopy"),
           onClick: () => navigate(`/journals/${id}`),
