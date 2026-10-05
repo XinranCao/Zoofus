@@ -498,7 +498,11 @@ export const en = {
     missingTitle: "We couldn’t find that journal",
     missingBody: "It may have been deleted, or the link is old.",
     saved: "Journal saved.",
-    savedShort: "Saved",
+    status: {
+      saved: "All changes saved",
+      saving: "Saving…",
+      pending: "Saving in a moment",
+    },
     saveFailed: "We couldn’t save the journal. Your changes are still here. Try again.",
     backToJournals: "← Journals",
     download: "Download PNG",
@@ -661,9 +665,6 @@ export const en = {
     inviteMore: "Invite more",
     invited_one: "Invited {{count}} friend",
     invited_other: "Invited {{count}} friends",
-    statusSaving: "Saving…",
-    statusUnsaved: "Saving in a moment",
-    statusSaved: "All changes saved",
     pagePicture: "The page “{{title}}” as last saved",
     inviteFailed: "We couldn't send the invitations. Try again.",
     invitedSome:

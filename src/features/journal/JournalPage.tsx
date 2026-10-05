@@ -14,6 +14,7 @@ import {
   useJournalState,
   useJournalStore,
 } from "./store/journalStore";
+import { SaveStatus } from "./SaveStatus";
 import { useStickerResolver } from "./stickerRegistry";
 import { useJournal, useSaveJournal } from "./useJournals";
 
@@ -121,6 +122,16 @@ function Editor({ journal }: { journal: Journal }) {
     };
   }, [store]);
 
+  // a new title is kept a moment after typing stops
+  useEffect(() => {
+    if (!titleDirty) return;
+    const timer = setTimeout(
+      () => void latest.current.persist(false).catch(() => {}),
+      1500,
+    );
+    return () => clearTimeout(timer);
+  }, [title, titleDirty]);
+
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => {
       if (store.getState().dirty) e.preventDefault();
@@ -139,16 +150,20 @@ function Editor({ journal }: { journal: Journal }) {
         exportRef={exportRef}
         header={
           <>
+            <SaveStatus
+              state={
+                save.isPending ? "saving" : dirty || titleDirty ? "pending" : "saved"
+              }
+            />
             <Button
-              variant="primary"
+              variant="quiet"
               size="sm"
               icon="check"
               seed="jsave"
-              disabled={!dirty && !titleDirty}
               loading={save.isPending}
               onClick={() => void saveNow()}
             >
-              {dirty || titleDirty ? t("common.save") : t("journal.savedShort")}
+              {t("common.save")}
             </Button>
             <Button
               variant="secondary"

@@ -166,3 +166,40 @@ test("the eraser rubs out only where it went; stickers move, stretch and pass cl
   expect(await inked(page, right + 60, cy - 200)).toBe(true); // wider now, not taller
   expect(await inked(page, cx - 100, cy - 200 - 189 * k)).toBe(false);
 });
+
+test("the journal says whether it is saved, and leaving right after Save loses nothing", async ({
+  page,
+}) => {
+  const warnings: string[] = [];
+  page.on("console", (m) => m.type() === "warning" && warnings.push(m.text()));
+  await signUp(page, "Kept");
+  await page.goto("/journals?make=1");
+  const dlg = page.getByRole("dialog", { name: "New journal" });
+  await dlg.getByLabel("Title").fill("Kept page");
+  await dlg.getByRole("button", { name: "Start" }).click();
+  await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
+  const status = page.getByRole("status").filter({ hasText: /changes saved|Saving/ });
+  await expect(status).toHaveText("All changes saved");
+  // exactly one indicator, and Save is not a red primary button
+  await expect(status).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Save", exact: true })).not.toHaveClass(
+    /\bprimary\b/,
+  );
+
+  // a change: the status says it is on its way
+  await page.getByRole("button", { name: "Text", exact: true }).click();
+  const box = (await page.locator(".zf-jstudio__page canvas").first().boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.3);
+  await page.getByLabel("Text", { exact: true }).fill("Hello");
+  await expect(status).toHaveText("Saving in a moment");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(status).toHaveText("All changes saved");
+
+  // change again, press Save and leave straight away
+  await page.getByLabel("Text", { exact: true }).fill("Hello again");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await page.getByRole("link", { name: "← Journals" }).click();
+  await expect(page.getByRole("link", { name: /Open Kept page/ })).toBeVisible();
+  await page.waitForTimeout(500);
+  expect(warnings.filter((w) => w.includes("Skipping journal"))).toEqual([]);
+});
