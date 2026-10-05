@@ -82,6 +82,18 @@ export function useSaveSticker() {
   });
 }
 
+/** Resolve once the picture has loaded (or failed, or 5 s have passed): never blocks for long. */
+function preload(url: string): Promise<void> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const done = () => resolve();
+    img.onload = done;
+    img.onerror = done;
+    setTimeout(done, 5000);
+    img.src = url;
+  });
+}
+
 export function useUpdateStickerEdge() {
   const uid = useUid();
   const queryClient = useQueryClient();
@@ -122,7 +134,11 @@ export function useUpdateStickerEdge() {
           : {}),
       });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.all(uid ?? "") }),
+    // "Edge saved." waits for the list and for the new picture, so the tile never shows the old edge
+    onSuccess: async (imageUrl) => {
+      await queryClient.invalidateQueries({ queryKey: keys.all(uid ?? "") });
+      await preload(imageUrl);
+    },
     onError: (err) => console.error("Updating the sticker edge failed", err),
   });
 }

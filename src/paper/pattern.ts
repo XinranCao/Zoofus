@@ -94,6 +94,31 @@ export function hex(c: string): string {
   return /^#[0-9a-f]{3,8}$/i.test(c) ? c : PALETTE["sheet-50"];
 }
 
+const luminance = (c: string) => {
+  const h = hex(c).replace("#", "");
+  const full = h.length === 3 ? h.replace(/./g, "$&$&") : h.slice(0, 6);
+  const [r, g, b] = [0, 2, 4].map((i) => {
+    const v = parseInt(full.slice(i, i + 2), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  }) as [number, number, number];
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+
+/** WCAG contrast ratio of two colours (palette names or hex), 1 to 21. */
+export function contrastRatio(a: string, b: string): number {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x) as [number, number];
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/** Below this, a print on its paper is hard to see (WCAG's 3:1 for graphics). */
+export const MIN_PRINT_CONTRAST = 3;
+
+/** An ink colour that shows on `bg`: plum if it does, else the strongest of the user colours. */
+export function readableInk(bg: string): PaletteName {
+  if (contrastRatio(bg, "plum-900") >= MIN_PRINT_CONTRAST) return "plum-900";
+  return [...USER_COLORS].sort((x, y) => contrastRatio(bg, y) - contrastRatio(bg, x))[0]!;
+}
+
 /** Limits on a doodle; firestore.rules caps the count, the rest is checked by the client and here. */
 export const MAX_DOODLE_STROKES = 60;
 export const MAX_STROKE_LENGTH = 2000;

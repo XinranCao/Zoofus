@@ -118,6 +118,7 @@ export const en = {
     "kraft-100": "Kraft",
   },
   pattern: {
+    lowContrast: "Pick an ink colour to see the pattern.",
     kinds: {
       solid: "Solid",
       stripes: "Stripes",

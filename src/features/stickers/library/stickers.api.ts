@@ -161,7 +161,7 @@ export async function updateStickerEdge(
   uid: string,
   current: Pick<Sticker, "id" | "storagePath">,
   input: EdgeUpdate,
-): Promise<void> {
+): Promise<string> {
   assertSize(input.sticker);
   const storagePath = `${uid}/stickers/${current.id}_${Date.now()}.${extensionFor(input.sticker)}`;
   const imageUrl = await upload(storagePath, input.sticker);
@@ -183,6 +183,7 @@ export async function updateStickerEdge(
   await deleteFileIfExists(ref(storage, current.storagePath)).catch((err) =>
     console.warn("Could not remove the previous image", err),
   );
+  return imageUrl; // so the caller can wait until the new picture has loaded
 }
 
 export async function deleteSticker(

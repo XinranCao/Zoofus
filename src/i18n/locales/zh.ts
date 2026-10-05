@@ -119,6 +119,7 @@ export const zh: Messages = {
     "kraft-100": "牛皮纸",
   },
   pattern: {
+    lowContrast: "选一个墨水颜色,就能看见图案。",
     kinds: {
       solid: "纯色",
       stripes: "条纹",

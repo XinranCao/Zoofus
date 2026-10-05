@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   BLANK_PIXELS,
+  MIN_PRINT_CONTRAST,
+  contrastRatio,
+  readableInk,
   DOODLE_STROKES,
   HEART_PIXELS,
   PALETTE,
@@ -149,5 +152,18 @@ describe("hostile input", () => {
     expect(patternSpecSchema.parse({ kind: "dots", bg: "chartreuse-400" }).bg).toBe(
       "sheet-50",
     );
+  });
+});
+
+describe("print contrast", () => {
+  it("measures WCAG contrast", () => {
+    expect(contrastRatio("#000000", "#ffffff")).toBeCloseTo(21, 0);
+    expect(contrastRatio("sheet-50", "sheet-50")).toBe(1);
+  });
+  it("picks an ink that shows on a pale paper and on a dark one", () => {
+    for (const bg of ["sheet-50", "cream-100", "plum-900", "cocoa-800"] as const)
+      expect(contrastRatio(bg, readableInk(bg))).toBeGreaterThanOrEqual(
+        MIN_PRINT_CONTRAST,
+      );
   });
 });

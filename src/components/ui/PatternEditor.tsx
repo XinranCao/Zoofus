@@ -6,8 +6,11 @@ import {
   HEART_PIXELS,
   MAX_DOODLE_STROKES,
   MAX_STROKE_LENGTH,
+  MIN_PRINT_CONTRAST,
   USER_COLORS,
+  contrastRatio,
   hex,
+  readableInk,
   type PatternKind,
   type PatternSpec,
 } from "@/paper/pattern";
@@ -303,7 +306,16 @@ export function PatternEditor({
           seed={"pk" + seed}
           value={s.kind}
           options={kinds.map((k) => ({ value: k, label: t(`pattern.kinds.${k}`) }))}
-          onChange={(k) => update("kind", k)}
+          onChange={(k) =>
+            // a print the same colour as its paper looks like a blank sticker: start with an ink that shows
+            onChange({
+              ...s,
+              kind: k,
+              ...(k !== "solid" && contrastRatio(s.bg, ink) < MIN_PRINT_CONTRAST
+                ? { ink: readableInk(s.bg) }
+                : {}),
+            })
+          }
         />
       </div>
       <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
@@ -331,6 +343,11 @@ export function PatternEditor({
               value={ink}
               onChange={(v) => update("ink", v as PatternSpec["ink"])}
             />
+            {contrastRatio(s.bg, ink) < MIN_PRINT_CONTRAST && (
+              <p className="zf-muted" role="status" style={{ margin: "6px 0 0" }}>
+                {t("pattern.lowContrast")}
+              </p>
+            )}
           </div>
         )}
       </div>
