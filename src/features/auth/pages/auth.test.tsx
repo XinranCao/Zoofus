@@ -56,16 +56,22 @@ describe("LoginPage", () => {
     expect(auth.login).toHaveBeenCalledWith("mei@example.com", "x");
   });
 
-  it("explains a wrong password on the field and in an error toast", async () => {
+  it("says a wrong password once, in one alert the field points at", async () => {
     auth.login.mockRejectedValue({ code: "auth/invalid-credential" });
     renderPage(<LoginPage />);
     await userEvent.type(screen.getByLabelText("Email"), "mei@example.com");
     await userEvent.type(screen.getByLabelText("Password"), "nope");
     await userEvent.click(screen.getByRole("button", { name: "Log in" }));
     expect(
-      await screen.findByText("Password doesn’t match this email."),
+      await screen.findByText(
+        "Email or password is wrong. Try again or reset your password.",
+      ),
     ).toBeInTheDocument();
-    expect(screen.getByText("That didn’t work")).toBeInTheDocument();
+    expect(screen.getAllByRole("alert")).toHaveLength(1);
+    expect(screen.queryByText("Password doesn’t match this email.")).toBeNull();
+    const password = screen.getByLabelText("Password");
+    expect(password).toHaveAttribute("aria-invalid", "true");
+    expect(password).toHaveAttribute("aria-describedby", "login-error");
   });
 
   it("after a wrong password keeps the email, clears the password and focuses it", async () => {
@@ -74,7 +80,9 @@ describe("LoginPage", () => {
     await userEvent.type(screen.getByLabelText("Email"), "mei@example.com");
     await userEvent.type(screen.getByLabelText("Password"), "nope");
     await userEvent.click(screen.getByRole("button", { name: "Log in" }));
-    await screen.findByText("Password doesn’t match this email.");
+    await screen.findByText(
+      "Email or password is wrong. Try again or reset your password.",
+    );
     expect(screen.getByLabelText("Email")).toHaveValue("mei@example.com");
     const password = screen.getByLabelText("Password");
     expect(password).toHaveValue("");
