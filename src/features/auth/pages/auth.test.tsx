@@ -99,7 +99,25 @@ describe("SignUpPage", () => {
     await userEvent.type(screen.getByLabelText("Password"), "longenough1");
     await userEvent.click(screen.getByRole("button", { name: "Continue" }));
     expect(await screen.findByText("Sign up · step 2 of 2")).toBeInTheDocument();
-    expect(screen.getByLabelText("Nickname · 昵称")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Nickname/)).toBeInTheDocument();
+  });
+
+  it("suggests a nickname from the email, marks it needed, and an empty one is flagged on the field", async () => {
+    auth.signup.mockResolvedValue({});
+    renderPage(<SignUpPage />);
+    await userEvent.type(screen.getByLabelText("Email"), "new.person@example.com");
+    await userEvent.type(screen.getByLabelText("Password"), "longenough1");
+    await userEvent.click(screen.getByRole("button", { name: "Continue" }));
+    const name = await screen.findByLabelText(/Nickname/);
+    expect(name).toHaveValue("new.person");
+    expect(name).toHaveAttribute("aria-required", "true");
+    expect(screen.getByText(/friends see this name/i)).toBeInTheDocument();
+    await userEvent.clear(name);
+    await userEvent.click(screen.getByRole("button", { name: "Start cutting" }));
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(/nickname/i);
+    expect(name).toHaveAccessibleDescription(/nickname/i);
+    expect(name).toHaveFocus();
   });
 
   it("flags an email that is already registered on the field", async () => {

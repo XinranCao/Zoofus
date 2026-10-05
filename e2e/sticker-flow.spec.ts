@@ -12,7 +12,7 @@ test("sign up, cut and save a sticker, then delete the account", async ({ page }
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("secret123");
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByLabel("Nickname · 昵称").fill("E2E Tester");
+  await page.getByLabel("Nickname").fill("E2E Tester");
   await page.getByRole("button", { name: "Start cutting" }).click();
   await expect(page.getByRole("heading", { name: "Cut something out" })).toBeVisible();
   await expect(page).toHaveTitle("Zoofus · Make a sticker");

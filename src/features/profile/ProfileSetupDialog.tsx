@@ -52,6 +52,7 @@ export function ProfileSetupDialog() {
       <DialogBody>{t("profileSetup.body")}</DialogBody>
       <TextField
         label={t("auth.nickname")}
+        required
         seed="setup-name"
         value={value}
         maxLength={MAX_NICKNAME}

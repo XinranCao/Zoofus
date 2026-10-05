@@ -9,7 +9,7 @@ export async function signUp(page: Page, nickname = "Tester", tag = "e2e") {
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("secret123");
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByLabel("Nickname · 昵称").fill(nickname);
+  await page.getByLabel("Nickname").fill(nickname);
   await page.getByRole("button", { name: "Start cutting" }).click();
   await expect(page).toHaveTitle("Zoofus · Make a sticker");
   return { email, password: "secret123" };

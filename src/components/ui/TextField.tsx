@@ -19,6 +19,8 @@ interface BaseProps {
   multiline?: boolean;
   /** Keep the label for screen readers but do not show it (the surroundings say what the field is). */
   hideLabel?: boolean;
+  /** Marks the field as needed: a star after the label (hidden from screen readers) and `aria-required`. */
+  required?: boolean;
   rows?: number;
 }
 
@@ -37,6 +39,7 @@ export function TextField({
   state,
   multiline,
   hideLabel,
+  required,
   rows = 4,
   id: idProp,
   className,
@@ -65,6 +68,12 @@ export function TextField({
     >
       <RLabel.Root className={cn("zf-field__label", hideLabel && "sr-only")} htmlFor={id}>
         {label}
+        {required && (
+          <span aria-hidden="true" className="zf-field__req">
+            {" "}
+            *
+          </span>
+        )}
       </RLabel.Root>
       {/* a tap anywhere on the scrap, torn margin included, focuses the field */}
       <div
@@ -86,6 +95,7 @@ export function TextField({
               disabled={disabled}
               aria-invalid={error ? true : undefined}
               aria-describedby={describedBy}
+              aria-required={required || undefined}
               {...(input as unknown as ComponentProps<"textarea">)}
             />
           ) : (
@@ -95,6 +105,7 @@ export function TextField({
               disabled={disabled}
               aria-invalid={error ? true : undefined}
               aria-describedby={describedBy}
+              aria-required={required || undefined}
               {...input}
             />
           )}

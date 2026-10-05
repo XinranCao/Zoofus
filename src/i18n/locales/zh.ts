@@ -58,9 +58,9 @@ export const zh: Messages = {
     },
     email: "邮箱",
     password: "密码",
-    nickname: "昵称 · Nickname",
+    nickname: "昵称",
     nicknamePlaceholder: "我们该怎么称呼你?",
-    nicknameHint: "会显示在你的贴纸本上。",
+    nicknameHint: "必填:朋友会在你的贴纸旁看到这个名字,随时可以改。",
     passwordHint: "至少 8 个字符。",
     login: {
       kicker: "欢迎回来",

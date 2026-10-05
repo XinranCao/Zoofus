@@ -10,7 +10,7 @@ async function openMaker(page: Page) {
   await page.getByLabel("Email").fill(`shapes-${Date.now()}@example.com`);
   await page.getByLabel("Password").fill("secret123");
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByLabel("Nickname · 昵称").fill("Shapes");
+  await page.getByLabel("Nickname").fill("Shapes");
   await page.getByRole("button", { name: "Start cutting" }).click();
   await expect(page).toHaveTitle("Zoofus · Make a sticker");
   await page

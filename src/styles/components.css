@@ -2072,3 +2072,7 @@
   outline: 2px solid var(--plum-900);
   outline-offset: -4px;
 }
+
+.zf-field__req {
+  color: var(--danger-mark);
+}

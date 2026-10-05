@@ -24,7 +24,7 @@ async function openLasso(page: Page, photo: Buffer) {
   await page.getByLabel("Email").fill(`lasso-${Date.now()}@example.com`);
   await page.getByLabel("Password").fill("secret123");
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByLabel("Nickname · 昵称").fill("Lasso");
+  await page.getByLabel("Nickname").fill("Lasso");
   await page.getByRole("button", { name: "Start cutting" }).click();
   await expect(page).toHaveTitle("Zoofus · Make a sticker");
   await page.locator('input[type="file"]').first().setInputFiles({

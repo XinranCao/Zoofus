@@ -43,7 +43,7 @@ export const en = {
       email: "Enter a valid email.",
       passwordRequired: "Enter your password.",
       passwordShort: "Use at least 8 characters.",
-      name: "Enter a name between 1 and 40 characters.",
+      name: "Enter a nickname between 1 and 40 characters.",
       emailInUse: "That email already has an account.",
       wrongPassword: "Password doesn’t match this email.",
       weakPassword: "Pick a stronger password.",
@@ -56,9 +56,10 @@ export const en = {
     },
     email: "Email",
     password: "Password",
-    nickname: "Nickname · 昵称",
+    nickname: "Nickname",
     nicknamePlaceholder: "What should we call you?",
-    nicknameHint: "Shown on your sticker book.",
+    nicknameHint:
+      "Needed: friends see this name next to your stickers. You can change it any time.",
     passwordHint: "At least 8 characters.",
     login: {
       kicker: "Welcome back",

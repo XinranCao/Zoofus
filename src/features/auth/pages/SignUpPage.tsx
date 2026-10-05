@@ -44,6 +44,9 @@ export default function SignUpPage() {
     if (created) return setStep(2); // came back from step 2: the account already exists
     try {
       await signup(email, password);
+      // suggest a name from the email, so the step can be finished with one press
+      if (!profileForm.getValues("name"))
+        profileForm.setValue("name", email.split("@")[0]!.slice(0, 40));
       setStep(2);
     } catch (err) {
       const code = (err as { code?: string }).code;
@@ -133,6 +136,7 @@ export default function SignUpPage() {
             </div>
             <TextField
               label={t("auth.nickname")}
+              required
               placeholder={t("auth.nicknamePlaceholder")}
               hint={t("auth.nicknameHint")}
               seed="nn"

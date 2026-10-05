@@ -51,7 +51,7 @@ test("the main screens raise no CSP violations", async ({ page }) => {
     .fill(`csp-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`);
   await page.getByLabel("Password").fill("secret123");
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByLabel("Nickname · 昵称").fill("Csp");
+  await page.getByLabel("Nickname").fill("Csp");
   await page.getByRole("button", { name: "Start cutting" }).click();
   await expect(page).toHaveTitle("Zoofus · Make a sticker");
   await collect();
