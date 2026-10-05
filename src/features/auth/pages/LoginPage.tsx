@@ -30,6 +30,8 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
+    resetField,
+    setFocus,
     formState: { errors, isSubmitting },
   } = useForm<Credentials>({ resolver: zodResolver(loginSchema) });
 
@@ -42,6 +44,10 @@ export default function LoginPage() {
     } catch (err) {
       setError("login");
       setWrong(WRONG.has((err as { code?: string }).code ?? ""));
+      // keep what was typed for the email, clear only the password and put the cursor in it
+      // (after the form has been enabled again: a disabled field cannot take focus)
+      resetField("password");
+      setTimeout(() => setFocus("password"), 0);
     }
   };
 
