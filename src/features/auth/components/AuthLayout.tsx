@@ -5,26 +5,12 @@ import { Tape } from "@/components/ui/Tape";
 
 /**
  * The shared auth layout. Desktop: a loose sticker collage on the left and a 440px taped card on
- * the right. Mobile: a strip of three small stickers, then the full-width card.
+ * the right (side by side from 1000px). Below that the card comes first and the sticker art after
+ * it, so the form is never pushed down the page; on a phone the art is a strip of three stickers.
  */
 export function AuthLayout({ seed, children }: { seed: string; children: ReactNode }) {
   return (
-    <div
-      className="zf-page"
-      style={{
-        display: "flex",
-        gap: 56,
-        alignItems: "center",
-        justifyContent: "center",
-        flexWrap: "wrap",
-      }}
-    >
-      <div className="zf-hide-m" style={{ width: 420 }}>
-        <Collage size={104} gap={22} />
-      </div>
-      <div className="zf-hide-d" style={{ width: "100%", marginBottom: -8 }}>
-        <Collage arts={["pear", "cherry", "star"]} size={64} gap={10} />
-      </div>
+    <div className="zf-page zf-auth">
       <Paper
         seed={"authcard" + seed}
         size="lg"
@@ -38,6 +24,12 @@ export function AuthLayout({ seed, children }: { seed: string; children: ReactNo
       >
         {children}
       </Paper>
+      <div className="zf-hide-m zf-auth__art" style={{ width: 420 }}>
+        <Collage size={104} gap={22} />
+      </div>
+      <div className="zf-hide-d zf-auth__strip" style={{ width: "100%" }}>
+        <Collage arts={["pear", "cherry", "star"]} size={64} gap={10} />
+      </div>
     </div>
   );
 }

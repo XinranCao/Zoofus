@@ -1048,6 +1048,9 @@
     .zf-nav {
       display: none;
     }
+    .zf-hide-m-auth {
+      display: none !important;
+    }
     .zf-menu-btn {
       display: inline-flex;
       align-items: center;
@@ -1998,5 +2001,22 @@
   :focus-visible {
     outline: 3px solid Highlight;
     outline-offset: 2px;
+  }
+}
+
+/* The auth card comes first in the page; from 1000px the sticker art sits to its left. */
+.zf-auth {
+  display: flex;
+  gap: 56px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.zf-auth__strip {
+  order: 2;
+}
+@media (min-width: 1000px) {
+  .zf-auth__art {
+    order: -1;
   }
 }

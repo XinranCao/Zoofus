@@ -350,7 +350,13 @@ export function Masthead({
               style={{ display: "flex", marginLeft: "auto", gap: 4 }}
             >
               <LanguageSwitch />
-              <ButtonLink variant="quiet" to="/login" seed="li">
+              {/* on a phone the log in / sign up pages link to each other, and the bar has no room */}
+              <ButtonLink
+                variant="quiet"
+                to="/login"
+                seed="li"
+                className={onAuth ? "zf-hide-m-auth" : undefined}
+              >
                 {t("nav.logIn")}
               </ButtonLink>
               <ButtonLink
