@@ -48,14 +48,17 @@ export default function StickerBookPage() {
   // `/stickers?edit=<id>` (from "Edit edge" in the maker's saved step) opens that sticker's edge editor
   const [params, setParams] = useSearchParams();
   const wantedEdit = params.get("edit");
-  useEffect(() => {
-    if (!wantedEdit || !data) return;
-    if (data.some((s) => s.id === wantedEdit)) setEditEdgeId(wantedEdit);
-    const next = new URLSearchParams(params);
-    next.delete("edit");
-    setParams(next, { replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs when the parameter or the list arrives
-  }, [wantedEdit, data]);
+  const openEdgeId =
+    editEdgeId ??
+    (wantedEdit && data?.some((s) => s.id === wantedEdit) ? wantedEdit : null);
+  const closeEdge = () => {
+    setEditEdgeId(null);
+    if (wantedEdit) {
+      const next = new URLSearchParams(params);
+      next.delete("edit");
+      setParams(next, { replace: true });
+    }
+  };
   // Deleted stickers disappear at once; the real delete runs after the Undo window.
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const pending = useRef(
@@ -363,7 +366,7 @@ export default function StickerBookPage() {
           setDetailId(null);
         }}
       />
-      <EditEdgeDialog sticker={find(editEdgeId)} onClose={() => setEditEdgeId(null)} />
+      <EditEdgeDialog sticker={find(openEdgeId)} onClose={closeEdge} />
       <Dialog
         open={confirmId !== null}
         onOpenChange={(o) => !o && setConfirmId(null)}
