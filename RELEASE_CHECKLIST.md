@@ -66,9 +66,16 @@ Also look at one older sticker saved before the redesign, if the account has any
 
 ### Security headers and the CSP
 
-`firebase.json` sends the security headers on every page and a year-long cache on `/assets/**`. The Content-Security-Policy is **report-only** for now: the browser logs violations in its console and blocks nothing. After each release, open the live site and watch the console on sign in, a sticker, a tape, a journal, Friends and Together for `Content-Security-Policy-Report-Only` messages (`e2e/csp.spec.ts` does the same against the emulators; zod's `eval` probe is expected and falls back).
+`firebase.json` sends the security headers on every page, an **enforcing** Content-Security-Policy and a year-long cache on `/assets/**`. `e2e/csp.spec.ts` proves, on a production build, that the main flows raise no violation and that an inline script, an unlisted frame, an outside image and an outside request are all caught.
 
-To **promote** it to enforcing: when a release has shown no violations, change the header key in `firebase.json` from `Content-Security-Policy-Report-Only` to `Content-Security-Policy` (and the key `vite.config.ts` and `e2e/csp.spec.ts` look for), deploy, and repeat the smoke test above, including Google sign in. If something breaks, change the key back and redeploy; a missing origin goes into the matching directive.
+After the deploy, check the real headers and the console:
+
+```bash
+curl -sI https://zoofus-48264.web.app | grep -iE "content-security-policy|x-content-type-options|x-frame-options|referrer-policy|permissions-policy"
+curl -sI "https://zoofus-48264.web.app/assets/$(curl -s https://zoofus-48264.web.app | grep -o 'index-[^"]*\.js' | head -1)" | grep -i cache-control
+```
+
+Then open the live site and watch the browser console on sign in (**including Google sign-in**, which the e2e run cannot do), a sticker, a tape, a journal, Friends and Together: a `Refused to ...` message means the policy blocked something the app needs. zod's `eval` probe is expected (it falls back). To fix one, add the origin to the matching directive in `firebase.json` and release again. To switch the policy off in an emergency, change the key `Content-Security-Policy` to `Content-Security-Policy-Report-Only` and redeploy hosting.
 
 ## 4. Rollback
 

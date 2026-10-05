@@ -62,7 +62,7 @@ TypeScript with an `@/` alias for `src/`, organised by feature:
 - `src/features/together/` – shared pages (workspaces): live items, shelf, presence, save a copy
 - `src/paper/` – the torn-paper drawing code shared by the UI and the exports
 - `src/components/ui/`, `src/components/layout/` – design-system components and the app chrome
-- `firebase.json` – hosting rewrites and headers (security headers, a report-only Content-Security-Policy, a year-long cache for `/assets/**`)
+- `firebase.json` – hosting rewrites and headers (security headers, an enforcing Content-Security-Policy, a year-long cache for `/assets/**`)
 - `rules-tests/`, `e2e/` – security rules tests and Playwright flows (including `csp`, `focus-ring`, `a11y-names`, `auth-layout` checks)
 
 ## Branches and releases
