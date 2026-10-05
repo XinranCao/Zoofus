@@ -1,5 +1,31 @@
 # Changelog
 
+## v1.7.2 – 2026-10-05
+
+Third release from the project-manager review (this one covers its v1.7.1 plan, 15 tasks). It fixes two regressions from v1.7.1 that the tests could not see.
+
+### Fixes
+
+- **Google sign-in with a profile photo** no longer leaves you without a friend code and avatar: a Google photo link is not a link the app trusts, and it used to stop the whole public profile from being written. It is now left out, and the Friends page offers "Try again" if the code does not load.
+- **Together "Save a copy"** no longer drops shelf stickers while saying it worked: the enforcing Content-Security-Policy blocks `fetch` of `data:` pictures, which are now read directly. If a picture still cannot be copied, the note says how many.
+- The sticker preview opens whole (at the top, never wider than its box) on small phones and at 200% zoom; after saving, the sticker's options are locked so a second press cannot make a duplicate, and "Edit edge" is a proper button there and in the Library.
+- One wrong-password message instead of two; Enter submits the nickname dialog; edge prints start with an ink that shows against the paper (with a hint when it does not); "Edge saved." waits until the tile shows the new edge.
+- A journal read straight after saving is no longer skipped from the list.
+
+### Features
+
+- A single save status ("All changes saved" / "Saving…") in the journal editor and in Together, replacing the red Save and the second "Saved"; titles autosave.
+- The journal editor's controls are single scrolling rows on short and narrow screens so the page is in the first screen; the active tool is underlined as well as coloured.
+- The cutter's keyboard help is a "Keyboard shortcuts" disclosure (hidden on touch screens, still read by screen readers).
+- The confirm-email note says once that it is optional, then shrinks to an icon.
+- Notes (toasts) stay 8-10 seconds, have a close button and close with Esc; the tape note offers "See in Tapes". Lists show a skeleton and "Loading your …" on slow connections.
+- Focus: dialogs start on their first field and return to the Make button when opened from the Make menu; the login heading has focus after logging out. Chinese: finished heading, one verb for making a sticker, colour names, a title for each sign-up step, decorative pictures no longer announced.
+
+### Other
+
+- The share, Together and Google sign-in flows now also run under the enforcing policy in the end-to-end tests (a violation fails the test), with a Google sign-in test using the Auth Emulator. `RELEASE_CHECKLIST.md` asks for a console walk after deploy, including the real Google popup.
+- No rules change in this release.
+
 ## v1.7.1 – 2026-10-05
 
 Second release from the project-manager review of v1.7.0 (all 14 of its tasks).

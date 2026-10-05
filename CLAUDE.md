@@ -60,6 +60,7 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
 - All user-facing copy goes through i18n (`src/i18n/locales/en.ts` and `zh.ts`); add keys to both.
 - Object URLs are revoked by the component that owns them (the editor owns the image URL).
 - Keyboard access: after a route change focus moves to the page `h1` (`components/layout/useRouteFocus.ts`; the skip link focuses `#main`); a `Dialog` returns focus to its opener; groups of many small controls (the pixel grid) are one tab stop with arrow keys; `e2e/focus-ring.spec.ts` checks that every control shows a focus indicator of at least 3:1, `e2e/a11y-names.spec.ts` that controls have names. `forced-colors` gets the system ring.
+- Dialogs and notes: a `Dialog` starts on its first visible field (else its title), has Close last in the Tab order, and returns focus to its opener (for a menu item, the menu's button). Toasts stay 8-10 s, pause on hover/focus and close with their button or Esc. A list that is loading shows a skeleton and, after 300 ms, a polite `LoadingNote` (`components/ui/Loader.tsx`). Journals and Together share one `SaveStatus` line (`features/journal/SaveStatus.tsx`). A saved sticker's step 2 is read-only; changing its edge is "Edit edge" in the Library (`/stickers?edit=<id>`). A Google profile photo is never stored as the picture (it is not a trusted link).
 - Fix `useEffect` setState lint errors by deriving state, not by disabling the rule.
 
 ## Git workflow
