@@ -116,7 +116,7 @@ test("two people become friends, name each other, share and keep a sticker", asy
   await dlg.getByRole("button", { name: /Bob the builder/ }).click();
   await dlg.getByLabel("Add a note (optional)").fill("For you!");
   await dlg.getByRole("button", { name: "Send" }).click();
-  await expect(a.getByText("Shared with your friend.").first()).toBeVisible({
+  await expect(a.getByText("Sent to Bob the builder.").first()).toBeVisible({
     timeout: 15000,
   });
 
