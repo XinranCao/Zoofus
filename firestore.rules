@@ -325,7 +325,10 @@ service cloud.firestore {
       allow create: if signedIn()
         && code.matches('^[A-HJ-NP-Z2-9]{8}$')
         && request.resource.data.keys().hasOnly(['uid'])
-        && request.resource.data.uid == request.auth.uid;
+        && request.resource.data.uid == request.auth.uid
+        // only the code in my own public profile (written in the same batch or before), so a code
+        // cannot be squatted without being mine
+        && getAfter(/databases/$(database)/documents/publicProfiles/$(request.auth.uid)).data.friendCode == code;
       allow delete: if signedIn() && resource.data.uid == request.auth.uid;
     }
 
@@ -337,6 +340,15 @@ service cloud.firestore {
         && request.auth.uid in get(/databases/$(database)/documents/workspaces/$(wid)).data.members;
     }
     match /workspaces/{wid} {
+      // Invitations go to friends only. A list cannot be looped over in rules, so people are added
+      // one at a time: the new list is the old list plus one friend of the person inviting. Taking
+      // people off (a list with nobody new in it) is always fine.
+      function invitesOk(old, mine) {
+        return mine.toSet().difference(old.toSet()).size() == 0
+          || (mine.size() == old.size() + 1
+            && (old.size() == 0 || mine[0:old.size()] == old)
+            && exists(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(mine[old.size()])));
+      }
       function validWorkspace(d) {
         return d.keys().hasOnly(['title', 'ownerUid', 'members', 'invited', 'page', 'thumb', 'createdAt', 'updatedAt'])
           && (!('thumb' in d) || isString(d.thumb, 60000))
@@ -351,6 +363,7 @@ service cloud.firestore {
         && validWorkspace(request.resource.data)
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.members == [request.auth.uid]
+        && request.resource.data.invited.size() == 0
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
       allow update: if signedIn() && (
@@ -359,6 +372,8 @@ service cloud.firestore {
           && validWorkspace(request.resource.data)
           && request.resource.data.ownerUid == resource.data.ownerUid
           && request.resource.data.members == resource.data.members
+          && invitesOk(resource.data.invited, request.resource.data.invited)
+          && !(request.resource.data.invited.hasAny(resource.data.members))
           && request.resource.data.createdAt == resource.data.createdAt
           && request.resource.data.updatedAt == request.time)
         // an invited friend joins: they move from `invited` to `members`, nothing else changes

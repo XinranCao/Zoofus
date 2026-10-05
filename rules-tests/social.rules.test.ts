@@ -173,6 +173,14 @@ describe("public profiles and friend codes", () => {
     );
   });
   it("friend codes are found one at a time and claimed by their owner", async () => {
+    await seed((db) =>
+      setDoc(doc(db, "publicProfiles/alice"), {
+        nickname: "Alice",
+        avatarUrl: "",
+        friendCode: "ABCD2345",
+        updatedAt: new Date(),
+      }),
+    );
     await assertSucceeds(
       setDoc(doc(as("alice"), "friendCodes/ABCD2345"), { uid: "alice" }),
     );
@@ -180,6 +188,9 @@ describe("public profiles and friend codes", () => {
     await assertFails(getDocs(collection(as("bob"), "friendCodes")));
     await assertFails(setDoc(doc(as("bob"), "friendCodes/EFGH6789"), { uid: "alice" }));
     await assertFails(setDoc(doc(as("bob"), "friendCodes/short"), { uid: "bob" }));
+    // a code that is not the one in my own public profile cannot be claimed (no squatting)
+    await assertFails(setDoc(doc(as("alice"), "friendCodes/JKLM3456"), { uid: "alice" }));
+    await assertFails(setDoc(doc(as("bob"), "friendCodes/JKLM3456"), { uid: "bob" }));
     await assertFails(deleteDoc(doc(as("bob"), "friendCodes/ABCD2345")));
     await assertSucceeds(deleteDoc(doc(as("alice"), "friendCodes/ABCD2345")));
   });
@@ -372,7 +383,7 @@ describe("workspaces (working together)", () => {
     title: "Our page",
     ownerUid: "alice",
     members: ["alice"],
-    invited: ["bob"],
+    invited: [],
     page,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -391,8 +402,11 @@ describe("workspaces (working together)", () => {
     ...over,
   });
   const seedWs = () =>
-    seed((db) =>
-      setDoc(doc(db, "workspaces/w1"), {
+    seed(async (db) => {
+      // alice is friends with bob and carol, not with mallory
+      for (const f of ["bob", "carol"])
+        await setDoc(doc(db, `users/alice/friends/${f}`), { since: new Date() });
+      await setDoc(doc(db, "workspaces/w1"), {
         title: "Our page",
         ownerUid: "alice",
         members: ["alice"],
@@ -400,8 +414,8 @@ describe("workspaces (working together)", () => {
         page,
         createdAt: new Date(),
         updatedAt: new Date(),
-      }),
-    );
+      });
+    });
 
   it("anyone can start one, as its only member and owner", async () => {
     await assertSucceeds(setDoc(doc(as("alice"), "workspaces/w1"), ws()));
@@ -410,6 +424,10 @@ describe("workspaces (working together)", () => {
       setDoc(doc(as("alice"), "workspaces/w3"), ws({ members: ["alice", "bob"] })),
     );
     await assertFails(setDoc(doc(as("alice"), "workspaces/w4"), ws({ title: "" })));
+    // nobody is invited at the start: invitations are added afterwards, to friends
+    await assertFails(
+      setDoc(doc(as("alice"), "workspaces/w5"), ws({ invited: ["mallory"] })),
+    );
   });
   it("members and invited people can read; strangers cannot", async () => {
     await seedWs();
@@ -505,7 +523,7 @@ describe("workspaces (working together)", () => {
       }),
     );
   });
-  it("a member can invite more people and rename it, but not change who is in or own it", async () => {
+  it("a member can invite friends (one at a time) and rename it, but not change who is in or own it", async () => {
     await seedWs();
     await assertSucceeds(
       updateDoc(doc(as("alice"), "workspaces/w1"), {
@@ -523,6 +541,52 @@ describe("workspaces (working together)", () => {
     await assertFails(
       updateDoc(doc(as("alice"), "workspaces/w1"), {
         ownerUid: "bob",
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+  it("a non-friend cannot be invited, alone or with friends in the same write", async () => {
+    await seedWs();
+    await assertFails(
+      updateDoc(doc(as("alice"), "workspaces/w1"), {
+        invited: ["bob", "mallory"],
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(as("alice"), "workspaces/w1"), {
+        invited: ["bob", "carol", "mallory"],
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    // two new people at once cannot be checked, so it is refused
+    await assertFails(
+      updateDoc(doc(as("alice"), "workspaces/w1"), {
+        invited: ["bob", "carol", "dave"],
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+  it("the first friend can be invited right after the page is made", async () => {
+    await seedWs();
+    await assertSucceeds(
+      updateDoc(doc(as("alice"), "workspaces/w1"), {
+        invited: [],
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    await assertSucceeds(
+      updateDoc(doc(as("alice"), "workspaces/w1"), {
+        invited: ["carol"],
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+  it("someone invited can be taken off again", async () => {
+    await seedWs();
+    await assertSucceeds(
+      updateDoc(doc(as("alice"), "workspaces/w1"), {
+        invited: [],
         updatedAt: serverTimestamp(),
       }),
     );

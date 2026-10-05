@@ -59,11 +59,13 @@ export async function createWorkspace(
     title: input.title,
     ownerUid: me,
     members: [me],
-    invited: input.invite,
+    invited: [],
     page: cleanForFirestore(input.page),
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+  // the rules take invitations one friend at a time, after the page exists
+  if (input.invite.length) await inviteFriends(id, input.invite);
   return id;
 }
 
@@ -134,16 +136,21 @@ export async function declineInvite(me: string, id: string): Promise<void> {
   });
 }
 
+/** The rules accept one new invitation per write, and only for a friend of the person inviting. */
 export async function inviteFriends(id: string, uids: string[]): Promise<void> {
-  await runTransaction(db, async (tx) => {
-    const snap = await tx.get(ws(id));
-    const w = snap.exists() ? parse(id, snap.data()) : null;
-    if (!w) throw new WorkspaceError("gone");
-    const invited = [
-      ...new Set([...w.invited, ...uids.filter((u) => !w.members.includes(u))]),
-    ];
-    tx.update(ws(id), { invited: invited.slice(0, 12), updatedAt: serverTimestamp() });
-  });
+  for (const uid of uids) {
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(ws(id));
+      const w = snap.exists() ? parse(id, snap.data()) : null;
+      if (!w) throw new WorkspaceError("gone");
+      if (w.members.includes(uid) || w.invited.includes(uid) || w.invited.length >= 12)
+        return;
+      tx.update(ws(id), {
+        invited: [...w.invited, uid],
+        updatedAt: serverTimestamp(),
+      });
+    });
+  }
 }
 
 export async function renameWorkspace(id: string, title: string): Promise<void> {
