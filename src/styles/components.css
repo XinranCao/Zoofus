@@ -2075,9 +2075,8 @@
   gap: 8px;
   box-sizing: border-box;
   min-height: 44px;
-  max-height: 48px;
-  padding: 0 8px 0 16px;
-  background: var(--scrap-warm);
+  padding: 4px 8px 4px 16px;
+  background: var(--sage-100);
   color: var(--ink-deep);
   font-size: 14px;
   overflow: hidden;
@@ -2085,9 +2084,11 @@
 .zf-verify__text {
   flex: 1 1 auto;
   min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+/* shrunk to its icon: no taller than the button itself */
+.zf-verify--small {
+  justify-content: flex-end;
+  padding: 0 8px;
 }
 .zf-verify__hide {
   all: unset;

@@ -299,6 +299,7 @@ export const zh: Messages = {
     wrongPassword: "密码不对。",
     deleteFailed: "账号没能删除。如果要求重新登录,你的数据没有任何改动。",
     verify: "请确认你的邮箱",
+    verifyWhy: "暂时可以不做。确认后你就能自己重置密码。",
     resend: "重发",
     sent: "已发送",
     hideVerify: "收起提示",

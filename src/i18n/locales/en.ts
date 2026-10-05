@@ -308,6 +308,7 @@ export const en = {
     deleteFailed:
       "We couldn’t delete the account. Nothing was changed if you were asked to sign in again.",
     verify: "Confirm your email",
+    verifyWhy: "Optional for now. Confirming lets you reset your password.",
     resend: "Resend",
     sent: "Sent",
     hideVerify: "Hide this note",

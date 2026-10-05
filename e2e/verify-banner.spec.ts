@@ -3,14 +3,17 @@ import { signUp } from "./support/flows";
 
 test.use({ viewport: { width: 375, height: 667 } });
 
-test("the verify-email note is one small line, comes after the page when tabbing, and stays away once hidden", async ({
+test("the verify-email note says once that it is optional, comes after the page when tabbing, and shrinks to an icon once hidden", async ({
   page,
 }) => {
   await signUp(page, "Vera");
   const note = page.getByRole("status").filter({ hasText: "Confirm your email" });
   await expect(note).toBeVisible();
   const box = await note.boundingBox();
-  expect(box!.height).toBeLessThanOrEqual(48);
+  expect(box!.height).toBeLessThanOrEqual(96);
+  await expect(note).toContainText(
+    "Optional for now. Confirming lets you reset your password.",
+  );
   // shown under the masthead, above the page...
   const main = await page.locator("#main").boundingBox();
   expect(box!.y).toBeLessThan(main!.y);
@@ -51,14 +54,44 @@ test("the verify-email note is one small line, comes after the page when tabbing
 
   await note.getByRole("button", { name: "Hide this note" }).click();
   await expect(note).toBeHidden();
+  // it shrinks to a small icon that stays put on the next page, and opens the note again
+  const icon = page.getByRole("button", { name: "Confirm your email" });
+  await expect(icon).toBeVisible();
   await page.goto("/friends");
   await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
   await expect(note).toBeHidden();
+  await expect(icon).toBeVisible();
+  await icon.click();
+  await expect(note).toBeVisible();
+  // opened again, it is the short form (the sentence is only for the first view)
+  await expect(note).not.toContainText("Optional for now");
+  await expect(note.getByRole("button", { name: "Hide this note" })).toBeVisible();
+});
+
+test("after a few page views the note shrinks by itself; no overflow at 640x360", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 640, height: 360 });
+  await signUp(page, "Vera");
+  await expect(page.locator(".zf-verify")).toBeVisible();
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
+  ).toBe(false);
+  await page.evaluate(() => localStorage.setItem("zf-verify-views", "5"));
+  await page.goto("/friends");
+  await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Confirm your email" }),
+  ).toBeHidden();
+  await expect(page.getByRole("button", { name: "Confirm your email" })).toBeVisible();
 });
 
 test("the note's text is not cut off in Chinese either", async ({ page }) => {
   await signUp(page, "Vera");
-  await page.evaluate(() => localStorage.setItem("zoofus.lang", "zh-CN"));
+  await page.evaluate(() => {
+    localStorage.setItem("zoofus.lang", "zh-CN");
+    localStorage.setItem("zf-verify-views", "0");
+  });
   await page.reload();
   const note = page.locator(".zf-verify");
   await expect(note).toBeVisible();
