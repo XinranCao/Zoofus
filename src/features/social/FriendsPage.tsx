@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Dialog } from "@/components/ui/Dialog";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { LoadingNote, Skeleton } from "@/components/ui/Loader";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Paper } from "@/components/ui/Paper";
 import { Sticker as Art } from "@/components/ui/Sticker";
@@ -282,6 +283,19 @@ function AddFriendCard() {
   );
 }
 
+function ListLoading({ text }: { text: string }) {
+  return (
+    <div aria-busy="true">
+      <LoadingNote text={text} />
+      <div style={{ display: "grid", gap: 12 }}>
+        {[0, 1, 2].map((i) => (
+          <Skeleton key={i} seed={"fsk" + i} width="100%" height={56} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function FriendList() {
   const { t } = useTranslation();
   const toast = useToast();
@@ -292,7 +306,7 @@ function FriendList() {
   const [naming, setNaming] = useState<Friend | null>(null);
   const [removing, setRemoving] = useState<Friend | null>(null);
 
-  if (isPending) return <div aria-busy="true" />;
+  if (isPending) return <ListLoading text={t("friends.loadingList")} />;
   return (
     <div style={{ display: "grid", gap: 28 }}>
       {friends.length === 0 ? (
@@ -479,7 +493,7 @@ function Requests() {
   const { data: incoming = [], isPending } = useIncomingRequests();
   const accept = useAcceptRequest();
   const decline = useDeclineRequest();
-  if (isPending) return <div aria-busy="true" />;
+  if (isPending) return <ListLoading text={t("friends.loadingRequests")} />;
   if (incoming.length === 0)
     return (
       <EmptyState

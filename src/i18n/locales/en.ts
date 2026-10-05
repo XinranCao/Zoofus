@@ -238,6 +238,7 @@ export const en = {
     drop: "Drop a photo to start cutting",
   },
   book: {
+    loadingList: "Loading your stickers…",
     title: "Stickers",
     newSticker: "New sticker",
     cutOn: "Cut {{date}}",
@@ -326,6 +327,7 @@ export const en = {
     nicknameHint: "Friends see this name. You can change it any time.",
   },
   tape: {
+    loadingList: "Loading your tapes…",
     starterNames: ["Pink dots", "Lime stripe", "Picnic", "Masking"],
     renameTitle: "Rename tape",
     renameFailed: "We couldn’t rename that tape. Try again.",
@@ -473,6 +475,7 @@ export const en = {
     taken_other: "{{count}} items taken out.",
   },
   journal: {
+    loadingList: "Loading your journals…",
     toolbar: "Journal tools",
     pageTitle: "Journals",
     lead: "Pages you make from your stickers and tapes, with writing and drawing on top.",
@@ -712,6 +715,8 @@ export const en = {
     inviteBody: "Join to make this page with your friends.",
   },
   friends: {
+    loadingList: "Loading your friends…",
+    loadingRequests: "Loading your requests…",
     title: "Friends",
     lead: "Connect with friends to share stickers, tapes and journals, and to make journals together.",
     sections: "Friends sections",

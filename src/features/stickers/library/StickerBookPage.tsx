@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogBody } from "@/components/ui/Dialog";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Skeleton } from "@/components/ui/Loader";
+import { LoadingNote, Skeleton } from "@/components/ui/Loader";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { LibraryTabs } from "@/features/library/LibraryTabs";
 import { useSearchParams } from "react-router-dom";
@@ -204,6 +204,7 @@ export default function StickerBookPage() {
           role="alert"
         />
       )}
+      {isPending && <LoadingNote text={t("book.loadingList")} />}
       {isPending && (
         <div className="zf-grid-book" aria-busy="true">
           {Array.from({ length: 5 }, (_, i) => (

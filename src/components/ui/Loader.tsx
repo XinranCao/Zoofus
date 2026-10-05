@@ -1,4 +1,28 @@
+import { useEffect, useState } from "react";
 import { Paper } from "./Paper";
+
+/** True once `ms` have passed since the component mounted (a quick load never flashes a state). */
+function useAfter(ms: number): boolean {
+  const [late, setLate] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setLate(true), ms);
+    return () => clearTimeout(timer);
+  }, [ms]);
+  return late;
+}
+
+/**
+ * "Loading your journals…" as a polite status, shown only if the data is still not there after
+ * 300 ms. Mount it while a list is loading, next to its skeleton.
+ */
+export function LoadingNote({ text }: { text: string }) {
+  const late = useAfter(300);
+  return (
+    <p className="zf-muted" role="status" style={{ margin: "0 0 12px" }}>
+      {late ? text : ""}
+    </p>
+  );
+}
 
 /** Inline typing dots after a verb: "Saving…". The dots stay visible under reduced motion. */
 export function Typing({ label }: { label?: string }) {
@@ -61,7 +85,7 @@ export function Skeleton({
   height?: number;
 }) {
   return (
-    <div role="status" aria-label="Loading">
+    <div aria-hidden="true">
       <Paper
         seed={seed ?? "skeleton"}
         size="md"

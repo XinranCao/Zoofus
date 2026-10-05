@@ -5,7 +5,7 @@ import { BulkBar } from "@/components/ui/BulkBar";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Dialog } from "@/components/ui/Dialog";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Skeleton } from "@/components/ui/Loader";
+import { LoadingNote, Skeleton } from "@/components/ui/Loader";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Sticker } from "@/components/ui/Sticker";
 import { TextField } from "@/components/ui/TextField";
@@ -109,6 +109,7 @@ export default function JournalsPage() {
           role="alert"
         />
       )}
+      {isPending && <LoadingNote text={t("journal.loadingList")} />}
       {isPending && (
         <div className="zf-grid-journal" aria-busy="true">
           {Array.from({ length: 4 }, (_, i) => (

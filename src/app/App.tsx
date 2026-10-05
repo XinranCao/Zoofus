@@ -1,5 +1,7 @@
 import { lazy, Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { LoadingNote } from "@/components/ui/Loader";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppShell } from "@/components/layout/AppShell";
 import { ManagerGate } from "@/features/admin/ManagerGate";
@@ -24,12 +26,22 @@ const DiagnosticsPage = lazy(() => import("@/pages/DiagnosticsPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const StickerBookPage = lazy(() => import("@/features/stickers/library/StickerBookPage"));
 
+/** What shows while a page's code is still downloading (nothing for the first 300 ms). */
+function RouteLoading() {
+  const { t } = useTranslation();
+  return (
+    <div className="zf-page">
+      <LoadingNote text={t("common.loading")} />
+    </div>
+  );
+}
+
 export default function App() {
   const { pathname } = useLocation();
   return (
     <AppShell>
       <ErrorBoundary resetKey={pathname}>
-        <Suspense fallback={null}>
+        <Suspense fallback={<RouteLoading />}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />

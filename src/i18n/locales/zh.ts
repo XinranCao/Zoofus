@@ -234,6 +234,7 @@ export const zh: Messages = {
     drop: "松手,开始剪贴纸",
   },
   book: {
+    loadingList: "正在加载你的贴纸…",
     title: "贴纸",
     newSticker: "新贴纸",
     cutOn: "{{date}}",
@@ -317,6 +318,7 @@ export const zh: Messages = {
     nicknameHint: "朋友会看到这个名字,随时可以改。",
   },
   tape: {
+    loadingList: "正在加载你的胶带…",
     renameTitle: "重命名胶带",
     renameFailed: "胶带没能重命名。再试一次。",
     nameLabel: "名称",
@@ -461,6 +463,7 @@ export const zh: Messages = {
     taken_other: "已移出 {{count}} 项。",
   },
   journal: {
+    loadingList: "正在加载你的手账…",
     toolbar: "手账工具",
     pageTitle: "手账",
     lead: "用你的贴纸和胶带做出来的页面,再写字、画画。",
@@ -691,6 +694,8 @@ export const zh: Messages = {
     inviteBody: "加入后就能和朋友一起做这一页。",
   },
   friends: {
+    loadingList: "正在加载你的好友…",
+    loadingRequests: "正在加载好友请求…",
     title: "朋友",
     lead: "和朋友互相分享贴纸、胶带和手账,还能一起做手账。",
     sections: "朋友分区",
