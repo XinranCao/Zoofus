@@ -27,12 +27,25 @@ test("a pattern shows with the default colours, and the tile shows a new edge at
   const preview = dlg.getByRole("img", { name: "Sticker preview" });
   await expect(preview).toBeVisible();
   const pixels = () => preview.evaluate((c: HTMLCanvasElement) => c.toDataURL());
-  const plain = await pixels();
+  // the preview is drawn again after the first frame, so read it once it has settled
+  const settled = async () => {
+    let last = await pixels();
+    await expect
+      .poll(async () => {
+        const next = await pixels();
+        const same = next === last;
+        last = next;
+        return same;
+      })
+      .toBe(true);
+    return last;
+  };
+  let plain = await settled();
   for (const kind of ["Stripes", "Dots", "Gingham", "Check", "Wave"]) {
     await dlg.getByRole("radio", { name: kind }).click();
-    await expect.poll(pixels, { message: `${kind} differs from plain` }).not.toBe(plain);
+    expect(await settled(), `${kind} differs from plain`).not.toBe(plain);
     await dlg.getByRole("radio", { name: "Solid" }).click();
-    await expect.poll(pixels).toBe(plain);
+    plain = await settled();
   }
   await dlg.getByRole("button", { name: "Save to Library" }).click();
   await expect(dlg.getByText("Saved to your Library.", { exact: true })).toBeVisible();
