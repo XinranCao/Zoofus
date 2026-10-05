@@ -1914,13 +1914,43 @@
   top: 90px;
   min-width: 0;
 }
+/* the tool being used is also underlined, so it can be told apart without colour (3:1) */
+.zf-jstudio__tools .zf-chip[aria-pressed="true"] .zf-face {
+  text-decoration: underline 2px;
+  text-underline-offset: 5px;
+}
 @media (max-width: 1099px) {
+  .zf-jstudio {
+    gap: 10px;
+  }
+  /* stacked: the controls are single scrolling rows, so the page itself comes into the first screen */
+  .zf-jstudio__barbtns {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+    flex: 1 1 100%;
+    padding-bottom: 2px;
+  }
+  .zf-jstudio__barbtns > * {
+    flex: none;
+  }
   .zf-jstudio__body {
     grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
   }
   .zf-jstudio__tools {
     position: static;
-    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 2px;
+  }
+  .zf-jstudio__tools > * {
+    flex: none;
+  }
+  .zf-jstudio__tools .zf-chip {
+    width: auto;
   }
   .zf-jstudio__area {
     max-height: none;

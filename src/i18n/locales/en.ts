@@ -35,6 +35,7 @@ export const en = {
     profile: "Account",
     logIn: "Log in",
     signUp: "Sign up",
+    signUpStep2: "Sign up: your nickname",
     logOut: "Log out",
     language: "Language",
     main: "Main",
@@ -117,6 +118,7 @@ export const en = {
     "moss-700": "Moss",
     "cocoa-800": "Cocoa",
     "kraft-100": "Kraft",
+    "loden-900": "Loden",
   },
   pattern: {
     lowContrast: "Pick an ink colour to see the pattern.",
