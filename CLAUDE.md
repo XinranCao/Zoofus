@@ -56,6 +56,7 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
 - Validate external data with zod schemas (env, Firestore docs, forms via react-hook-form + zod).
 - All user-facing copy goes through i18n (`src/i18n/locales/en.ts` and `zh.ts`); add keys to both.
 - Object URLs are revoked by the component that owns them (the editor owns the image URL).
+- Keyboard access: after a route change focus moves to the page `h1` (`components/layout/useRouteFocus.ts`; the skip link focuses `#main`); a `Dialog` returns focus to its opener; groups of many small controls (the pixel grid) are one tab stop with arrow keys; `e2e/focus-ring.spec.ts` checks that every control shows a focus indicator of at least 3:1, `e2e/a11y-names.spec.ts` that controls have names. `forced-colors` gets the system ring.
 - Fix `useEffect` setState lint errors by deriving state, not by disabling the rule.
 
 ## Git workflow

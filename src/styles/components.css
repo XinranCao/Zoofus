@@ -1991,3 +1991,12 @@
   right: -2px;
   bottom: -2px;
 }
+
+/* Forced colours (Windows high contrast): the traced tear rings are drawn in colours the system
+   replaces, so every focused control also gets the system's own ring. */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: 2px;
+  }
+}

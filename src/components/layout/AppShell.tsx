@@ -58,7 +58,17 @@ export function AppShell({ children }: { children: ReactNode }) {
     "";
   return (
     <div id="app">
-      <a href="#main" className="zf-skip">
+      <a
+        href="#main"
+        className="zf-skip"
+        onClick={(e) => {
+          // a hash link does not reliably move focus under a client-side router: do it here
+          e.preventDefault();
+          const main = document.getElementById("main");
+          main?.focus();
+          main?.scrollIntoView?.();
+        }}
+      >
         {t("shell.skip")}
       </a>
       <Masthead
