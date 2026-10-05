@@ -270,13 +270,23 @@ export const en = {
   account: {
     title: "Account",
     dataTitle: "Your data",
-    dataBody: "Download your profile, stickers and pages as a JSON file.",
-    download: "Download my data",
+    dataBody:
+      "Get a file you can keep, with your profile, stickers, tapes, journals and collections in it. Any text editor can open it.",
+    download: "Download my data (a file you can keep)",
+    privacyTitle: "What we keep, and who can see it",
+    privacyKeep:
+      "We keep your nickname and picture, and the stickers, tapes, journals and collections you make.",
+    privacySee:
+      "Only you can see what is in your Library. Friends, and anyone with your friend code, see just your nickname and picture.",
+    privacyShare:
+      "When you share something, only the friend you pick gets it, as their own copy. In a page you make together, the friends in it see that page.",
+    privacyDelete:
+      "Deleting your account removes all of this, and the shares and pages you started. A copy a friend already kept stays with them.",
     downloading: "Preparing",
     exportFailed: "We couldn’t export your data. Try again.",
     deleteTitle: "Delete account",
     deleteBody:
-      "Permanently deletes your profile, stickers, pages and uploaded files. This cannot be undone.",
+      "Permanently deletes your profile, Library, friends list and the pictures you uploaded. This cannot be undone.",
     deleteButton: "Delete my account",
     dialogTitle: "Delete your account?",
     confirmLabel: "Type {{word}} to confirm",

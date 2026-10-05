@@ -2114,3 +2114,18 @@
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+
+/* a button with a long label wraps instead of widening the page */
+.zf-btn.zf-btn--wrap {
+  max-width: 100%;
+  height: auto;
+  min-height: 44px;
+}
+.zf-btn.zf-btn--wrap > .zf-face {
+  white-space: normal;
+  text-align: center;
+  height: auto;
+  min-height: 44px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}

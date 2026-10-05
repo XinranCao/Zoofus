@@ -262,12 +262,21 @@ export const zh: Messages = {
   account: {
     title: "账号",
     dataTitle: "你的数据",
-    dataBody: "把你的资料、贴纸和页面下载成一个 JSON 文件。",
-    download: "下载我的数据",
+    dataBody:
+      "得到一个可以自己保存的文件,里面有你的资料、贴纸、胶带、手账和收藏夹。任何文本编辑器都能打开。",
+    download: "下载我的数据(一个可以自己保存的文件)",
+    privacyTitle: "我们保存什么,谁能看到",
+    privacyKeep: "我们保存你的昵称和头像,以及你做的贴纸、胶带、手账和收藏夹。",
+    privacySee:
+      "资料库里的东西只有你自己能看到。朋友和拿到你好友码的人,只能看到你的昵称和头像。",
+    privacyShare:
+      "你分享东西时,只有你选的那位朋友会收到,而且是他自己的一份副本。一起做的页面,里面的朋友都能看到。",
+    privacyDelete:
+      "删除账号会清除以上这些,以及你发出的分享和你发起的页面。朋友已经留下的副本还在他们那里。",
     downloading: "准备中",
     exportFailed: "数据没能导出。再试一次。",
     deleteTitle: "删除账号",
-    deleteBody: "会永久删除你的资料、贴纸、页面和上传的文件,无法恢复。",
+    deleteBody: "会永久删除你的资料、资料库、好友列表和你上传的图片,无法恢复。",
     deleteButton: "删除我的账号",
     dialogTitle: "删除你的账号?",
     confirmLabel: "输入 {{word}} 确认",
