@@ -33,6 +33,8 @@ interface MenuItem {
   current?: boolean;
   /** A red dot: something here is waiting for you. */
   dot?: string;
+  /** A count of what is waiting here (requests and shares), as a small number. */
+  count?: number;
 }
 
 /** What "Make" offers: one place for everything that can be made. */
@@ -78,6 +80,7 @@ function Menu({ children }: { children: ReactNode }) {
 
 function ItemRow({ it }: { it: MenuItem }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   return (
     <RMenu.Item
       asChild
@@ -95,6 +98,11 @@ function ItemRow({ it }: { it: MenuItem }) {
           <Icon name={it.icon} />
           {it.label}
           {it.dot && <span className="zf-alertdot" role="img" aria-label={it.dot} />}
+          {it.count ? (
+            <span className="zf-badge" aria-label={t("nav.pending", { count: it.count })}>
+              {it.count}
+            </span>
+          ) : null}
         </Link>
       ) : (
         <button type="button" className="zf-menu__item">
@@ -275,7 +283,13 @@ export function Masthead({
   const invites = user?.invites ?? 0;
   const placeItems: MenuItem[] = [
     { to: "/stickers", icon: "folder", label: t("nav.library"), current: inLibrary },
-    { to: "/friends", icon: "users", label: t("nav.friends"), current: onFriends },
+    {
+      to: "/friends",
+      icon: "users",
+      label: t("nav.friends"),
+      current: onFriends,
+      count: user?.pending ?? 0,
+    },
     {
       to: "/together",
       icon: "journal",
@@ -374,6 +388,16 @@ export function Masthead({
                   <RMenu.Trigger asChild>
                     <Button variant="quiet" icon="menu" seed="mb">
                       {t("common.menu")}
+                      {/* on a phone everything lives in this menu: say when something is waiting in it */}
+                      {(user.pending ?? 0) + (user.invites ?? 0) > 0 && (
+                        <span
+                          className="zf-alertdot"
+                          role="img"
+                          aria-label={t("nav.waitingTotal", {
+                            count: (user.pending ?? 0) + (user.invites ?? 0),
+                          })}
+                        />
+                      )}
                     </Button>
                   </RMenu.Trigger>
                   <MenuContent

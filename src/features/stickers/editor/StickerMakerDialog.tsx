@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
@@ -83,6 +83,7 @@ function MakerBody({
   const confirm = useEditor((s) => s.confirm);
   const backToEdit = useEditor((s) => s.backToEdit);
   const setEdge = useEditor((s) => s.setEdge);
+  const setImage = useEditor((s) => s.setImage);
 
   const [leaving, setLeaving] = useState(false);
   const [savedKey, setSavedKey] = useState<string | null>(null);
@@ -124,6 +125,11 @@ function MakerBody({
 
   const editKey = JSON.stringify([edge, seed, selections.map((s) => s.id)]);
   const saved = savedKey === editKey;
+  // Saving swaps the Save button for "See it in Library": focus goes to it, not to nowhere
+  const seeRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (saved) seeRef.current?.focus();
+  }, [saved]);
   const dirty = selections.length > 0 && !saved;
   const requestClose = () => (dirty ? setLeaving(true) : onClose());
 
@@ -209,20 +215,34 @@ function MakerBody({
           {t("maker.edge.back")}
         </Button>
         {saved ? (
-          <Button
-            variant="secondary"
-            icon="book"
-            seed="see"
-            onClick={() => {
-              onClose();
-              navigate("/stickers");
-            }}
-          >
-            {t("maker.edge.seeIt")}
-          </Button>
+          <>
+            <Button
+              variant="quiet"
+              icon="plus"
+              seed="more"
+              onClick={() => {
+                setName("");
+                setImage(null);
+              }}
+            >
+              {t("maker.edge.another")}
+            </Button>
+            <Button
+              ref={seeRef}
+              variant="primary"
+              icon="book"
+              seed="see"
+              onClick={() => {
+                onClose();
+                navigate("/stickers");
+              }}
+            >
+              {t("maker.edge.seeIt")}
+            </Button>
+          </>
         ) : (
           <Button
-            variant="secondary"
+            variant="primary"
             icon="book"
             seed="sv"
             disabled={!source}
@@ -233,7 +253,7 @@ function MakerBody({
           </Button>
         )}
         <Button
-          variant="primary"
+          variant="quiet"
           icon="download"
           seed="dlp"
           disabled={!source}

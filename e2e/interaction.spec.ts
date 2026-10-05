@@ -113,7 +113,7 @@ test.describe("starter tapes", () => {
     await page.getByRole("button", { name: "New tape" }).first().click();
     await page.getByLabel("Name").fill("Mine");
     await page.getByRole("button", { name: "Add to my tapes" }).click();
-    await expect(page.getByText("Added to your tapes.", { exact: true })).toBeVisible();
+    await expect(page.getByText(/^Added .* to your tapes\.$/)).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Make a tape like Mine" }),
     ).toBeVisible();

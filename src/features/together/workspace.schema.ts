@@ -1,5 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 import { z } from "zod";
+import { pictureUrlSchema } from "@/lib/trustedUrl";
 import { patternSpecSchema } from "@/paper/patternSchema";
 import { itemSchema, pageSpecSchema, type Item } from "@/features/journal/journal.schema";
 
@@ -15,7 +16,7 @@ export const workspaceDocSchema = z.object({
   invited: z.array(z.string()).catch([]),
   page: pageSpecSchema,
   /** A small picture of the page as it was last changed (a `data:` URL), for the list. */
-  thumb: z.string().optional().catch(undefined),
+  thumb: pictureUrlSchema.optional().catch(undefined),
   createdAt: date,
   updatedAt: date,
 });
@@ -38,7 +39,7 @@ const stickerAsset = z.object({
   kind: z.literal("sticker"),
   owner: z.string(),
   /** The picture itself (a `data:` URL), or a link for older entries. */
-  url: z.string(),
+  url: pictureUrlSchema,
   path: z.string().optional(),
   w: z.number().int().positive(),
   h: z.number().int().positive(),

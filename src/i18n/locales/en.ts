@@ -24,6 +24,7 @@ export const en = {
     together: "Together",
     invites: "{{count}} invitation waiting",
     pending: "{{count}} waiting",
+    waitingTotal: "{{count}} waiting",
     makeItems: {
       sticker: "Sticker",
       tape: "Tape",
@@ -177,11 +178,18 @@ export const en = {
     },
     hint: {
       freehand: "Draw around what you want to keep, then let go.",
-      shape:
-        "Drag on the photo to draw the shape. Keyboard: focus the photo and press Space.",
+      shape: "Drag on the photo to draw the shape.",
+      keys: "Without a mouse: focus the photo, press Enter for a starting selection, arrow keys move it, Shift plus arrows resize it, Delete removes it, then press Enter again to cut it out.",
+    },
+    wholePhoto: "Use the whole photo",
+    announce: {
+      selected:
+        "{{shape}}, {{mode}}: {{width}} percent wide and {{height}} percent tall, {{left}} percent from the left and {{top}} percent from the top. Arrow keys move, Shift plus arrows resize.",
+      removed: "Selection removed. {{count}} left.",
+      none: "No selection. Press Enter for a starting selection, or use the whole photo.",
     },
     canvas:
-      "Photo with selection. Draw around the part you want to keep. Arrow keys move the selected outline, Delete removes it.",
+      "Photo with selection. Draw around the part you want to keep, or press Enter for a starting selection. Arrow keys move the selected outline, Shift plus arrows resize it, Delete removes it.",
     cutIt: "Cut it out",
     leave: {
       title: "Leave without saving?",
@@ -201,6 +209,7 @@ export const en = {
       saved: "Saved to your Library.",
       savedBody: "You’ll find it under Library → Stickers.",
       seeIt: "See it in Library",
+      another: "Make another",
       download: "Download PNG",
       nameLabel: "Name",
       nameHint: "Optional. Without one it is named after the day you cut it.",
@@ -209,7 +218,7 @@ export const en = {
     },
   },
   home: {
-    title: "Cut something out",
+    title: "Make a sticker",
     body: "Upload a photo, draw around the part you want, and it becomes a sticker in your Library.",
     upload: "Upload a photo",
     how: "How it works",
@@ -297,7 +306,7 @@ export const en = {
     wrongPassword: "That password is not correct.",
     deleteFailed:
       "We couldn’t delete the account. Nothing was changed if you were asked to sign in again.",
-    verify: "Check your email to confirm it’s you.",
+    verify: "Confirm your email",
     resend: "Resend",
     sent: "Sent",
     hideVerify: "Hide this note",
@@ -314,6 +323,7 @@ export const en = {
     nicknameHint: "Friends see this name. You can change it any time.",
   },
   tape: {
+    starterNames: ["Pink dots", "Lime stripe", "Picnic", "Masking"],
     renameTitle: "Rename tape",
     renameFailed: "We couldn’t rename that tape. Try again.",
     nameLabel: "Name",
@@ -336,7 +346,7 @@ export const en = {
     defaultName: "My tape {{n}}",
     add: "Add to my tapes",
     adding: "Adding",
-    added: "Added to your tapes.",
+    added: "Added “{{name}}” to your tapes.",
     removed: "Tape deleted.",
     limit: "You have the most tapes you can keep. Delete one first.",
     saveFailed: "We couldn’t save that tape. Try again.",
@@ -505,6 +515,14 @@ export const en = {
         "Add stickers and tape, or choose Text or Draw. Click anything on the page to move, turn or resize it.",
       erase: "Drag across a pen line to erase it.",
     },
+    items: {
+      label: "On the page",
+      none: "Nothing on the page yet.",
+      sticker: "Sticker: {{name}}",
+      tape: "Tape",
+      text: "Text: {{text}}",
+      drawing: "Drawing ({{tool}})",
+    },
     tools: {
       sticker: "Sticker",
       tape: "Tape",
@@ -642,7 +660,14 @@ export const en = {
     inviteMore: "Invite more",
     invited_one: "Invited {{count}} friend",
     invited_other: "Invited {{count}} friends",
+    statusSaving: "Saving…",
+    statusUnsaved: "Saving in a moment",
+    statusSaved: "All changes saved",
+    pagePicture: "The page “{{title}}” as last saved",
     inviteFailed: "We couldn't send the invitations. Try again.",
+    invitedSome:
+      "Your page is ready, but only {{done}} of {{total}} invitations went out.",
+    tryAgain: "Invite the rest",
     sendInvites: "Send invitations",
     nobodyToInvite: "Everyone you know is already here.",
     emptyTitle: "Nothing started yet",
@@ -737,6 +762,9 @@ export const en = {
     notePlaceholder: "Made this for you",
     send: "Send",
     sending: "Sending",
+    sendingTo: "Sending to {{names}}…",
+    sentTo: "Sent to {{name}}.",
+    sentToMany: "Sent to {{count}} friends.",
     sent_one: "Shared with your friend.",
     sent_other: "Shared {{count}} items.",
     failed_one: "{{count}} item couldn’t be shared. Try again.",

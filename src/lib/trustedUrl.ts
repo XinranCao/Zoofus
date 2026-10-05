@@ -1,5 +1,13 @@
+import { z } from "zod";
+
 // (reads import.meta.env directly, not through `env`, which refuses to load without the Firebase keys)
 const EMULATOR_STORAGE_PORT = "9199";
+
+/** This project's bucket under both of its names (`x.firebasestorage.app` and `x.appspot.com`). */
+function ownBuckets(bucket: string): string[] {
+  const base = bucket.replace(/\.(firebasestorage\.app|appspot\.com)$/, "");
+  return [bucket, `${base}.firebasestorage.app`, `${base}.appspot.com`];
+}
 
 /**
  * A picture link may come from another user's data (a share, a workspace item), so the app only
@@ -20,7 +28,7 @@ export function isTrustedPictureUrl(link: string): boolean {
     url.protocol === "https:" &&
     url.hostname === "firebasestorage.googleapis.com" &&
     bucket &&
-    url.pathname.startsWith(`/v0/b/${bucket}/o/`)
+    ownBuckets(bucket).some((b) => url.pathname.startsWith(`/v0/b/${b}/o/`))
   )
     return true;
   return (
@@ -29,6 +37,17 @@ export function isTrustedPictureUrl(link: string): boolean {
     url.port === EMULATOR_STORAGE_PORT &&
     url.pathname.startsWith("/v0/b/")
   );
+}
+
+/** The link if it is one the app trusts, else "" (a placeholder shows). For data a friend can write. */
+export function safePictureUrl(link: string | null | undefined): string {
+  return link && isTrustedPictureUrl(link) ? link : "";
+}
+
+/** `safePictureUrl`, and also a `blob:` link the page itself made (a photo being edited). For display. */
+export function safeDisplayUrl(link: string | null | undefined): string {
+  if (!link) return "";
+  return link.startsWith("blob:") ? link : safePictureUrl(link);
 }
 
 /** Throws a friendly, coded error for a link the app does not trust. */
@@ -41,3 +60,6 @@ export function assertTrustedPictureUrl(link: string): void {
       },
     );
 }
+
+/** A picture link in data a friend can write: anything untrusted reads as "" (no picture). */
+export const pictureUrlSchema = z.string().transform(safePictureUrl);

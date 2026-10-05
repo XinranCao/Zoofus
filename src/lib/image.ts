@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { safeDisplayUrl } from "./trustedUrl";
 
 /** Load an image element from a URL; returns null until loaded (or if it fails). */
 export function useLoadedImage(src: string | null, crossOrigin?: "anonymous") {
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   useEffect(() => {
-    if (!src) return;
+    // an address the app does not trust is never requested
+    if (!src || !safeDisplayUrl(src)) return;
     let cancelled = false;
     const img = new window.Image();
     if (crossOrigin) img.crossOrigin = crossOrigin;

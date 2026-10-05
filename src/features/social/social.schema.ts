@@ -1,5 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 import { z } from "zod";
+import { pictureUrlSchema } from "@/lib/trustedUrl";
 import { edgeSpecSchema } from "@/paper/patternSchema";
 import { patternSpecSchema } from "@/paper/patternSchema";
 import { ITEM_KINDS } from "@/features/collections/collection.schema";
@@ -16,7 +17,7 @@ export const MAX_FRIEND_NAME = 40;
 
 export const publicProfileSchema = z.object({
   nickname: z.string(),
-  avatarUrl: z.string().catch(""),
+  avatarUrl: pictureUrlSchema.catch(""),
   avatarKind: z.enum(["sticker", "photo"]).optional().catch(undefined),
   avatarKey: z.string().optional().catch(undefined),
   friendCode: z.string(),
@@ -53,8 +54,8 @@ export interface FriendRequest {
 
 export const stickerPayloadSchema = z.object({
   name: z.string().max(60),
-  imageUrl: z.string(),
-  sourceUrl: z.string().optional().catch(undefined),
+  imageUrl: pictureUrlSchema,
+  sourceUrl: pictureUrlSchema.optional().catch(undefined),
   outline: z.string().max(30000).optional().catch(undefined),
   cut: z
     .object({
@@ -83,7 +84,7 @@ export const journalPayloadSchema = z.object({
   items: itemsSchema,
   assets: assetsSchema.optional().catch(undefined),
   /** A picture of the page, so the inbox can show it. */
-  thumbUrl: z.string().optional().catch(undefined),
+  thumbUrl: pictureUrlSchema.optional().catch(undefined),
 });
 
 export type StickerPayload = z.infer<typeof stickerPayloadSchema>;

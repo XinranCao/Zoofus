@@ -1,6 +1,6 @@
 {
   "name": "zoofus",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "private": true,
   "type": "module",
   "dependencies": {
@@ -57,11 +57,14 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "build:e2e": "vite build --mode emulator --outDir dist-e2e --emptyOutDir",
+    "preview:e2e": "vite preview --mode emulator --outDir dist-e2e --host localhost --port 4175 --strictPort",
     "predeploy": "vite build",
     "deploy": "npm run predeploy && firebase deploy",
     "test": "vitest run",
     "test:noenv": "VITE_APP_API_KEY= VITE_APP_AUTH_DOMAIN= VITE_APP_PROJECT_ID= VITE_APP_STORAGE_BUCKET= VITE_APP_MESSAGING_SENDER_ID= VITE_APP_APP_ID= VITE_APP_RECAPTCHA_SITE_KEY= VITE_USE_EMULATORS= vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -69,6 +72,7 @@
     "check": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run build",
     "test:rules": "npx firebase-tools@14 emulators:exec --only firestore,storage --project demo-zoofus \"vitest run --config vitest.rules.config.ts\"",
     "emulators": "npx firebase-tools@14 emulators:start --only auth,firestore,storage --project demo-zoofus --import .emulator-data --export-on-exit",
+    "emulators:lan": "npx firebase-tools@14 emulators:start --config firebase.lan.json --only auth,firestore,storage --project demo-zoofus --import .emulator-data --export-on-exit",
     "dev:emulated": "vite --mode emulator --host",
     "test:e2e": "npx firebase-tools@14 emulators:exec --only auth,firestore,storage --project demo-zoofus \"playwright test\""
   },
@@ -84,6 +88,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/coverage-v8": "^5.0.3",
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-jsx-a11y": "^6.10.2",

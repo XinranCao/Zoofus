@@ -132,7 +132,8 @@ export function StickerTile({
       >
         <StickerImage sticker={sticker} size={size} interactive />
       </div>
-      {date && <div className="zf-tile__meta">{date}</div>}
+      {/* one caption: the name; the date only for a sticker that has none */}
+      {date && !sticker.name && <div className="zf-tile__meta">{date}</div>}
     </>
   );
 

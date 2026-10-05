@@ -22,6 +22,7 @@ import type { TapeSpec } from "@/features/tape/tape.schema";
 import { db, storage } from "@/lib/firebase";
 import { toInlinePicture } from "@/lib/inlinePicture";
 import { deleteFolder, readPicture } from "@/lib/storage";
+import { inviteEach, type InviteResult } from "./invites";
 import { cleanForFirestore } from "@/paper/patternSchema";
 import {
   itemFromDoc,
@@ -53,7 +54,7 @@ const parse = (id: string, data: unknown): Workspace | null => {
 export async function createWorkspace(
   me: string,
   input: { title: string; page: PageSpec; invite: string[] },
-): Promise<string> {
+): Promise<{ id: string; failed: string[] }> {
   const id = crypto.randomUUID();
   await setDoc(ws(id), {
     title: input.title,
@@ -65,8 +66,11 @@ export async function createWorkspace(
     updatedAt: serverTimestamp(),
   });
   // the rules take invitations one friend at a time, after the page exists
-  if (input.invite.length) await inviteFriends(id, input.invite);
-  return id;
+  // a failed invitation does not undo the page: the caller is told which ones to try again
+  const { failed } = input.invite.length
+    ? await inviteFriends(id, input.invite)
+    : { failed: [] };
+  return { id, failed };
 }
 
 /** The workspaces I am in, and the ones I am invited to. */
@@ -137,9 +141,9 @@ export async function declineInvite(me: string, id: string): Promise<void> {
 }
 
 /** The rules accept one new invitation per write, and only for a friend of the person inviting. */
-export async function inviteFriends(id: string, uids: string[]): Promise<void> {
-  for (const uid of uids) {
-    await runTransaction(db, async (tx) => {
+export function inviteFriends(id: string, uids: string[]): Promise<InviteResult> {
+  return inviteEach(uids, (uid) =>
+    runTransaction(db, async (tx) => {
       const snap = await tx.get(ws(id));
       const w = snap.exists() ? parse(id, snap.data()) : null;
       if (!w) throw new WorkspaceError("gone");
@@ -149,8 +153,8 @@ export async function inviteFriends(id: string, uids: string[]): Promise<void> {
         invited: [...w.invited, uid],
         updatedAt: serverTimestamp(),
       });
-    });
-  }
+    }),
+  );
 }
 
 export async function renameWorkspace(id: string, title: string): Promise<void> {

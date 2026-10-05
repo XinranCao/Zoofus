@@ -1,5 +1,30 @@
 # Changelog
 
+## v1.7.1 – 2026-10-05
+
+Second release from the project-manager review of v1.7.0 (all 14 of its tasks).
+
+### Features
+
+- The sticker cutter works without a mouse: Enter gives a starting selection (60% of the photo), arrows move it, Shift plus arrows resize it, Enter again cuts it out, and a live region says what is selected, in English and Chinese. "Use the whole photo" selects everything in one press. (Shift plus arrows used to mean a bigger move; Alt does that now.)
+- The journal editor has a heading and a readable list of what is on the page; shared pictures say who they are from; the toast names the tape you added; focus returns to what opened a dialog (and moves to "See it in Library" after saving a sticker).
+- A failed login keeps your email and puts the cursor in the password field. The verify-email note fits a phone ("Confirm your email"), and the first Tab on a fresh page reaches the skip link.
+- The sticker save dialog fits a phone (the preview takes about 40% of the height and stays in view), "Save to Library" is the main button, and there is "Make another".
+- One caption on a sticker card, starter tapes named in Chinese, and Chinese typed into a Latin handwriting font now loads its Chinese fallback.
+- The phone Menu button shows when a request, share or invitation is waiting. Sharing shows progress at once, cannot send twice, and says who it went to. Together tells you when only some invitations went out and lets you invite the rest; the page picture in the list fills its paper; a plain save status sits next to Save.
+- Focused colour swatches now have a ring of their own.
+
+### Fixes
+
+- A friend can no longer make your browser request an outside address through a picture link: friend-written data is checked where it is read and shown, and the security rules refuse it where it is written (profile picture, share pictures, shelf entries, page thumbnails).
+- Profile pictures must be PNG, JPEG or WebP (an SVG or HTML file could carry script). **The Firestore and Storage rules ship with this release.**
+- The Content-Security-Policy is now enforcing (it was report-only). It is proven on a production build with the main flows and with negative controls. If something the app needs is blocked in production, the browser console says `Refused to ...`; `RELEASE_CHECKLIST.md` has the emergency switch back to report-only.
+
+### Other
+
+- Checks added: the cutter by keyboard alone, untrusted picture links, CSP on a production build, a focus ring on every control including Home and the Make dialogs, the phone save dialog, login failure, the verify note, dialog focus, captions, English/Chinese key parity.
+- Developer: `npm run test:coverage`; the emulators listen on 127.0.0.1 only (`npm run emulators:lan` opens them to the network for a second device) (the login page deliberately keeps no meta description: the design system forbids a tagline, and its test enforces that); unit tests no longer depend on the emulator flag.
+
 ## v1.7.0 – 2026-10-05
 
 First release from the project-manager review of v1.6.2 (all 14 of its tasks), plus dependency updates.

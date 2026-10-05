@@ -1,5 +1,5 @@
 {
-  "checked": 458,
+  "checked": 459,
   "lowest": [
     {
       "screen": "en-reduced/mobile/10-book-empty",
@@ -19,16 +19,6 @@
       "fg": "#57620d",
       "bg": "#e8ddd0",
       "size": 14,
-      "weight": 400
-    },
-    {
-      "screen": "en-reduced/mobile/17-book-grid",
-      "text": "Cut Oct 4",
-      "ratio": 4.97,
-      "min": 4.5,
-      "fg": "#57620d",
-      "bg": "#e8ddd0",
-      "size": 12,
       "weight": 400
     },
     {
@@ -83,7 +73,7 @@
     },
     {
       "screen": "en-reduced/mobile/21-account",
-      "text": "ds-en-mobile-1791175826882@example.com",
+      "text": "ds-en-mobile-1791208823440@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -193,6 +183,16 @@
     },
     {
       "screen": "en-reduced/mobile/13-maker-lasso",
+      "text": "Cut it out",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "en-reduced/mobile/14-maker-deselect-mode",
       "text": "Cut it out",
       "ratio": 5.15,
       "min": 4.5,

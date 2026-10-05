@@ -23,6 +23,22 @@ service cloud.firestore {
     function isString(value, maxLen) {
       return value is string && value.size() <= maxLen;
     }
+    // A picture link in data another person will load: empty, a data: image, or a link into Cloud
+    // Storage (production, or the local emulator). Anything else would make a viewer's browser
+    // request an address the writer chose. (The app checks the exact bucket; see src/lib/trustedUrl.ts.)
+    function isPictureUrl(u) {
+      return u is string && (
+        u == ''
+        || u.matches('^data:image/.*')
+        || u.matches('^https://firebasestorage[.]googleapis[.]com/v0/b/[^/]+/o/.*')
+        || u.matches('^http://(localhost|127[.]0[.]0[.]1):9199/v0/b/[^/]+/o/.*')
+      );
+    }
+    function picturesOk(p) {
+      return (!('imageUrl' in p) || isPictureUrl(p.imageUrl))
+        && (!('sourceUrl' in p) || isPictureUrl(p.sourceUrl))
+        && (!('thumbUrl' in p) || isPictureUrl(p.thumbUrl));
+    }
     // The 16 colours users may print with (USER_COLORS in src/paper/pattern.ts).
     function userColour(c) {
       return c in ['sheet-50', 'cream-100', 'peach-100', 'blush-100', 'pink-200', 'celery-200', 'lime-300', 'mustard-300',
@@ -182,6 +198,7 @@ service cloud.firestore {
             && isString(d.name, 80)
             && (!('note' in d) || isString(d.note, 200))
             && d.payload is map
+            && picturesOk(d.payload)
             && d.files is list && d.files.size() <= 100
             && d.seen == false
             && d.createdAt == request.time;
@@ -311,6 +328,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['nickname', 'avatarUrl', 'avatarKind', 'avatarKey', 'friendCode', 'updatedAt'])
         && isString(request.resource.data.nickname, 40) && request.resource.data.nickname.size() > 0
         && isString(request.resource.data.avatarUrl, 40000)
+        && isPictureUrl(request.resource.data.avatarUrl)
         && (!('avatarKey' in request.resource.data) || isString(request.resource.data.avatarKey, 16))
         && (!('avatarKind' in request.resource.data) || request.resource.data.avatarKind in ['sticker', 'photo'])
         && request.resource.data.friendCode is string
@@ -351,7 +369,7 @@ service cloud.firestore {
       }
       function validWorkspace(d) {
         return d.keys().hasOnly(['title', 'ownerUid', 'members', 'invited', 'page', 'thumb', 'createdAt', 'updatedAt'])
-          && (!('thumb' in d) || isString(d.thumb, 60000))
+          && (!('thumb' in d) || (isString(d.thumb, 60000) && isPictureUrl(d.thumb)))
           && isString(d.title, 80) && d.title.size() > 0
           && d.members is list && d.members.size() >= 1 && d.members.size() <= 8
           && d.invited is list && d.invited.size() <= 12
@@ -444,6 +462,7 @@ service cloud.firestore {
           && (
             (request.resource.data.kind == 'sticker'
               && isString(request.resource.data.url, 160000)
+              && isPictureUrl(request.resource.data.url)
               && (!('path' in request.resource.data) || ownCollabFile(request.resource.data.path))
               && request.resource.data.w is int && request.resource.data.h is int)
             || (request.resource.data.kind == 'tape'

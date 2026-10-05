@@ -26,7 +26,7 @@ test("small things: tapes rename like stickers, no preset angles, Make has no pl
   await expect(dlg.getByRole("button", { name: /degrees/ })).toHaveCount(0);
   await dlg.getByLabel("Name").fill("Dots");
   await dlg.getByRole("button", { name: "Add to my tapes" }).click();
-  await expect(page.getByText("Added to your tapes.", { exact: true })).toBeVisible();
+  await expect(page.getByText(/^Added .* to your tapes\.$/)).toBeVisible();
 
   // a tape has the same hover actions as a sticker, including Rename
   const tile = page.locator(".zf-tapetile").first();

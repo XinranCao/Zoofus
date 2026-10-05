@@ -429,7 +429,8 @@ export async function tornProblems(page: Page, screen: string): Promise<Problem[
         for (let node = walker.nextNode(); node; node = walker.nextNode()) {
           if (!(node.nodeValue ?? "").trim()) continue;
           const parent = node.parentElement;
-          if (!parent || parent.closest("canvas,[aria-hidden=true],svg")) continue;
+          if (!parent || parent.closest("canvas,[aria-hidden=true],svg,.sr-only"))
+            continue;
           // text belonging to a nested torn element is checked against that element
           if (parent.closest(".zf-face") !== face) continue;
           const range = document.createRange();

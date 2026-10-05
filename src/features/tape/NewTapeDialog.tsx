@@ -59,7 +59,7 @@ export function NewTapeDialog({
       onSuccess: () => {
         toast.push({
           kind: "success",
-          title: edit ? t("tape.updated") : t("tape.added"),
+          title: edit ? t("tape.updated") : t("tape.added", { name }),
         });
         onClose();
       },

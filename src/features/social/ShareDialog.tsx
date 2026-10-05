@@ -33,6 +33,8 @@ export function ShareDialog({
   const [busy, setBusy] = useState(false);
   /** Cancel while sending: nothing further is started; what is already under way finishes quietly. */
   const cancelled = useRef(false);
+  /** Set at the click itself, so a second click before the screen has caught up cannot send twice. */
+  const sending = useRef(false);
 
   const toggle = (uid: string) =>
     setChosen((prev) => {
@@ -44,11 +46,14 @@ export function ShareDialog({
 
   const cancel = () => {
     cancelled.current = true;
+    sending.current = false;
     setBusy(false);
     onClose();
   };
 
   const send = async () => {
+    if (sending.current) return;
+    sending.current = true;
     cancelled.current = false;
     setBusy(true);
     let failed = 0;
@@ -65,6 +70,7 @@ export function ShareDialog({
         }
       }
     setBusy(false);
+    sending.current = false;
     if (cancelled.current) return;
     if (failed)
       toast.push({
@@ -73,7 +79,16 @@ export function ShareDialog({
         body: `${t("share.failed", { count: failed })} (${code})`,
       });
     else {
-      toast.push({ kind: "success", title: t("share.sent", { count: sources.length }) });
+      const names = friends
+        .filter((f) => chosen.has(f.uid))
+        .map((f) => friendName(f, t("friends.someone")));
+      toast.push({
+        kind: "success",
+        title:
+          names.length === 1
+            ? t("share.sentTo", { name: names[0] })
+            : t("share.sentToMany", { count: names.length }),
+      });
       setChosen(new Set());
       setNote("");
       onClose();
@@ -109,6 +124,17 @@ export function ShareDialog({
       }
     >
       <div style={{ display: "grid", gap: 16, margin: "10px 0 6px" }}>
+        {/* progress, from the moment Send is pressed */}
+        {busy && (
+          <p role="status" style={{ margin: 0 }}>
+            {t("share.sendingTo", {
+              names: friends
+                .filter((f) => chosen.has(f.uid))
+                .map((f) => friendName(f, t("friends.someone")))
+                .join(", "),
+            })}
+          </p>
+        )}
         {sources.length > 0 && (
           <ul className="zf-faces" aria-label={t("share.sending")}>
             {sources.slice(0, 8).map((s, i) => {

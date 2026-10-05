@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
+import type { Selection } from "./types";
 import {
   createFreehand,
+  createDefaultSelection,
   createShape,
+  createWholePhoto,
+  resizeSelection,
+  selectionBoxPercent,
   createShapeFromDrag,
   joinOpenPathsToClosedRings,
   selectionToPoints,
@@ -122,5 +127,65 @@ describe("createShapeFromDrag", () => {
     const fillsW = Math.max(...xs) - Math.min(...xs) > 195;
     const fillsH = Math.max(...ys) - Math.min(...ys) > 155;
     expect(fillsW || fillsH).toBe(true);
+  });
+});
+
+describe("keyboard selection helpers", () => {
+  const fit = { width: 400, height: 300 };
+
+  it("makes a starting selection: 60% of the photo, in the middle, whatever the tool", () => {
+    const rect = createDefaultSelection("freehand", "select", "a", fit);
+    expect(rect).toMatchObject({
+      kind: "rectangle",
+      x: 80,
+      y: 60,
+      width: 240,
+      height: 180,
+    });
+    expect(selectionBoxPercent(rect, fit)).toEqual({
+      left: 20,
+      top: 20,
+      width: 60,
+      height: 60,
+    });
+    for (const kind of ["triangle", "star"] as const) {
+      const shape = createDefaultSelection(kind, "deselect", "b", fit);
+      expect(shape.kind).toBe(kind);
+      expect(shape.mode).toBe("deselect");
+      const box = selectionBoxPercent(shape, fit);
+      expect(box.left).toBeGreaterThan(5);
+      expect(box.left + box.width).toBeLessThan(95);
+    }
+  });
+
+  it("covers the whole photo on request", () => {
+    expect(selectionBoxPercent(createWholePhoto("select", "w", fit), fit)).toEqual({
+      left: 0,
+      top: 0,
+      width: 100,
+      height: 100,
+    });
+  });
+
+  it("resizes about the centre and never below a minimum", () => {
+    const rect = createDefaultSelection("rectangle", "select", "a", fit);
+    const bigger = resizeSelection(rect, 10, -10);
+    expect(bigger).toMatchObject({ width: 250, height: 170, x: 75, y: 65 });
+    const tiny = resizeSelection(rect, -1000, -1000);
+    expect(tiny).toMatchObject({ width: 20, height: 20 });
+    const stroke: Selection = {
+      id: "f",
+      mode: "select",
+      kind: "freehand",
+      points: [0, 0, 100, 0, 100, 100],
+    };
+    const grown = resizeSelection(stroke, 100, 0);
+    const box = selectionBoxPercent(grown, { width: 1000, height: 1000 });
+    expect(box.width).toBeCloseTo(20); // 200 of 1000, was 100
+    const star = createDefaultSelection("star", "select", "s", fit);
+    const larger = resizeSelection(star, 20, 0);
+    if (star.kind !== "star" || larger.kind !== "star") throw new Error("star");
+    expect(larger.outerRadius).toBeGreaterThan(star.outerRadius);
+    expect(larger.innerRadius / larger.outerRadius).toBeCloseTo(0.5);
   });
 });

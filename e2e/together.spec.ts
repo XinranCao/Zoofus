@@ -92,6 +92,10 @@ test("two friends make a journal page together and each keeps a copy", async ({
   await expect(b.getByText(/Saved\. The page picture/).first()).toBeVisible({
     timeout: 20000,
   });
+  // one plain status says where the work stands (a friend's edit can make it say "Saving in a moment" again)
+  await expect(
+    b.getByRole("status").filter({ hasText: /All changes saved|Saving/ }),
+  ).toBeVisible();
 
   // Bobby saves a copy; it shows up in his journals
   await b.getByRole("button", { name: "Save a copy" }).click();
@@ -113,6 +117,16 @@ test("two friends make a journal page together and each keeps a copy", async ({
   await expect(
     b.getByRole("link", { name: /Open Trip page/ }).locator('img[src^="data:"]'),
   ).toBeVisible({ timeout: 15_000 });
+  // the picture fills its paper: no pale strip beside it
+  const gap = await b
+    .getByRole("link", { name: /Open Trip page/ })
+    .locator('img[src^="data:"]')
+    .evaluate((img) => {
+      const face = img.closest(".zf-face")!.getBoundingClientRect();
+      const pic = img.getBoundingClientRect();
+      return face.width - pic.width;
+    });
+  expect(gap).toBeLessThanOrEqual(14);
 
   await ctxA.close();
   await ctxB.close();

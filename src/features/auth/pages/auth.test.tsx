@@ -68,6 +68,20 @@ describe("LoginPage", () => {
     expect(screen.getByText("That didn’t work")).toBeInTheDocument();
   });
 
+  it("after a wrong password keeps the email, clears the password and focuses it", async () => {
+    auth.login.mockRejectedValue({ code: "auth/invalid-credential" });
+    renderPage(<LoginPage />);
+    await userEvent.type(screen.getByLabelText("Email"), "mei@example.com");
+    await userEvent.type(screen.getByLabelText("Password"), "nope");
+    await userEvent.click(screen.getByRole("button", { name: "Log in" }));
+    await screen.findByText("Password doesn’t match this email.");
+    expect(screen.getByLabelText("Email")).toHaveValue("mei@example.com");
+    const password = screen.getByLabelText("Password");
+    expect(password).toHaveValue("");
+    await waitFor(() => expect(password).toHaveFocus());
+    expect(screen.getAllByRole("alert").length).toBeGreaterThan(0);
+  });
+
   it("opens the reset dialog from Forgot password", async () => {
     renderPage(<LoginPage />);
     await userEvent.click(screen.getByRole("button", { name: "Forgot password?" }));

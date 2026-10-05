@@ -17,6 +17,7 @@ import { PageSetup } from "@/features/journal/PageSetup";
 import { friendName } from "@/features/social/social.schema";
 import { useFriends } from "@/features/social/useSocial";
 import { cn } from "@/lib/cn";
+import { inviteFriends } from "./workspace.api";
 import { useCreateWorkspace } from "./useTogether";
 
 /** Start a shared journal: a title, the paper, and which friends to ask in. */
@@ -72,11 +73,42 @@ export function NewWorkspaceDialog({
                   invite: [...invite],
                 },
                 {
-                  onSuccess: (id) => {
+                  onSuccess: ({ id, failed }) => {
+                    const total = invite.size;
                     onClose();
                     setTitle("");
                     setInvite(new Set());
                     navigate(`/together/${id}`);
+                    // the page exists: say how many invitations went out, and offer to send the rest
+                    if (failed.length)
+                      toast.push({
+                        kind: "error",
+                        title: t("auth.errors.toastTitle"),
+                        body: t("together.invitedSome", {
+                          done: total - failed.length,
+                          total,
+                        }),
+                        action: {
+                          label: t("together.tryAgain"),
+                          onClick: () =>
+                            void inviteFriends(id, failed).then((r) =>
+                              toast.push(
+                                r.failed.length
+                                  ? {
+                                      kind: "error",
+                                      title: t("auth.errors.toastTitle"),
+                                      body: t("together.inviteFailed"),
+                                    }
+                                  : {
+                                      kind: "success",
+                                      title: t("together.invited", {
+                                        count: r.invited.length,
+                                      }),
+                                    },
+                              ),
+                            ),
+                        },
+                      });
                   },
                   onError: () =>
                     toast.push({

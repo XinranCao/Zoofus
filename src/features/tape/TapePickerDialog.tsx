@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { Dialog } from "@/components/ui/Dialog";
 import { TapeTile } from "./TapeTile";
-import { STARTER_TAPES, type TapeSpec } from "./tape.schema";
+import { useStarterTapes } from "./starters";
+import type { TapeSpec } from "./tape.schema";
 import { useTapes } from "./useTapes";
 
 /** Choose one of your tapes (or a starter) to stick on a journal page. */
@@ -16,9 +17,10 @@ export function TapePickerDialog({
 }) {
   const { t } = useTranslation();
   const { data: mine = [] } = useTapes();
+  const starters = useStarterTapes();
   const all: { tape: TapeSpec; key: string; starter: boolean }[] = [
     ...mine.map((tape) => ({ tape, key: tape.id, starter: false })),
-    ...STARTER_TAPES.map((tape, i) => ({ tape, key: "starter" + i, starter: true })),
+    ...starters.map((tape, i) => ({ tape, key: "starter" + i, starter: true })),
   ];
   return (
     <Dialog

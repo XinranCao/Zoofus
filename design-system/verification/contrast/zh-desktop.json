@@ -1,5 +1,5 @@
 {
-  "checked": 528,
+  "checked": 535,
   "lowest": [
     {
       "screen": "zh/desktop/10-book-empty",
@@ -19,16 +19,6 @@
       "fg": "#57620d",
       "bg": "#e8ddd0",
       "size": 14,
-      "weight": 400
-    },
-    {
-      "screen": "zh/desktop/17-book-grid",
-      "text": "10月4日 剪的",
-      "ratio": 4.97,
-      "min": 4.5,
-      "fg": "#57620d",
-      "bg": "#e8ddd0",
-      "size": 12,
       "weight": 400
     },
     {
@@ -83,7 +73,7 @@
     },
     {
       "screen": "zh/desktop/21-account",
-      "text": "ds-zh-desktop-1791175783569@example.com",
+      "text": "ds-zh-desktop-1791208779576@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -194,6 +184,16 @@
     {
       "screen": "zh/desktop/14-maker-deselect-mode",
       "text": "剪下来",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "zh/desktop/15-maker-edge-torn",
+      "text": "存进资料库",
       "ratio": 5.15,
       "min": 4.5,
       "fg": "#fbf6ee",

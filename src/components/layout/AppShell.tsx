@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useNavigationType } from "react-router-dom";
 import { Masthead } from "@/components/ui/Masthead";
 import { VerifyEmailBanner } from "@/features/account/VerifyEmailBanner";
 import { useAuth } from "@/features/auth/useAuth";
@@ -49,7 +49,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.title = pageTitle;
   }, [pageTitle]);
-  useRouteFocus(pathname);
+  useRouteFocus(pathname, useNavigationType());
 
   const name =
     profile?.nickname ||

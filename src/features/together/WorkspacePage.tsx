@@ -359,8 +359,16 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
         )}
         header={
           <>
+            {/* one plain status, so nobody wonders whether their work is kept */}
+            <span role="status" className="zf-savestate">
+              {saving
+                ? t("together.statusSaving")
+                : unsaved
+                  ? t("together.statusUnsaved")
+                  : t("together.statusSaved")}
+            </span>
             <Button
-              variant="primary"
+              variant={unsaved ? "primary" : "quiet"}
               size="sm"
               icon="check"
               seed="wsave"

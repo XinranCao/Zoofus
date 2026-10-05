@@ -1,5 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 import { z } from "zod";
+import { pictureUrlSchema, safePictureUrl } from "@/lib/trustedUrl";
 import { USER_COLORS, PALETTE, type PaletteName } from "@/paper/pattern";
 import { patternSpecSchema } from "@/paper/patternSchema";
 
@@ -155,7 +156,7 @@ export const itemsSchema = z.array(z.unknown()).transform((list) =>
 
 /** A picture kept inside a journal (a sticker that came from someone else). It is a file in the journal's owner's folder. */
 export const assetSchema = z.object({
-  url: z.string().max(2048),
+  url: z.string().max(2048).transform(safePictureUrl),
   path: z.string().max(512),
   w: z.number().int().positive(),
   h: z.number().int().positive(),
@@ -176,7 +177,7 @@ export const journalDocSchema = z.object({
   page: pageSpecSchema,
   items: itemsSchema,
   assets: assetsSchema.optional().catch(undefined),
-  thumbUrl: z.string().optional().catch(undefined),
+  thumbUrl: pictureUrlSchema.optional().catch(undefined),
   thumbPath: z.string().optional().catch(undefined),
   origin: z
     .object({ from: z.string().optional(), workspace: z.string().optional() })

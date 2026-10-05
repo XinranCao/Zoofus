@@ -27,20 +27,34 @@ export function StickerEdgeStudio({
 }) {
   const { t } = useTranslation();
   const long = source ? Math.max(source.width, source.height) : previewSize;
+  // on a phone the preview takes about 40% of the screen height and stays in view while the
+  // options below it are scrolled, so neither hides the other
+  const phone =
+    typeof window !== "undefined" && window.matchMedia?.("(max-width: 759px)").matches;
+  const size = phone
+    ? Math.max(120, Math.min(previewSize, Math.round(window.innerHeight * 0.4) - 32))
+    : previewSize;
   return (
-    <div className="zf-studio">
-      <div
-        className="zf-studio__stage zf-ground"
-        style={{ display: "grid", placeItems: "center", minHeight: 320, padding: 16 }}
-      >
-        <Sticker
-          source={source}
-          size={previewSize}
-          rotate={0}
-          seed={seed}
-          edge={edge}
-          label={t("maker.edge.preview")}
-        />
+    <div className="zf-studio zf-studio--sticker">
+      <div className="zf-studio__preview">
+        <div
+          className="zf-studio__stage zf-ground"
+          style={{
+            display: "grid",
+            placeItems: "center",
+            minHeight: phone ? size + 32 : 320,
+            padding: 16,
+          }}
+        >
+          <Sticker
+            source={source}
+            size={size}
+            rotate={0}
+            seed={seed}
+            edge={edge}
+            label={t("maker.edge.preview")}
+          />
+        </div>
       </div>
       <div className="zf-studio__controls">
         <div>

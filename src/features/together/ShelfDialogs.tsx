@@ -8,7 +8,8 @@ import { useCollections } from "@/features/collections/useCollections";
 import { useStickers } from "@/features/stickers/library/useStickers";
 import { StickerTile } from "@/features/stickers/library/StickerTile";
 import { TapeTile } from "@/features/tape/TapeTile";
-import { STARTER_TAPES, type TapeSpec } from "@/features/tape/tape.schema";
+import { useStarterTapes } from "@/features/tape/starters";
+import type { TapeSpec } from "@/features/tape/tape.schema";
 import { useTapes } from "@/features/tape/useTapes";
 import { cn } from "@/lib/cn";
 import { addStickerToShelf, addTapeToShelf } from "./workspace.api";
@@ -106,13 +107,11 @@ export function ShelfTapePicker({
   onBringIn: () => void;
 }) {
   const { t } = useTranslation();
+  const starters = useStarterTapes();
   const brought: { key: string; tape: TapeSpec }[] = shelf.flatMap((s) =>
     s.kind === "tape" ? [{ key: s.id, tape: { name: s.name, ...s.tape } }] : [],
   );
-  const all = [
-    ...brought,
-    ...STARTER_TAPES.map((tape, i) => ({ key: "starter" + i, tape })),
-  ];
+  const all = [...brought, ...starters.map((tape, i) => ({ key: "starter" + i, tape }))];
   return (
     <Dialog
       open={open}

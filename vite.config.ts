@@ -56,16 +56,29 @@ const { version } = JSON.parse(readFileSync("./package.json", "utf8")) as {
   version: string;
 };
 
-/** The hosting headers (firebase.json) as the emulated dev server sends them too, so the e2e run sees any CSP violation. */
-function hostingHeaders(): Record<string, string> {
+/**
+ * The hosting headers from firebase.json, as the e2e servers send them. The preview server of a
+ * production build sends them exactly as hosting does (the CSP enforcing); the dev server needs
+ * inline scripts and eval for hot reload, so it only sends the CSP as report-only.
+ */
+function hostingHeaders(reportOnly: boolean): Record<string, string> {
   const rules = JSON.parse(readFileSync("./firebase.json", "utf8")).hosting.headers as {
     source: string;
     headers: { key: string; value: string }[];
   }[];
+  // the e2e build talks to the local emulators, which the production policy rightly does not name
+  const emulators = "http://localhost:9099 http://localhost:8080 http://localhost:9199";
+  const forEmulators = (csp: string) =>
+    csp
+      .replace(/connect-src /, `connect-src ${emulators} `)
+      .replace(/img-src /, "img-src http://localhost:9199 ");
   return Object.fromEntries(
-    (rules.find((r) => r.source === "**")?.headers ?? [])
-      .filter((h) => h.key === "Content-Security-Policy-Report-Only")
-      .map((h) => [h.key, h.value]),
+    (rules.find((r) => r.source === "**")?.headers ?? []).map((h) => [
+      reportOnly && h.key === "Content-Security-Policy"
+        ? "Content-Security-Policy-Report-Only"
+        : h.key,
+      h.key === "Content-Security-Policy" ? forEmulators(h.value) : h.value,
+    ]),
   );
 }
 
@@ -75,7 +88,8 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
-  server: { headers: mode === "emulator" ? hostingHeaders() : {} },
+  server: { headers: mode === "emulator" ? hostingHeaders(true) : {} },
+  preview: { headers: mode === "emulator" ? hostingHeaders(false) : {} },
   build: {
     rollupOptions: {
       output: {
@@ -104,6 +118,13 @@ export default defineConfig(({ mode }) => ({
     environment: "jsdom",
     setupFiles: "./src/setupTests.ts",
     globals: true,
+    // `npm run test:coverage`: a number to watch, no threshold yet
+    coverage: {
+      provider: "v8",
+      reporter: ["text-summary", "html"],
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["src/**/*.test.*", "src/pages/dev/**", "src/setupTests.ts"],
+    },
     // Security rules tests need the emulators: run them with `npm run test:rules`.
     exclude: [...configDefaults.exclude, "rules-tests/**", "e2e/**"],
   },

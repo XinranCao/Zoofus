@@ -54,7 +54,7 @@ export function LassoStage({ width, height }: { width: number; height: number })
   const updateSelection = useEditor((s) => s.updateSelection);
   const setActive = useEditor((s) => s.setActive);
 
-  const onKeyDown = useEditorShortcuts();
+  const onKeyDown = useEditorShortcuts(fit);
   const registerAnts = useMarchingAnts();
   const nodes = useRef(new Map<string, Konva.Node>());
   const transformer = useRef<Konva.Transformer>(null);
@@ -185,6 +185,7 @@ export function LassoStage({ width, height }: { width: number; height: number })
       tabIndex={0}
       role="application"
       aria-label={t("maker.canvas")}
+      aria-describedby="maker-keys"
       onKeyDown={onKeyDown}
       style={{
         touchAction: "none",

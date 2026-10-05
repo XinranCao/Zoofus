@@ -14,7 +14,7 @@ test("sign up, cut and save a sticker, then delete the account", async ({ page }
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Nickname").fill("E2E Tester");
   await page.getByRole("button", { name: "Start cutting" }).click();
-  await expect(page.getByRole("heading", { name: "Cut something out" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Make a sticker" })).toBeVisible();
   await expect(page).toHaveTitle("Zoofus · Make a sticker");
 
   // Upload from Home: the maker opens straight into the lasso step
@@ -87,7 +87,7 @@ test("sign up, cut and save a sticker, then delete the account", async ({ page }
   await expect(handle).toHaveAttribute("aria-valuenow", "-9");
   await page.getByLabel("Name").fill("E2E tape");
   await page.getByRole("button", { name: "Add to my tapes" }).click();
-  await expect(page.getByText("Added to your tapes.", { exact: true })).toBeVisible();
+  await expect(page.getByText(/^Added .* to your tapes\.$/)).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Make a tape like E2E tape" }),
   ).toBeVisible();

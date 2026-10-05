@@ -14,10 +14,28 @@ export default defineConfig({
     channel: process.env.CI ? undefined : "chrome",
     trace: "retain-on-failure",
   },
-  webServer: {
-    command: "npm run dev:emulated -- --port 5174 --strictPort",
-    url: "http://localhost:5174",
-    reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
-  },
+  // The CSP is judged on a production build served with the real hosting headers (the policy
+  // enforcing); everything else runs on the dev server.
+  projects: [
+    { name: "app", testIgnore: /csp\.spec\.ts/ },
+    {
+      name: "csp",
+      testMatch: /csp\.spec\.ts/,
+      use: { baseURL: "http://localhost:4175" },
+    },
+  ],
+  webServer: [
+    {
+      command: "npm run dev:emulated -- --port 5174 --strictPort",
+      url: "http://localhost:5174",
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+    },
+    {
+      command: "npm run build:e2e && npm run preview:e2e",
+      url: "http://localhost:4175",
+      reuseExistingServer: !process.env.CI,
+      timeout: 180_000,
+    },
+  ],
 });
