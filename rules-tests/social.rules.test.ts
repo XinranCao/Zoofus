@@ -302,7 +302,12 @@ describe("sharing", () => {
     from: "alice",
     kind: "sticker",
     name: "Frog",
-    payload: { imageUrl: "https://x/y.webp", width: 10, height: 10 },
+    payload: {
+      imageUrl:
+        "https://firebasestorage.googleapis.com/v0/b/b.firebasestorage.app/o/a%2Fb.webp?alt=media&token=t",
+      width: 10,
+      height: 10,
+    },
     files: ["alice/shares/s1/a.webp"],
     seen: false,
     createdAt: serverTimestamp(),
@@ -375,6 +380,63 @@ describe("sharing", () => {
   it("the sender can take a share back", async () => {
     await assertSucceeds(setDoc(doc(as("alice"), "users/bob/inbox/s1"), share()));
     await assertSucceeds(deleteDoc(doc(as("alice"), "users/bob/inbox/s1")));
+  });
+});
+
+describe("picture links in what others will load", () => {
+  const BAD = [
+    "https://evil.example/x.png",
+    "http://firebasestorage.googleapis.com/v0/b/b/o/x",
+    "https://firebasestorage.googleapis.com.evil.example/v0/b/b/o/x",
+    "http://169.254.169.254/latest/meta-data",
+    "javascript:alert(1)",
+    "data:text/html,<script>1</script>",
+  ];
+  const GOOD = [
+    "",
+    "data:image/webp;base64,AAAA",
+    "https://firebasestorage.googleapis.com/v0/b/b.firebasestorage.app/o/a%2Fb.webp?alt=media&token=t",
+    "http://localhost:9199/v0/b/demo.appspot.com/o/a.webp?alt=media",
+  ];
+  const share = (payload: object) => ({
+    from: "alice",
+    kind: "sticker",
+    name: "Frog",
+    payload,
+    files: [],
+    seen: false,
+    createdAt: serverTimestamp(),
+  });
+  beforeEach(() =>
+    seed((db) => setDoc(doc(db, "users/bob/friends/alice"), { since: new Date() })),
+  );
+
+  it("a share's imageUrl, sourceUrl and thumbUrl must be storage or data images", async () => {
+    for (const field of ["imageUrl", "sourceUrl", "thumbUrl"])
+      for (const bad of BAD)
+        await assertFails(
+          setDoc(doc(as("alice"), `users/bob/inbox/${field}-x`), share({ [field]: bad })),
+        );
+    for (const good of GOOD)
+      await assertSucceeds(
+        setDoc(
+          doc(as("alice"), "users/bob/inbox/ok-" + GOOD.indexOf(good)),
+          share({ imageUrl: good }),
+        ),
+      );
+  });
+
+  it("a public profile's picture must be storage or a data image", async () => {
+    const pub = (avatarUrl: string) => ({
+      nickname: "Mei",
+      avatarUrl,
+      friendCode: "ABCD2345",
+      updatedAt: serverTimestamp(),
+    });
+    for (const bad of BAD)
+      await assertFails(setDoc(doc(as("alice"), "publicProfiles/alice"), pub(bad)));
+    for (const good of GOOD)
+      await assertSucceeds(setDoc(doc(as("alice"), "publicProfiles/alice"), pub(good)));
   });
 });
 
@@ -694,7 +756,7 @@ describe("workspaces (working together)", () => {
     const asset = (uid: string, over: object = {}) => ({
       kind: "sticker",
       owner: uid,
-      url: "https://x/y",
+      url: "https://firebasestorage.googleapis.com/v0/b/b.firebasestorage.app/o/a%2Fb.webp?alt=media&token=t",
       path: `${uid}/collab/w1/a.webp`,
       w: 10,
       h: 10,
@@ -702,6 +764,28 @@ describe("workspaces (working together)", () => {
       ...over,
     });
     await assertSucceeds(setDoc(doc(as("bob"), "workspaces/w1/assets/a1"), asset("bob")));
+    // a link to anywhere else would be requested by everyone who opens the shelf
+    for (const url of [
+      "https://evil.example/x.png",
+      "http://169.254.169.254/x",
+      "file:///etc/passwd",
+    ])
+      await assertFails(
+        setDoc(doc(as("bob"), "workspaces/w1/assets/bad"), asset("bob", { url })),
+      );
+    // the page's thumbnail is a picture too
+    await assertFails(
+      updateDoc(doc(as("alice"), "workspaces/w1"), {
+        thumb: "https://evil.example/x.png",
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    await assertSucceeds(
+      updateDoc(doc(as("alice"), "workspaces/w1"), {
+        thumb: "data:image/webp;base64,AAAA",
+        updatedAt: serverTimestamp(),
+      }),
+    );
     // the picture itself can be kept in the entry (a data URL), with no file behind it
     const inline: Record<string, unknown> = asset("bob", {
       url: "data:image/webp;base64," + "A".repeat(60000),

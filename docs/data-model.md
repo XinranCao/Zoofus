@@ -33,3 +33,7 @@ Members come in by accepting an invitation (a transaction that checks the limit 
 ## Cleanup
 
 Deleting an account removes everything above that belongs to the person: stickers, tapes, journals, collections, shared files, pages they own (they leave the others), friendships, requests, inbox/sent and the public profile (`src/features/account/account.api.ts`).
+
+## Picture links in data other people read
+
+Anything another person's browser will load (a public profile's `avatarUrl`, a share's `imageUrl` / `sourceUrl` / `thumbUrl`, a Together shelf entry's `url`, a workspace `thumb`) must be empty, a `data:image/` URL or a link into Cloud Storage; the rules (`isPictureUrl`) refuse anything else, and the app (`src/lib/trustedUrl.ts`: `pictureUrlSchema`, `safeDisplayUrl`) shows a placeholder instead of requesting an address it does not trust, even if one was written another way. Pictures inside a shared journal's `assets` map cannot be checked by the rules (a list of maps cannot be looped over), so only the app guards those.

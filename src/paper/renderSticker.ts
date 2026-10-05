@@ -1,3 +1,4 @@
+import { safeDisplayUrl } from "@/lib/trustedUrl";
 import {
   dieCut,
   dieCutPad,
@@ -28,6 +29,10 @@ export function loadImage(
   crossOrigin?: "anonymous",
 ): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
+    if (!safeDisplayUrl(src)) {
+      reject(new Error("This picture comes from an address that is not allowed."));
+      return;
+    }
     const img = new Image();
     if (crossOrigin) img.crossOrigin = crossOrigin;
     img.onload = () => resolve(img);

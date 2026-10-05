@@ -1,5 +1,6 @@
 import type { ComponentProps, CSSProperties } from "react";
 import { cn } from "@/lib/cn";
+import { safeDisplayUrl } from "@/lib/trustedUrl";
 import { seededRot } from "@/paper/random";
 import { tornVars } from "@/paper/torn";
 import { useSeed } from "@/paper/useTorn";
@@ -31,7 +32,7 @@ export type AvatarProps = BaseProps &
  */
 export function Avatar({
   name,
-  src,
+  src: srcProp,
   size = 40,
   seed,
   state,
@@ -42,6 +43,8 @@ export function Avatar({
   ...rest
 }: AvatarProps) {
   const id = useSeed(seed ?? name);
+  // a picture from anywhere but this app's own storage is never requested: the initial shows instead
+  const src = safeDisplayUrl(srcProp);
   if (kind === "sticker" && src) {
     const stickerCss = {
       width: size,
