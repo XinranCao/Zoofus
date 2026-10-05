@@ -204,6 +204,7 @@ export const zh: Messages = {
       saved: "已存进你的资料库。",
       savedBody: "在“资料库 → 贴纸”里能找到。",
       seeIt: "去资料库看看",
+      another: "再做一张",
       download: "下载 PNG",
       nameLabel: "名字",
       nameHint: "可不填，不填就用剪下的日期。",

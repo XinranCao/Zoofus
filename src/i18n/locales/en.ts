@@ -208,6 +208,7 @@ export const en = {
       saved: "Saved to your Library.",
       savedBody: "You’ll find it under Library → Stickers.",
       seeIt: "See it in Library",
+      another: "Make another",
       download: "Download PNG",
       nameLabel: "Name",
       nameHint: "Optional. Without one it is named after the day you cut it.",

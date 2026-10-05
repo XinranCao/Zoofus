@@ -1173,13 +1173,6 @@
     .zf-studio {
       grid-template-columns: minmax(0, 1fr);
     }
-    /* one column: the preview stays in view while the colours below it are chosen */
-    .zf-studio__preview {
-      position: sticky;
-      top: 0;
-      z-index: 3;
-      background: var(--scrap);
-    }
     .zf-studio__stage {
       min-height: 250px;
     }
@@ -1187,6 +1180,16 @@
       width: 44px;
       height: 44px;
       margin: -22px 0 0 -22px;
+    }
+  }
+  /* one column and a tall enough screen: the preview stays in view while the options below it are
+     scrolled (on a short, landscape phone it would cover them, so it scrolls away there) */
+  @media (max-width: 759px) and (min-height: 560px) {
+    .zf-studio__preview {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: var(--scrap);
     }
   }
   .zf-pixels {

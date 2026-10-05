@@ -83,6 +83,7 @@ function MakerBody({
   const confirm = useEditor((s) => s.confirm);
   const backToEdit = useEditor((s) => s.backToEdit);
   const setEdge = useEditor((s) => s.setEdge);
+  const setImage = useEditor((s) => s.setImage);
 
   const [leaving, setLeaving] = useState(false);
   const [savedKey, setSavedKey] = useState<string | null>(null);
@@ -209,20 +210,33 @@ function MakerBody({
           {t("maker.edge.back")}
         </Button>
         {saved ? (
-          <Button
-            variant="secondary"
-            icon="book"
-            seed="see"
-            onClick={() => {
-              onClose();
-              navigate("/stickers");
-            }}
-          >
-            {t("maker.edge.seeIt")}
-          </Button>
+          <>
+            <Button
+              variant="quiet"
+              icon="plus"
+              seed="more"
+              onClick={() => {
+                setName("");
+                setImage(null);
+              }}
+            >
+              {t("maker.edge.another")}
+            </Button>
+            <Button
+              variant="primary"
+              icon="book"
+              seed="see"
+              onClick={() => {
+                onClose();
+                navigate("/stickers");
+              }}
+            >
+              {t("maker.edge.seeIt")}
+            </Button>
+          </>
         ) : (
           <Button
-            variant="secondary"
+            variant="primary"
             icon="book"
             seed="sv"
             disabled={!source}
@@ -233,7 +247,7 @@ function MakerBody({
           </Button>
         )}
         <Button
-          variant="primary"
+          variant="quiet"
           icon="download"
           seed="dlp"
           disabled={!source}
