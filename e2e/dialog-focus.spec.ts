@@ -35,11 +35,17 @@ test("focus returns to the opener: New tape, the sticker save dialog, Share", as
   const newSticker = page
     .getByRole("button", { name: /New sticker|Make your first sticker/ })
     .first();
-  await newSticker.focus();
-  await page.keyboard.press("Enter");
-  await expect(page.getByRole("dialog", { name: "Make a sticker" })).toBeVisible({
-    timeout: 20_000,
-  });
+  // (the first time the maker is opened, the dev server may find a new dependency and reload the
+  // page, which closes it: open it again if so)
+  await expect(async () => {
+    if (!(await page.getByRole("dialog", { name: "Make a sticker" }).isVisible())) {
+      await newSticker.focus();
+      await page.keyboard.press("Enter");
+    }
+    await expect(page.getByRole("dialog", { name: "Make a sticker" })).toBeVisible({
+      timeout: 6000,
+    });
+  }).toPass({ timeout: 40_000 });
   await page
     .locator('input[type="file"]')
     .first()
