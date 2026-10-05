@@ -1,5 +1,5 @@
 {
-  "checked": 474,
+  "checked": 454,
   "lowest": [
     {
       "screen": "zh/mobile/10-book-empty",
@@ -42,6 +42,16 @@
       "weight": 400
     },
     {
+      "screen": "zh/mobile/20e-journal-studio",
+      "text": "所有改动都已保存",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 13,
+      "weight": 400
+    },
+    {
       "screen": "zh/mobile/20f-collections",
       "text": "你自己分的一组组贴纸、胶带和手账,想建多少都行。",
       "ratio": 4.97,
@@ -73,7 +83,7 @@
     },
     {
       "screen": "zh/mobile/21-account",
-      "text": "ds-zh-mobile-1791208737423@example.com",
+      "text": "ds-zh-mobile-1791237343091@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -183,16 +193,6 @@
     },
     {
       "screen": "zh/mobile/13-maker-lasso",
-      "text": "剪下来",
-      "ratio": 5.15,
-      "min": 4.5,
-      "fg": "#fbf6ee",
-      "bg": "#bc3b22",
-      "size": 15,
-      "weight": 400
-    },
-    {
-      "screen": "zh/mobile/14-maker-deselect-mode",
       "text": "剪下来",
       "ratio": 5.15,
       "min": 4.5,

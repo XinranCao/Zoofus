@@ -343,14 +343,14 @@ export function PatternEditor({
               value={ink}
               onChange={(v) => update("ink", v as PatternSpec["ink"])}
             />
-            {contrastRatio(s.bg, ink) < MIN_PRINT_CONTRAST && (
-              <p className="zf-muted" role="status" style={{ margin: "6px 0 0" }}>
-                {t("pattern.lowContrast")}
-              </p>
-            )}
           </div>
         )}
       </div>
+      {s.kind !== "solid" && contrastRatio(s.bg, ink) < MIN_PRINT_CONTRAST && (
+        <p className="zf-muted" role="status" style={{ margin: "-6px 0 0" }}>
+          {t("pattern.lowContrast")}
+        </p>
+      )}
       {s.kind !== "solid" && (
         <div
           style={{
