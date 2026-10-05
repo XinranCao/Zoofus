@@ -175,6 +175,7 @@ export const zh: Messages = {
     hint: {
       freehand: "沿着想留下的部分画一圈,然后松手。",
       shape: "在照片上拖动来画出形状。",
+      keysTitle: "键盘操作",
       keys: "不用鼠标:先聚焦照片,按回车得到一个起始选区,方向键移动,Shift 加方向键调整大小,Delete 删除,再按一次回车就剪下来。",
     },
     wholePhoto: "用整张照片",

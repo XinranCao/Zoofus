@@ -86,3 +86,59 @@ test("'Use the whole photo' selects everything with one press", async ({ page })
     page.getByRole("status").filter({ hasText: "percent wide" }),
   ).toContainText("100 percent wide and 100 percent tall");
 });
+
+async function openCutter(page: import("@playwright/test").Page) {
+  await page.goto("/stickers?make=1");
+  await page
+    .locator('input[type="file"]')
+    .first()
+    .setInputFiles({
+      name: "photo.png",
+      mimeType: "image/png",
+      buffer: solidPng(480, 360, [110, 150, 190]),
+    });
+  const maker = page.getByRole("dialog", { name: "Draw around it" });
+  await expect(maker).toBeVisible();
+  return maker;
+}
+
+// UX-037: the keyboard paragraph is noise on a touch screen; keyboard and screen-reader users keep it
+test.describe("touch screen", () => {
+  test.use({ viewport: { width: 375, height: 667 }, hasTouch: true, isMobile: true });
+  test("no keyboard text is shown, and 'Cut it out' is in view without scrolling", async ({
+    page,
+  }) => {
+    await signUp(page, "Touch");
+    const maker = await openCutter(page);
+    await expect(maker.getByText("Keyboard shortcuts")).toBeHidden();
+    await expect(maker.getByText("Draw around what you want to keep")).toBeVisible();
+    // the shortcuts are still in the page for assistive technology
+    await expect(page.getByRole("application")).toHaveAttribute(
+      "aria-describedby",
+      "maker-keys",
+    );
+    await expect(page.locator("#maker-keys")).toContainText("Without a mouse");
+    await expect(page.getByRole("application")).toHaveAttribute(
+      "aria-label",
+      /Arrow keys move the selected outline/,
+    );
+    const cut = (await maker.getByRole("button", { name: "Cut it out" }).boundingBox())!;
+    expect(cut.y + cut.height).toBeLessThanOrEqual(667);
+  });
+});
+
+test.describe("mouse and keyboard", () => {
+  test.use({ viewport: { width: 1280, height: 800 } });
+  test("the shortcuts are a closed disclosure that opens when the photo has focus", async ({
+    page,
+  }) => {
+    await signUp(page, "Mouse");
+    const maker = await openCutter(page);
+    const summary = maker.getByText("Keyboard shortcuts");
+    await expect(summary).toBeVisible();
+    await expect(maker.locator(".zf-keys-help")).not.toHaveAttribute("open", "");
+    await page.getByRole("application").focus();
+    await expect(maker.locator(".zf-keys-help")).toHaveAttribute("open", "");
+    await expect(maker.locator(".zf-keys-help p")).toBeVisible();
+  });
+});

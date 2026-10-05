@@ -890,6 +890,24 @@
   }
 
   /* ---------- lasso canvas ---------- */
+  .zf-keys-help {
+    margin: 10px 0 0;
+    font-size: 13px;
+    color: var(--ink-muted);
+  }
+  .zf-keys-help summary {
+    cursor: pointer;
+    min-height: 24px;
+  }
+  .zf-keys-help p {
+    margin: 6px 0 0;
+  }
+  /* a touch screen has no keyboard to use them with: only the touch hint beside the tools shows */
+  @media (pointer: coarse) {
+    .zf-keys-help {
+      display: none;
+    }
+  }
   .zf-well .zf-face {
     --tone: var(--field);
     padding: 12px;

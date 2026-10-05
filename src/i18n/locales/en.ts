@@ -179,6 +179,7 @@ export const en = {
     hint: {
       freehand: "Draw around what you want to keep, then let go.",
       shape: "Drag on the photo to draw the shape.",
+      keysTitle: "Keyboard shortcuts",
       keys: "Without a mouse: focus the photo, press Enter for a starting selection, arrow keys move it, Shift plus arrows resize it, Delete removes it, then press Enter again to cut it out.",
     },
     wholePhoto: "Use the whole photo",
