@@ -11,7 +11,7 @@ export function ensureCjkFonts() {
   if (started) return;
   started = true;
   void import("cn-fontsource-xiaolai-mono-sc-regular/font.css");
-  void import("@fontsource/lxgw-wenkai/500.css");
+  void import("lxgw-wenkai-webfont/lxgwwenkai-regular.css");
 }
 
 const HAN = /[㐀-鿿＀-￯]/;

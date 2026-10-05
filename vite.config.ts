@@ -35,6 +35,22 @@ function preloadFonts(): Plugin {
   };
 }
 
+/**
+ * Every web font package lists a `.woff` fallback after its `.woff2`. Every browser Zoofus supports
+ * reads woff2, so the fallbacks would only double the size of the build (about 30 MB of Chinese
+ * fonts). They are dropped from the stylesheets before the build copies the files.
+ */
+function woff2Only(): Plugin {
+  return {
+    name: "zoofus-woff2-only",
+    enforce: "pre",
+    transform(code, id) {
+      if (!id.endsWith(".css") || !code.includes("format('woff')")) return null;
+      return code.replace(/,\s*url\([^)]*\.woff\)\s*format\(['"]woff['"]\)/g, "");
+    },
+  };
+}
+
 // NOTE: keep rollup pinned (see package.json overrides): 4.64.0 hangs `vite build`.
 const { version } = JSON.parse(readFileSync("./package.json", "utf8")) as {
   version: string;
@@ -55,7 +71,7 @@ function hostingHeaders(): Record<string, string> {
 
 export default defineConfig(({ mode }) => ({
   define: { __APP_VERSION__: JSON.stringify(version) },
-  plugins: [react(), tailwindcss(), preloadFonts()],
+  plugins: [woff2Only(), react(), tailwindcss(), preloadFonts()],
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
