@@ -3,6 +3,7 @@ import { deleteField, doc, getDoc, setDoc, updateDoc } from "firebase/firestore"
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { auth, db, storage } from "@/lib/firebase";
 import { deleteFileIfExists } from "@/lib/storage";
+import { safePictureUrl } from "@/lib/trustedUrl";
 import { profileSchema, type Profile } from "./profile.schema";
 
 export async function fetchProfile(uid: string): Promise<Profile | null> {
@@ -32,7 +33,7 @@ export async function saveProfile({
     await uploadBytes(photoRef, photo);
     photoURL = await getDownloadURL(photoRef);
   }
-  const profilePictureUrl = photoURL || user.photoURL || "";
+  const profilePictureUrl = photoURL || safePictureUrl(user.photoURL);
 
   await updateAuthProfile(user, { displayName, photoURL: profilePictureUrl });
 

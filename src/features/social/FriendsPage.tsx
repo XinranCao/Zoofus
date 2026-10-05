@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
@@ -90,8 +90,17 @@ export default function FriendsPage() {
 function CodeCard() {
   const { t } = useTranslation();
   const toast = useToast();
-  const { data: me } = useMyPublicProfile();
+  const { data: me, isError, refetch } = useMyPublicProfile();
   const code = me?.friendCode;
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    if (code) return;
+    const timer = setTimeout(() => setSlow(true), 5000);
+    return () => {
+      clearTimeout(timer);
+      setSlow(false);
+    };
+  }, [code]);
   return (
     <Paper
       seed="fcode"
@@ -108,6 +117,19 @@ function CodeCard() {
       <div className="zf-code" aria-live="polite">
         {code ? formatCode(code) : "········"}
       </div>
+      {!code && (isError || slow) && (
+        <p role="status" style={{ margin: "0 0 10px" }}>
+          {t("friends.codeFailed")}{" "}
+          <Button
+            variant="secondary"
+            size="sm"
+            seed="fretry"
+            onClick={() => void refetch()}
+          >
+            {t("friends.codeRetry")}
+          </Button>
+        </p>
+      )}
       <Button
         variant="secondary"
         size="sm"
