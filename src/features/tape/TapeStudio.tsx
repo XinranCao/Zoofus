@@ -1,6 +1,5 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Paper } from "@/components/ui/Paper";
 import { PatternEditor } from "@/components/ui/PatternEditor";
@@ -65,28 +64,27 @@ export const DEFAULT_DRAFT: TapeDraft = {
 export function TapeStudio({
   draft,
   onDraft,
+  name,
+  onName,
   defaultName,
-  onAdd,
-  adding,
-  initialName = "",
-  addLabel,
-  addingLabel,
 }: {
   draft: TapeDraft;
   onDraft: (patch: Partial<TapeDraft>) => void;
+  /** The name given so far (the dialog owns it, so its pinned Add button can use it). */
+  name: string;
+  onName: (name: string) => void;
   /** The suggested name, shown as the placeholder. */
   defaultName: string;
-  onAdd: (name: string) => void;
-  adding: boolean;
-  /** The name already given (when editing a tape). */
-  initialName?: string;
-  addLabel?: string;
-  addingLabel?: string;
 }) {
   const { t } = useTranslation();
   const stage = useRef<HTMLDivElement>(null);
+  const nameField = useRef<HTMLInputElement>(null);
+  // A mouse or keyboard opens the dialog at the name, so Tab goes straight to the controls. A phone
+  // does not, or its keyboard would cover the preview.
+  useEffect(() => {
+    if (window.matchMedia?.("(pointer: fine)").matches) nameField.current?.focus();
+  }, []);
   const dragging = useRef(false);
-  const [name, setName] = useState(initialName);
 
   const rad = (draft.angle * Math.PI) / 180;
   const reach = draft.length / 2 + 14;
@@ -106,7 +104,7 @@ export function TapeStudio({
 
   return (
     <div className="zf-studio">
-      <div style={{ display: "grid", gap: 24, alignContent: "start", minWidth: 0 }}>
+      <div className="zf-studio__preview">
         <div
           ref={stage}
           className="zf-studio__stage zf-ground"
@@ -186,6 +184,15 @@ export function TapeStudio({
       </div>
 
       <div className="zf-studio__controls">
+        <TextField
+          label={t("tape.name")}
+          value={name}
+          placeholder={defaultName}
+          maxLength={MAX_TAPE_NAME}
+          seed="tname"
+          ref={nameField}
+          onChange={(e) => onName(e.target.value)}
+        />
         <div
           style={{
             display: "grid",
@@ -242,28 +249,6 @@ export function TapeStudio({
           value={draft.pattern}
           onChange={(pattern) => onDraft({ pattern })}
         />
-        <TextField
-          label={t("tape.name")}
-          value={name}
-          placeholder={defaultName}
-          maxLength={MAX_TAPE_NAME}
-          seed="tname"
-          onChange={(e) => setName(e.target.value)}
-        />
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Button
-            variant="primary"
-            icon={initialName ? "check" : "plus"}
-            seed="tsave"
-            loading={adding}
-            onClick={() => {
-              onAdd(name.trim() || defaultName);
-              if (!initialName) setName("");
-            }}
-          >
-            {adding ? (addingLabel ?? t("tape.adding")) : (addLabel ?? t("tape.add"))}
-          </Button>
-        </div>
       </div>
     </div>
   );

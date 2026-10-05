@@ -1107,6 +1107,12 @@
     gap: 24px 32px;
     align-items: start;
   }
+  .zf-studio__preview {
+    display: grid;
+    gap: 24px;
+    align-content: start;
+    min-width: 0;
+  }
   .zf-studio__stage {
     position: relative;
     min-height: 300px;
@@ -1163,6 +1169,16 @@
   @media (max-width: 759px) {
     .zf-studio {
       grid-template-columns: minmax(0, 1fr);
+    }
+    /* one column: the preview stays in view while the colours below it are chosen */
+    .zf-studio__preview {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: var(--scrap);
+    }
+    .zf-studio__stage {
+      min-height: 250px;
     }
     .zf-turn-handle {
       width: 44px;

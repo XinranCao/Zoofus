@@ -11,7 +11,7 @@ function target(): HTMLElement | null {
  * After a route change, move keyboard focus to the new page's heading, so a keyboard or
  * screen-reader user starts at the top of what changed instead of back at the masthead. Pages load
  * lazily, so the heading is looked for for about a second. Does nothing on first load, and leaves
- * focus alone if it is already inside the page (a field that took focus itself).
+ * focus alone if it is already inside the page (a field that took focus itself) or a dialog is open.
  */
 export function useRouteFocus(pathname: string) {
   const first = useRef(true);
@@ -23,6 +23,8 @@ export function useRouteFocus(pathname: string) {
     let frame = 0;
     let tries = 0;
     const seek = () => {
+      // a dialog that is open has the focus (it may have opened from the address, e.g. ?make=1)
+      if (document.querySelector('[role="dialog"]')) return;
       const main = document.getElementById("main");
       const active = document.activeElement;
       if (main && active && active !== main && main.contains(active)) return;

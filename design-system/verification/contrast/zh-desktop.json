@@ -1,5 +1,5 @@
 {
-  "checked": 524,
+  "checked": 547,
   "lowest": [
     {
       "screen": "zh/desktop/10-book-empty",
@@ -83,7 +83,7 @@
     },
     {
       "screen": "zh/desktop/21-account",
-      "text": "ds-zh-desktop-1791167609750@example.com",
+      "text": "ds-zh-desktop-1791168781205@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -204,7 +204,7 @@
   ],
   "cjkFonts": [
     "Xiaolai Mono SC (web font)",
-    "Special Elite (web font)",
-    "Courier Prime (web font)"
+    "Courier Prime (web font)",
+    "Special Elite (web font)"
   ]
 }
