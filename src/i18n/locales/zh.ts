@@ -26,6 +26,7 @@ export const zh: Messages = {
     together: "一起做",
     invites: "{{count}} 个邀请待处理",
     pending: "{{count}} 条待处理",
+    waitingTotal: "{{count}} 条待处理",
     makeItems: {
       sticker: "贴纸",
       tape: "胶带",

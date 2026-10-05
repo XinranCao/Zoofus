@@ -24,6 +24,7 @@ export const en = {
     together: "Together",
     invites: "{{count}} invitation waiting",
     pending: "{{count}} waiting",
+    waitingTotal: "{{count}} waiting",
     makeItems: {
       sticker: "Sticker",
       tape: "Tape",

@@ -38,6 +38,10 @@ test("two people become friends, name each other, share and keep a sticker", asy
   await expect(b.getByText("Alice", { exact: true }).first()).toBeVisible();
   await b.getByRole("button", { name: "Add friend" }).click();
   await expect(b.getByText("Request sent to Alice.").first()).toBeVisible();
+  // the request raises a count on Friends in Alice's bar, without her doing anything
+  await expect(
+    a.getByRole("navigation", { name: "Main" }).getByLabel("1 waiting"),
+  ).toBeVisible({ timeout: 20_000 });
 
   // Alice sees the request arrive on her own (no refresh), in the tab count, and accepts
   await expect(a.getByRole("radio", { name: /Requests · 1/ })).toBeVisible({
@@ -121,7 +125,11 @@ test("two people become friends, name each other, share and keep a sticker", asy
 
   // Bobby finds it in "Shared with you" and keeps it
   await b.goto("/friends");
+  // the share raises a count on Friends, which goes away once it has been looked at
+  const waiting = b.getByRole("navigation", { name: "Main" }).getByLabel("1 waiting");
+  await expect(waiting).toBeVisible({ timeout: 20_000 });
   await b.getByRole("radio", { name: /Shared with you/ }).click();
+  await expect(waiting).toBeHidden({ timeout: 15_000 });
   await expect(b.getByText("“For you!”")).toBeVisible({ timeout: 15000 });
   await expect
     .poll(() =>
