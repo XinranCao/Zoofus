@@ -10,6 +10,7 @@ import { useRealtimeSync } from "@/features/social/useRealtime";
 import { useMyPublicProfile, usePending } from "@/features/social/useSocial";
 import { useInviteCount } from "@/features/together/useTogether";
 import { MakeHost } from "./MakeHost";
+import { useRouteFocus } from "./useRouteFocus";
 
 const TITLE_KEYS: [string, string][] = [
   ["/stickers", "pageTitle.book"],
@@ -34,7 +35,7 @@ function titleKeyFor(pathname: string): string {
 
 /** Skip link, masthead, optional verify-email strip and the main landmark. */
 export function AppShell({ children }: { children: ReactNode }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { currentUser, logout } = useAuth();
   const { data: profile } = useProfile(currentUser?.uid);
   useMyPublicProfile(); // publish my nickname, picture and friend code for friends
@@ -44,9 +45,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
+  const pageTitle = `Zoofus · ${t(titleKeyFor(pathname))}`;
   useEffect(() => {
-    document.title = `Zoofus · ${t(titleKeyFor(pathname))}`;
-  }, [pathname, t, i18n.language]);
+    document.title = pageTitle;
+  }, [pageTitle]);
+  useRouteFocus(pathname);
 
   const name =
     profile?.nickname ||
@@ -77,6 +80,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       <VerifyEmailBanner />
       <ProfileSetupDialog />
       {currentUser && <MakeHost />}
+      {/* tells a screen reader which page it moved to */}
+      <div className="sr-only" role="status" aria-live="polite">
+        {pageTitle}
+      </div>
       <main id="main" tabIndex={-1}>
         {children}
       </main>
