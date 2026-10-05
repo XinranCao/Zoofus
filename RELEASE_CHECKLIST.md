@@ -51,7 +51,7 @@ The build has about 650 files in `dist/assets` (the Chinese font slices); that i
 
 Use a throwaway account and a photo with a clear subject.
 
-1. **Sign up** with email and a password of 8+ characters; add a nickname. You land on Home. Switch the language to 中文 and back (the menu has "EN · 中文").
+1. **Sign up** with email and a password of 8+ characters; add a nickname. You land on Home. Switch the language to 中文 and back (account menu → Language; the bar has the switch only before you sign in).
 2. **Cut**: Upload a photo. Choose a shape and drag on the photo to draw it (there is no Add shape button), or draw a freehand loop (try leaving the photo's edge and coming back: the corner in between is included). Cut it out.
 3. **Edit the edge**: try Smooth, Wobbly and Torn; pick a stripes print and a pixel print (paint by dragging). Save to book.
 4. **Download** the PNG from the book (open the sticker, Download PNG). Open the file next to the on-screen sticker: **the edge width and the print should look the same**, only sharper.

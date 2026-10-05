@@ -10,7 +10,8 @@
 - **Collections.** Your own folders of stickers, tapes and journals, with bulk select, add, remove and delete everywhere.
 - **Friends.** Add friends with a friend code, give them nicknames only you see, and share stickers, tapes and journals. What a friend shares arrives in "Shared with you" and you can keep it.
 - **Together.** Start a shared page, invite friends, choose which of your stickers and tapes to add to a shelf everyone can use, edit at the same time (you see who is here), and each save your own copy. Edits reach everyone at once; **Save** refreshes the page's picture in the list (also done for you at most once a minute), and **Save a copy** keeps your own journal. The list and your copies show the page as it looks, not bare paper.
-- **Profile.** A nickname chosen at sign-up, and a profile picture made with the sticker maker (it keeps its sticker shape in the navigation bar).
+- **Profile.** A nickname chosen at sign-up (suggested from your email), and a profile picture made with the sticker maker (it keeps its sticker shape in the navigation bar). The language (English or 中文) is chosen in the account menu; the Account page says in plain words what is kept and who can see it.
+- **Keyboard and screen readers.** Focus moves to the page heading after each navigation and back to the opener when a dialog closes, controls have names and visible focus rings (also in forced-colours mode), and the tape dialog and pixel grid take few tab stops.
 
 ## How it is built
 
@@ -51,7 +52,7 @@ Use the emulated setup for anything that writes data. PR previews talk to the pr
 TypeScript with an `@/` alias for `src/`, organised by feature:
 
 - `src/app/` – providers and routes
-- `src/lib/` – env validation, Firebase init, image helpers
+- `src/lib/` – env validation, Firebase init, image helpers, `trustedUrl.ts` (the app only follows picture links to its own Storage bucket or `data:` images)
 - `src/features/auth/`, `profile/`, `account/` – sign in / up, profile card, account export and deletion
 - `src/features/stickers/` – the sticker maker (`editor/`: pure geometry and mask logic, store, Konva canvas) and the library
 - `src/features/tape/` – tape studio and the tape collection page
@@ -61,7 +62,8 @@ TypeScript with an `@/` alias for `src/`, organised by feature:
 - `src/features/together/` – shared pages (workspaces): live items, shelf, presence, save a copy
 - `src/paper/` – the torn-paper drawing code shared by the UI and the exports
 - `src/components/ui/`, `src/components/layout/` – design-system components and the app chrome
-- `rules-tests/`, `e2e/` – security rules tests and Playwright flows
+- `firebase.json` – hosting rewrites and headers (security headers, a report-only Content-Security-Policy, a year-long cache for `/assets/**`)
+- `rules-tests/`, `e2e/` – security rules tests and Playwright flows (including `csp`, `focus-ring`, `a11y-names`, `auth-layout` checks)
 
 ## Branches and releases
 

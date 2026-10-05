@@ -30,6 +30,7 @@ Add `?debug=1` to any address (or use the button on the page) to turn on Firesto
 
 - **Console**: errors are also kept on `/diagnostics`. Every failure the app shows carries a code in brackets, for example `(timeout/upload)`. The code is the first thing to look up.
 - **Network** (tick _Preserve log_, then repeat the action). Filter by `firestore`, `firebasestorage` and `appcheck`. Look for the red row: status **401/403** = rules or App Check, **400** = bad request (check the response body), **0/cancelled** = blocked (ad blocker, offline, CORS).
+- A message beginning `[Report Only] Refused to ...` is the Content-Security-Policy (report-only: nothing is blocked). It names the blocked address and the directive to extend in `firebase.json`; see `RELEASE_CHECKLIST.md` for promoting it to enforcing. zod's `eval` probe is expected.
 - A 400 on `google.com/recaptcha/enterprise/clr` alone is reCAPTCHA's own housekeeping and is harmless. What matters is the `exchangeRecaptchaEnterpriseToken` request on `firebaseappcheck.googleapis.com`.
 
 ## 3. Error codes that the app produces
