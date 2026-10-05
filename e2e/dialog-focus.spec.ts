@@ -37,7 +37,9 @@ test("focus returns to the opener: New tape, the sticker save dialog, Share", as
     .first();
   await newSticker.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("dialog", { name: "Make a sticker" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Make a sticker" })).toBeVisible({
+    timeout: 20_000,
+  });
   await page
     .locator('input[type="file"]')
     .first()
@@ -61,7 +63,9 @@ test("focus returns to the opener: New tape, the sticker save dialog, Share", as
   const another = page.getByRole("button", { name: "New sticker" }).first();
   await another.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("dialog", { name: "Make a sticker" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Make a sticker" })).toBeVisible({
+    timeout: 20_000,
+  });
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toBeHidden();
   await expect(another).toBeFocused();

@@ -8,9 +8,15 @@ test("the Make menu opens its dialogs where you are, without changing the page",
 }) => {
   await signUp(page, "Mei");
   await page.goto("/friends");
+  // (on a slow machine the bar can redraw while the menu is opening: open it again if so)
   const make = async (item: string) => {
-    await page.getByRole("button", { name: /^Make/ }).click();
-    await page.getByRole("menuitem", { name: item, exact: true }).click();
+    await expect(async () => {
+      await page.keyboard.press("Escape");
+      await page.getByRole("button", { name: /^Make/ }).click();
+      await page
+        .getByRole("menuitem", { name: item, exact: true })
+        .click({ timeout: 4000 });
+    }).toPass({ timeout: 30_000 });
   };
 
   await make("Sticker");

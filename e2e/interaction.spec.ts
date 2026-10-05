@@ -233,7 +233,17 @@ async function scanTargets(page: Page, where: string, small: string[]) {
       // measured after scrolling it into view
       const scroller = el.closest(".zf-dialog__scroll");
       const sr = scroller?.getBoundingClientRect();
-      const hiddenInDialog = !!sr && (r.top < sr.top || r.bottom > sr.bottom);
+      // a preview pinned at the top of the dialog covers what scrolls under it: such a control is
+      // measured where a person would put it, after scrolling it clear of the preview
+      const pin = el.closest(".zf-studio__preview")
+        ? null
+        : scroller?.querySelector<HTMLElement>(".zf-studio__preview");
+      const pinBottom =
+        pin && getComputedStyle(pin).position === "sticky"
+          ? pin.getBoundingClientRect().bottom
+          : -Infinity;
+      const hiddenInDialog =
+        !!sr && (r.top < sr.top || r.bottom > sr.bottom || r.top < pinBottom);
       if (!scroller && (r.bottom < 0 || r.top > innerHeight)) continue;
       if (hiddenInDialog || r.bottom + 30 > innerHeight || r.top - 30 < 0) {
         el.scrollIntoView({ block: "center", behavior: "instant" });
@@ -272,10 +282,16 @@ async function scanTargets(page: Page, where: string, small: string[]) {
       }
       // a pixel-grid cell is painted by dragging: it only needs to be a comfortable finger-width
       const need = el.classList.contains("zf-pixel") ? 32 : 44;
-      if (w < need || h < need)
+      if (w < need || h < need) {
+        // what sits on top of it, so a failure on a machine we cannot see says why
+        const top = document.elementFromPoint(cx, cy - 20);
         out.push(
-          `${el.tagName.toLowerCase()}[${el.getAttribute("aria-label") ?? (el.textContent ?? "").trim().slice(0, 24)}] ${Math.round(w)}×${Math.round(h)}`,
+          `${el.tagName.toLowerCase()}[${el.getAttribute("aria-label") ?? (el.textContent ?? "").trim().slice(0, 24)}] ${Math.round(w)}×${Math.round(h)}` +
+            ` (rect ${Math.round(r.left)},${Math.round(r.top)} ${Math.round(r.width)}×${Math.round(r.height)};` +
+            ` class="${el.className}" id="${el.id}" type="${el.getAttribute("type")}";` +
+            ` above it: ${top?.tagName.toLowerCase()}.${String(top?.className).slice(0, 40)})`,
         );
+      }
     }
     return out;
   });

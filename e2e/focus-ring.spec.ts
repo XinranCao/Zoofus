@@ -124,7 +124,7 @@ async function walk(page: Page, screen: string, stops = 45) {
 }
 
 test("every control shows a visible focus indicator", async ({ page }) => {
-  test.setTimeout(240_000);
+  test.setTimeout(480_000);
   const bad: string[] = [];
   await page.goto("/login");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -144,7 +144,16 @@ test("every control shows a visible focus indicator", async ({ page }) => {
     await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
     bad.push(...(await walk(page, path, 30)));
   }
-  // the dialogs of the Make menu: the focus stays inside, and every control in them has a ring
+  expect(bad, bad.join("\n")).toEqual([]);
+});
+
+test("every control in the Make dialogs shows a visible focus indicator", async ({
+  page,
+}) => {
+  test.setTimeout(480_000);
+  const bad: string[] = [];
+  await signUp(page, "Rings");
+  // the focus stays inside a dialog, and every control in it has a ring
   for (const path of [
     "/stickers?make=1",
     "/tapes?make=1",

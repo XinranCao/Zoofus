@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { PatternEditor } from "@/components/ui/PatternEditor";
 import { Slider } from "@/components/ui/Slider";
+import { StudioPreview } from "@/components/ui/StudioPreview";
 import { Sticker } from "@/components/ui/Sticker";
 import { ToggleGroup } from "@/components/ui/ToggleGroup";
 import { edgeWidth, type EdgeShape } from "@/paper/dieCut";
@@ -36,7 +37,7 @@ export function StickerEdgeStudio({
     : previewSize;
   return (
     <div className="zf-studio zf-studio--sticker">
-      <div className="zf-studio__preview">
+      <StudioPreview>
         <div
           className="zf-studio__stage zf-ground"
           style={{
@@ -55,7 +56,7 @@ export function StickerEdgeStudio({
             label={t("maker.edge.preview")}
           />
         </div>
-      </div>
+      </StudioPreview>
       <div className="zf-studio__controls">
         <div>
           <div className="zf-label" style={{ marginBottom: 8 }}>
