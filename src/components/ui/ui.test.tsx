@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -290,5 +290,34 @@ describe("Select", () => {
     );
     await userEvent.click(screen.getByRole("menuitemradio", { name: "Beta" }));
     expect(onChange).toHaveBeenCalledWith("b");
+  });
+});
+
+describe("Dialog focus", () => {
+  it("returns focus to the control that opened it, and to the page if that is gone", async () => {
+    const user = userEvent.setup();
+    function Host() {
+      const [open, setOpen] = useState(false);
+      const [gone, setGone] = useState(false);
+      return (
+        <>
+          <main id="main" tabIndex={-1} />
+          {!gone && <button onClick={() => setOpen(true)}>Open it</button>}
+          <Dialog open={open} onOpenChange={setOpen} title="Hello">
+            <button onClick={() => setGone(true)}>Remove opener</button>
+          </Dialog>
+        </>
+      );
+    }
+    render(<Host />);
+    const opener = screen.getByRole("button", { name: "Open it" });
+    await user.click(opener);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(opener).toHaveFocus());
+    await user.click(opener);
+    await user.click(screen.getByRole("button", { name: "Remove opener" }));
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(document.getElementById("main")).toHaveFocus());
   });
 });

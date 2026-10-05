@@ -1,5 +1,5 @@
 {
-  "checked": 542,
+  "checked": 529,
   "lowest": [
     {
       "screen": "en-reduced/desktop/10-book-empty",
@@ -23,7 +23,7 @@
     },
     {
       "screen": "en-reduced/desktop/17-book-grid",
-      "text": "Cut Oct 3",
+      "text": "Cut Oct 4",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -83,7 +83,7 @@
     },
     {
       "screen": "en-reduced/desktop/21-account",
-      "text": "ds-en-desktop-1791089920173@example.com",
+      "text": "ds-en-desktop-1791175866320@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",

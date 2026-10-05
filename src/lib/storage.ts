@@ -7,6 +7,7 @@ import {
 } from "firebase/storage";
 import { localizeUrl } from "./emulatorUrl";
 import { storage } from "./firebase";
+import { assertTrustedPictureUrl } from "./trustedUrl";
 
 /** Give up on a step that never answers, saying which one, instead of waiting for ever. */
 export function withTimeout<T>(
@@ -54,6 +55,7 @@ export async function deleteFolder(path: string): Promise<void> {
  */
 export async function readPicture(link: string): Promise<Blob> {
   const url = localizeUrl(link);
+  assertTrustedPictureUrl(url);
   try {
     const controller = new AbortController();
     const stop = setTimeout(() => controller.abort(), 20_000);

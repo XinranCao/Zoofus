@@ -1,4 +1,5 @@
 import { COMPRESSION, encodeWithin } from "./image";
+import { assertTrustedPictureUrl } from "./trustedUrl";
 
 /** A picture small enough to keep inside a database document, as a `data:` URL. */
 export interface InlinePicture {
@@ -28,6 +29,7 @@ export async function toInlinePicture(
 ): Promise<InlinePicture> {
   let blob: Blob;
   if (typeof source === "string") {
+    assertTrustedPictureUrl(source);
     const res = await fetch(source);
     if (!res.ok) throw new Error(`Could not read a picture (${res.status})`);
     blob = await res.blob();

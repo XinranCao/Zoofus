@@ -35,17 +35,47 @@ function preloadFonts(): Plugin {
   };
 }
 
+/**
+ * Every web font package lists a `.woff` fallback after its `.woff2`. Every browser Zoofus supports
+ * reads woff2, so the fallbacks would only double the size of the build (about 30 MB of Chinese
+ * fonts). They are dropped from the stylesheets before the build copies the files.
+ */
+function woff2Only(): Plugin {
+  return {
+    name: "zoofus-woff2-only",
+    enforce: "pre",
+    transform(code, id) {
+      if (!id.endsWith(".css") || !code.includes("format('woff')")) return null;
+      return code.replace(/,\s*url\([^)]*\.woff\)\s*format\(['"]woff['"]\)/g, "");
+    },
+  };
+}
+
 // NOTE: keep rollup pinned (see package.json overrides): 4.64.0 hangs `vite build`.
 const { version } = JSON.parse(readFileSync("./package.json", "utf8")) as {
   version: string;
 };
 
-export default defineConfig({
+/** The hosting headers (firebase.json) as the emulated dev server sends them too, so the e2e run sees any CSP violation. */
+function hostingHeaders(): Record<string, string> {
+  const rules = JSON.parse(readFileSync("./firebase.json", "utf8")).hosting.headers as {
+    source: string;
+    headers: { key: string; value: string }[];
+  }[];
+  return Object.fromEntries(
+    (rules.find((r) => r.source === "**")?.headers ?? [])
+      .filter((h) => h.key === "Content-Security-Policy-Report-Only")
+      .map((h) => [h.key, h.value]),
+  );
+}
+
+export default defineConfig(({ mode }) => ({
   define: { __APP_VERSION__: JSON.stringify(version) },
-  plugins: [react(), tailwindcss(), preloadFonts()],
+  plugins: [woff2Only(), react(), tailwindcss(), preloadFonts()],
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
+  server: { headers: mode === "emulator" ? hostingHeaders() : {} },
   build: {
     rollupOptions: {
       output: {
@@ -77,4 +107,4 @@ export default defineConfig({
     // Security rules tests need the emulators: run them with `npm run test:rules`.
     exclude: [...configDefaults.exclude, "rules-tests/**", "e2e/**"],
   },
-});
+}));

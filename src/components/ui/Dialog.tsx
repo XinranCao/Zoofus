@@ -1,5 +1,5 @@
 import * as RDialog from "@radix-ui/react-dialog";
-import type { ReactNode } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/cn";
 import { useSeed } from "@/paper/useTorn";
@@ -53,6 +53,13 @@ export function Dialog({
 }: DialogProps) {
   const { t } = useTranslation();
   const id = useSeed(seed);
+  // Focus goes back to whatever opened the dialog; if that is gone (a menu item, a tile that was
+  // deleted) it goes to the page, never to the top of the document.
+  // (noted in a layout effect: it runs before the dialog takes focus)
+  const opener = useRef<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    if (open) opener.current = document.activeElement as HTMLElement | null;
+  }, [open]);
   return (
     <RDialog.Root open={open} onOpenChange={onOpenChange}>
       <RDialog.Portal>
@@ -63,6 +70,12 @@ export function Dialog({
             aria-describedby={undefined}
             onEscapeKeyDown={onEscapeKeyDown}
             onInteractOutside={onInteractOutside}
+            onCloseAutoFocus={(e) => {
+              e.preventDefault();
+              const el = opener.current;
+              if (el?.isConnected && el !== document.body) el.focus();
+              else document.getElementById("main")?.focus();
+            }}
           >
             <Paper
               seed={id}

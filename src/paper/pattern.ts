@@ -116,7 +116,7 @@ export function patternMarkup(
   const w = spec.weight ?? 0.5;
   const ink = hex(spec.ink ?? "cocoa-800");
   const bg = hex(spec.bg ?? "mustard-300");
-  const a = spec.angle ?? 0;
+  const a = Number(spec.angle ?? 0) || 0;
   let tile = "";
   let tw = s;
   let th = s;

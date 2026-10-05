@@ -18,7 +18,7 @@ test("editing the edge of a saved sticker saves", async ({ page }) => {
   await page.getByLabel("Email").fill(`edit-${Date.now()}@example.com`);
   await page.getByLabel("Password").fill("secret123");
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByLabel("Nickname · 昵称").fill("Edit");
+  await page.getByLabel("Nickname").fill("Edit");
   await page.getByRole("button", { name: "Start cutting" }).click();
   await expect(page).toHaveTitle("Zoofus · Make a sticker");
   await page
@@ -34,8 +34,8 @@ test("editing the edge of a saved sticker saves", async ({ page }) => {
   await dragOnPhoto(page);
   await maker.getByRole("button", { name: "Cut it out" }).click();
   await page.getByRole("radio", { name: "Dots" }).click();
-  await page.getByRole("button", { name: "Save to book" }).click();
-  await expect(page.getByText("Saved to your book.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Save to Library" }).click();
+  await expect(page.getByText("Saved to your Library.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Close" }).first().click();
   await page.goto("/stickers");
   await page.getByRole("button", { name: /^Open Cut / }).click();

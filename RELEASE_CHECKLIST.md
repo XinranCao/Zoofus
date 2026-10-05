@@ -51,7 +51,7 @@ The build has about 650 files in `dist/assets` (the Chinese font slices); that i
 
 Use a throwaway account and a photo with a clear subject.
 
-1. **Sign up** with email and a password of 8+ characters; add a nickname. You land on Home. Switch the language to 中文 and back (the menu has "EN · 中文").
+1. **Sign up** with email and a password of 8+ characters; add a nickname. You land on Home. Switch the language to 中文 and back (account menu → Language; the bar has the switch only before you sign in).
 2. **Cut**: Upload a photo. Choose a shape and drag on the photo to draw it (there is no Add shape button), or draw a freehand loop (try leaving the photo's edge and coming back: the corner in between is included). Cut it out.
 3. **Edit the edge**: try Smooth, Wobbly and Torn; pick a stripes print and a pixel print (paint by dragging). Save to book.
 4. **Download** the PNG from the book (open the sticker, Download PNG). Open the file next to the on-screen sticker: **the edge width and the print should look the same**, only sharper.
@@ -63,6 +63,12 @@ Use a throwaway account and a photo with a clear subject.
 Also open the book on an account that already had stickers from the earlier version: it must load (older documents are read leniently), and resize the window to about 400 px high to check that a dialog's title and buttons stay in view while its middle scrolls.
 
 Also look at one older sticker saved before the redesign, if the account has any: it shows, downloads and renames, and says it cannot change its edge.
+
+### Security headers and the CSP
+
+`firebase.json` sends the security headers on every page and a year-long cache on `/assets/**`. The Content-Security-Policy is **report-only** for now: the browser logs violations in its console and blocks nothing. After each release, open the live site and watch the console on sign in, a sticker, a tape, a journal, Friends and Together for `Content-Security-Policy-Report-Only` messages (`e2e/csp.spec.ts` does the same against the emulators; zod's `eval` probe is expected and falls back).
+
+To **promote** it to enforcing: when a release has shown no violations, change the header key in `firebase.json` from `Content-Security-Policy-Report-Only` to `Content-Security-Policy` (and the key `vite.config.ts` and `e2e/csp.spec.ts` look for), deploy, and repeat the smoke test above, including Google sign in. If something breaks, change the key back and redeploy; a missing origin goes into the matching directive.
 
 ## 4. Rollback
 

@@ -1,5 +1,29 @@
 # Changelog
 
+## v1.7.0 – 2026-10-05
+
+First release from the project-manager review of v1.6.2 (all 14 of its tasks), plus dependency updates.
+
+### Features
+
+- Keyboard and screen readers: focus moves to the page heading after each navigation and back to whatever opened a dialog when it closes; the page change is announced; the skip link lands in the page; every control shows a focus ring (and the system ring in forced-colours mode). The New tape dialog takes 11 Tab presses to reach Add (was about 100): the pixel grid is one stop with arrow keys, the name field comes first, the preview stays in view on a phone and Add is pinned.
+- Security headers on every page, a report-only Content-Security-Policy and a year-long cache for built assets (`firebase.json`).
+- The app only follows picture links to its own Storage bucket or `data:` images, so a friend's share can no longer make your browser fetch an arbitrary address.
+- Plain, small first-run screens: the log in / sign up form comes first at every width; the verify-email note is one line you can hide (and notices when you have confirmed); the nickname step is marked required and suggested from your email; after saving a sticker the dialog says it is in your Library and takes you there.
+- The language choice lives in the account menu once you are signed in; the account button shows your name and the phone menu button says Menu (both 44 px tall). The Account page uses plain words ("Download my data (a file you can keep)") and says what is kept and who can see it.
+
+### Fixes
+
+- Workspaces can only invite your friends (one invitation per write), and a friend code can only be claimed by the person whose profile carries it. **The security rules ship with this release.**
+- The top bar was 25 px too wide on the log in and sign up pages at 375 px; the account page scrolled sideways on phones with a long button label; the zoom button's name did not contain its visible "100%"; the phone menu clipped its last items.
+- The Chinese fonts: the 7 MB LXGW WenKai file is now sliced by character range and the `.woff` fallbacks are dropped, so the build shrinks from 75 MB to 43 MB.
+
+### Other
+
+- New checks: CSP violations, a visible focus ring on every control (3:1 contrast), accessible names, form visibility at four widths, keyboard use of the tape dialog, the verify note, the language menu, the account page.
+- Dependency updates: GitHub Actions (checkout 7, setup-java 6, setup-node 7) and minor/patch npm updates (React and others). TypeScript 7 and ESLint 10 were declined for now.
+- Docs: README, CLAUDE.md, data model, debugging guide and the release checklist (promoting the CSP) are up to date.
+
 ## v1.6.2 – 2026-10-05
 
 ### Fixes

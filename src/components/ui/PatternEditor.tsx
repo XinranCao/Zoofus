@@ -46,6 +46,27 @@ export function PixelGrid({
   // (paint or erase), so a stroke colours a whole area.
   const paint = useRef<{ to: "0" | "1"; rows: string[] } | null>(null);
   const pressed = useRef(false);
+  // one tab stop for the whole grid: arrow keys move between cells (the cell last used keeps the stop)
+  const [at, setAt] = useState<[number, number]>([0, 0]);
+  const size = value.length;
+  const focusCell = (e: React.KeyboardEvent, y: number, x: number) => {
+    const next = (
+      e.currentTarget.parentElement as HTMLElement
+    ).querySelector<HTMLElement>(`[data-cell="${y},${x}"]`);
+    if (!next) return;
+    e.preventDefault();
+    setAt([y, x]);
+    next.focus();
+  };
+  const onCellKey = (e: React.KeyboardEvent, y: number, x: number) => {
+    const last = size - 1;
+    if (e.key === "ArrowRight") focusCell(e, y, Math.min(last, x + 1));
+    else if (e.key === "ArrowLeft") focusCell(e, y, Math.max(0, x - 1));
+    else if (e.key === "ArrowDown") focusCell(e, Math.min(last, y + 1), x);
+    else if (e.key === "ArrowUp") focusCell(e, Math.max(0, y - 1), x);
+    else if (e.key === "Home") focusCell(e, y, 0);
+    else if (e.key === "End") focusCell(e, y, last);
+  };
 
   const cellOf = (el: Element | null) => {
     const cell = el?.closest<HTMLElement>("[data-cell]");
@@ -102,6 +123,9 @@ export function PixelGrid({
             data-cell={`${y},${x}`}
             aria-pressed={c === "1"}
             aria-label={t("pattern.cell", { row: y + 1, col: x + 1 })}
+            tabIndex={at[0] === y && at[1] === x ? 0 : -1}
+            onFocus={() => setAt([y, x])}
+            onKeyDown={(e) => onCellKey(e, y, x)}
             style={{ background: c === "1" ? hex(ink) : hex(bg) }}
             onClick={() => {
               // a mouse or touch press was already handled on pointer down; this is the keyboard
@@ -266,7 +290,8 @@ export function PatternEditor({
   const ink = s.ink ?? "sheet-50";
   const update = <K extends keyof PatternSpec>(key: K, v: PatternSpec[K]) =>
     onChange({ ...s, [key]: v });
-  const turns = s.kind !== "solid";
+  // a pixel stamp is not turned: its cells stay on the grid
+  const turns = s.kind !== "solid" && s.kind !== "pixels";
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div>

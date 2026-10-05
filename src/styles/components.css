@@ -1048,6 +1048,9 @@
     .zf-nav {
       display: none;
     }
+    .zf-hide-m-auth {
+      display: none !important;
+    }
     .zf-menu-btn {
       display: inline-flex;
       align-items: center;
@@ -1107,6 +1110,12 @@
     gap: 24px 32px;
     align-items: start;
   }
+  .zf-studio__preview {
+    display: grid;
+    gap: 24px;
+    align-content: start;
+    min-width: 0;
+  }
   .zf-studio__stage {
     position: relative;
     min-height: 300px;
@@ -1163,6 +1172,16 @@
   @media (max-width: 759px) {
     .zf-studio {
       grid-template-columns: minmax(0, 1fr);
+    }
+    /* one column: the preview stays in view while the colours below it are chosen */
+    .zf-studio__preview {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: var(--scrap);
+    }
+    .zf-studio__stage {
+      min-height: 250px;
     }
     .zf-turn-handle {
       width: 44px;
@@ -1974,4 +1993,139 @@
   position: absolute;
   right: -2px;
   bottom: -2px;
+}
+
+/* Forced colours (Windows high contrast): the traced tear rings are drawn in colours the system
+   replaces, so every focused control also gets the system's own ring. */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: 2px;
+  }
+}
+
+/* The auth card comes first in the page; from 1000px the sticker art sits to its left. */
+.zf-auth {
+  display: flex;
+  gap: 56px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.zf-auth__strip {
+  order: 2;
+}
+@media (min-width: 1000px) {
+  .zf-auth__art {
+    order: -1;
+  }
+}
+
+/* "Confirm your email": a one-line strip under the masthead. It follows the page in the DOM (so a
+   keyboard reaches it after the content) and is placed above it by flex order. */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+#app > .zf-masthead {
+  order: 0;
+}
+#app > .zf-verify {
+  order: 1;
+}
+#app > main {
+  order: 2;
+  flex: 1 1 auto;
+}
+.zf-verify {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  min-height: 44px;
+  max-height: 48px;
+  padding: 0 8px 0 16px;
+  background: var(--scrap-warm);
+  color: var(--ink-deep);
+  font-size: 14px;
+  overflow: hidden;
+}
+.zf-verify__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.zf-verify__hide {
+  all: unset;
+  cursor: pointer;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  box-sizing: border-box;
+}
+.zf-verify__hide:focus-visible {
+  outline: 2px solid var(--plum-900);
+  outline-offset: -4px;
+}
+
+.zf-field__req {
+  color: var(--danger-mark);
+}
+
+/* the account button: the picture and the name, at least 44px tall */
+.zf-acct {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--ink);
+}
+.zf-acct__name {
+  white-space: nowrap;
+}
+.zf-acct:focus-visible {
+  outline: 2px solid var(--plum-900);
+  outline-offset: 2px;
+}
+.zf-menu__langlabel {
+  padding: 8px 8px 0;
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--ink);
+}
+.zf-menu-btn .zf-btn {
+  min-height: 44px;
+}
+
+/* a menu taller than the screen scrolls inside itself (the phone menu holds every place + language) */
+.zf-menu {
+  max-height: var(--radix-dropdown-menu-content-available-height, 100dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* a button with a long label wraps instead of widening the page */
+.zf-btn.zf-btn--wrap {
+  max-width: 100%;
+  height: auto;
+  min-height: 44px;
+}
+.zf-btn.zf-btn--wrap > .zf-face {
+  white-space: normal;
+  text-align: center;
+  height: auto;
+  min-height: 44px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }

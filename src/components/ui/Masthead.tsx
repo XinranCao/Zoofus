@@ -112,11 +112,14 @@ function MenuContent({
   groups,
   seed,
   align = "end",
+  language,
 }: {
   user?: MastheadUser;
   groups: MenuItem[][];
   seed: string;
   align?: "start" | "end";
+  /** Adds the language choice (English / 中文) under the items. */
+  language?: boolean;
 }) {
   const style = {
     "--clip-item": tornClip(seed + "i", { size: "xs", w: 200, h: 36 }),
@@ -175,9 +178,44 @@ function MenuContent({
               ))}
             </div>
           ))}
+          {language && <LanguageGroup seed={seed} />}
         </Paper>
       </RMenu.Content>
     </RMenu.Portal>
+  );
+}
+
+/** A long name is cut in the text itself (not by CSS), so no hidden part of it sticks out of the bar. */
+const shortName = (name: string, max = 14) =>
+  [...name].length > max ? [...name].slice(0, max - 1).join("") + "…" : name;
+
+/** The language choice inside the account menu: a labelled pair, the current one marked. */
+function LanguageGroup({ seed }: { seed: string }) {
+  const { t, i18n } = useTranslation();
+  const current = i18n.language.startsWith("zh") ? "zh-CN" : "en";
+  return (
+    <>
+      <Divider seed={seed + "lang"} />
+      <RMenu.Group>
+        <RMenu.Label className="zf-menu__langlabel">{t("nav.language")}</RMenu.Label>
+        <RMenu.RadioGroup
+          value={current}
+          onValueChange={(code) => void i18n.changeLanguage(code)}
+          className="zf-menu__lang"
+        >
+          {LANGUAGES.map((l) => (
+            <RMenu.RadioItem
+              key={l.code}
+              value={l.code}
+              lang={l.code}
+              className="zf-menu__langopt"
+            >
+              {l.label}
+            </RMenu.RadioItem>
+          ))}
+        </RMenu.RadioGroup>
+      </RMenu.Group>
+    </>
   );
 }
 
@@ -312,34 +350,37 @@ export function Masthead({
                   {onTogether && <Scribble seed="nav-tg" weight={2} />}
                 </NavLink>
                 <span style={{ width: 8 }} />
-                <LanguageSwitch />
                 <Menu>
                   <RMenu.Trigger asChild>
-                    <Avatar
-                      name={user.name}
-                      src={user.avatar}
-                      kind={user.avatarKind}
+                    <button
+                      type="button"
+                      className="zf-acct"
                       aria-label={t("nav.accountMenu", { name: user.name })}
-                    />
+                    >
+                      <Avatar
+                        name={user.name}
+                        src={user.avatar}
+                        kind={user.avatarKind}
+                        asStatic
+                      />
+                      <span className="zf-acct__name">{shortName(user.name)}</span>
+                    </button>
                   </RMenu.Trigger>
-                  <MenuContent user={user} groups={[accountItems]} seed="menu" />
+                  <MenuContent user={user} groups={[accountItems]} seed="menu" language />
                 </Menu>
               </nav>
               <span className="zf-menu-btn">
-                <LanguageSwitch />
                 <Menu>
                   <RMenu.Trigger asChild>
-                    <Button
-                      variant="quiet"
-                      icon="menu"
-                      seed="mb"
-                      aria-label={t("common.menu")}
-                    />
+                    <Button variant="quiet" icon="menu" seed="mb">
+                      {t("common.menu")}
+                    </Button>
                   </RMenu.Trigger>
                   <MenuContent
                     user={user}
                     groups={[makeItems, placeItems, accountItems]}
                     seed="mm"
+                    language
                   />
                 </Menu>
               </span>
@@ -350,7 +391,13 @@ export function Masthead({
               style={{ display: "flex", marginLeft: "auto", gap: 4 }}
             >
               <LanguageSwitch />
-              <ButtonLink variant="quiet" to="/login" seed="li">
+              {/* on a phone the log in / sign up pages link to each other, and the bar has no room */}
+              <ButtonLink
+                variant="quiet"
+                to="/login"
+                seed="li"
+                className={onAuth ? "zf-hide-m-auth" : undefined}
+              >
                 {t("nav.logIn")}
               </ButtonLink>
               <ButtonLink

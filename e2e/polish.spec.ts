@@ -6,16 +6,18 @@ test.use({ viewport: { width: 1280, height: 800 } });
 test("small things: tapes rename like stickers, no preset angles, Make has no plus, the chosen language is circled", async ({
   page,
 }) => {
-  await signUp(page, "Mei");
-  // Make has no plus beside it
-  await expect(page.getByRole("button", { name: /^Make/ }).locator("svg")).toHaveCount(0);
-  // the chosen language is circled by hand
+  // the chosen language is circled by hand (on the bar before you are in; after that the choice
+  // lives in the account menu)
+  await page.goto("/login");
   await expect(
     page.locator('.zf-lang button[aria-pressed="true"] .zf-circled').first(),
   ).toBeVisible();
   await expect(
     page.locator('.zf-lang button[aria-pressed="false"] .zf-circled'),
   ).toHaveCount(0);
+  await signUp(page, "Mei");
+  // Make has no plus beside it
+  await expect(page.getByRole("button", { name: /^Make/ }).locator("svg")).toHaveCount(0);
 
   await makeSticker(page);
   await page.goto("/tapes");

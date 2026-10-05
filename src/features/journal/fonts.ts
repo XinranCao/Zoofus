@@ -38,7 +38,7 @@ export const FONTS: JournalFont[] = [
     key: "wenkai",
     family: '"LXGW WenKai", "Xiaolai Mono SC", serif',
     group: "cjkhand",
-    load: () => import("@fontsource/lxgw-wenkai/500.css"),
+    load: () => import("lxgw-wenkai-webfont/lxgwwenkai-regular.css"),
   },
   {
     key: "mashan",

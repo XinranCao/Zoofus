@@ -81,7 +81,7 @@ export default function AccountPage() {
         art={["gear", "heart"]}
       />
 
-      <div style={{ display: "grid", gap: 36 }}>
+      <div style={{ display: "grid", gap: 36, gridTemplateColumns: "minmax(0, 1fr)" }}>
         <ProfileCard />
         <Paper
           seed="acct-data"
@@ -96,6 +96,7 @@ export default function AccountPage() {
           <Button
             variant="secondary"
             icon="download"
+            className="zf-btn--wrap"
             seed="exp"
             loading={exporting}
             onClick={() => void onExport()}
@@ -113,6 +114,23 @@ export default function AccountPage() {
               />
             </div>
           )}
+        </Paper>
+
+        <Paper
+          seed="acct-privacy"
+          size="lg"
+          tone="scrap"
+          rotate={0.3}
+          faceStyle={{ padding: "28px 26px" }}
+        >
+          <h2 className="zf-h2">{t("account.privacyTitle")}</h2>
+          <ul style={{ margin: "10px 0 0", paddingLeft: 20, display: "grid", gap: 8 }}>
+            {(
+              ["privacyKeep", "privacySee", "privacyShare", "privacyDelete"] as const
+            ).map((k) => (
+              <li key={k}>{t(`account.${k}`)}</li>
+            ))}
+          </ul>
         </Paper>
 
         <Paper

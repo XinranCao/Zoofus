@@ -373,7 +373,7 @@ export function JournalStudio({
             variant="quiet"
             size="sm"
             seed="jzf"
-            aria-label={t("journal.zoomFit")}
+            aria-label={`${t("journal.zoomFit")}, ${Math.round(zoom * 100)}%`}
             onClick={() => setZoom(1)}
           >
             {Math.round(zoom * 100)}%

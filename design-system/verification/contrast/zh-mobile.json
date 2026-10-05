@@ -23,7 +23,7 @@
     },
     {
       "screen": "zh/mobile/17-book-grid",
-      "text": "10月3日 剪的",
+      "text": "10月4日 剪的",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -83,7 +83,7 @@
     },
     {
       "screen": "zh/mobile/21-account",
-      "text": "ds-zh-mobile-1791089796595@example.com",
+      "text": "ds-zh-mobile-1791175742422@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -204,7 +204,7 @@
   ],
   "cjkFonts": [
     "Xiaolai Mono SC (web font)",
-    "Special Elite (web font)",
-    "Courier Prime (web font)"
+    "Courier Prime (web font)",
+    "Special Elite (web font)"
   ]
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { useToast } from "@/components/ui/Toast";
 import { TapeLimitError } from "./tape.api";
@@ -36,6 +37,10 @@ export function NewTapeDialog({
   const update = useUpdateTape();
   const start = edit ?? from;
   const [draft, setDraft] = useState<TapeDraft>(start ? draftOf(start) : DEFAULT_DRAFT);
+  const [name, setName] = useState(edit?.name ?? "");
+  const adding = save.isPending || update.isPending;
+  const defaultName =
+    edit?.name ?? t("tape.defaultName", { n: (tapes?.length ?? 0) + 1 });
   const patch = (p: Partial<TapeDraft>) => setDraft((d) => ({ ...d, ...p }));
 
   const add = (name: string) => {
@@ -75,19 +80,31 @@ export function NewTapeDialog({
       sheet
       seed="new-tape"
       title={edit ? t("tape.editTitle") : t("tape.newTitle")}
+      actions={
+        <Button
+          variant="primary"
+          icon={edit ? "check" : "plus"}
+          seed="tsave"
+          loading={adding}
+          onClick={() => add(name.trim() || defaultName)}
+        >
+          {adding
+            ? edit
+              ? t("tape.saving")
+              : t("tape.adding")
+            : edit
+              ? t("tape.saveChanges")
+              : t("tape.add")}
+        </Button>
+      }
     >
       <div style={{ margin: "10px 0 6px" }}>
         <TapeStudio
           draft={draft}
           onDraft={patch}
-          defaultName={
-            edit?.name ?? t("tape.defaultName", { n: (tapes?.length ?? 0) + 1 })
-          }
-          onAdd={add}
-          adding={save.isPending || update.isPending}
-          initialName={edit?.name}
-          addLabel={edit ? t("tape.saveChanges") : undefined}
-          addingLabel={edit ? t("tape.saving") : undefined}
+          name={name}
+          onName={setName}
+          defaultName={defaultName}
         />
       </div>
     </Dialog>
