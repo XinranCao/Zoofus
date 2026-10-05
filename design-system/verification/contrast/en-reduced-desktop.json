@@ -1,5 +1,5 @@
 {
-  "checked": 537,
+  "checked": 536,
   "lowest": [
     {
       "screen": "en-reduced/desktop/10-book-empty",
@@ -19,16 +19,6 @@
       "fg": "#57620d",
       "bg": "#e8ddd0",
       "size": 14,
-      "weight": 400
-    },
-    {
-      "screen": "en-reduced/desktop/17-book-grid",
-      "text": "Cut Oct 5",
-      "ratio": 4.97,
-      "min": 4.5,
-      "fg": "#57620d",
-      "bg": "#e8ddd0",
-      "size": 12,
       "weight": 400
     },
     {
@@ -83,7 +73,7 @@
     },
     {
       "screen": "en-reduced/desktop/21-account",
-      "text": "ds-en-desktop-1791186375006@example.com",
+      "text": "ds-en-desktop-1791204425893@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -194,6 +184,16 @@
     {
       "screen": "en-reduced/desktop/14-maker-deselect-mode",
       "text": "Cut it out",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "en-reduced/desktop/15-maker-edge-torn",
+      "text": "Save to Library",
       "ratio": 5.15,
       "min": 4.5,
       "fg": "#fbf6ee",

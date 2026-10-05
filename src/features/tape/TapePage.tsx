@@ -14,7 +14,8 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { AddToCollectionDialog } from "@/features/collections/AddToCollectionDialog";
 import { ShareDialog } from "@/features/social/ShareDialog";
 import { useForgetItems } from "@/features/collections/useCollections";
-import { MAX_TAPE_NAME, STARTER_TAPES, type Tape, type TapeSpec } from "./tape.schema";
+import { useStarterTapes } from "./starters";
+import { MAX_TAPE_NAME, type Tape, type TapeSpec } from "./tape.schema";
 import { NewTapeDialog } from "./NewTapeDialog";
 import { TapeTile } from "./TapeTile";
 import { useDeleteTape, useRenameTape, useTapes } from "./useTapes";
@@ -24,6 +25,7 @@ export default function TapePage() {
   const { t } = useTranslation();
   const toast = useToast();
   const { data: tapes, isError } = useTapes();
+  const starters = useStarterTapes();
   const remove = useDeleteTape();
   const rename = useRenameTape();
   const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
@@ -136,14 +138,8 @@ export default function TapePage() {
         {t("tape.starters")}
       </h2>
       <div className="zf-grid-tape">
-        {STARTER_TAPES.map((tape, i) => (
-          <TapeTile
-            key={tape.name}
-            tape={tape}
-            index={i}
-            starter
-            onUse={() => start(tape)}
-          />
+        {starters.map((tape, i) => (
+          <TapeTile key={i} tape={tape} index={i} starter onUse={() => start(tape)} />
         ))}
       </div>
 

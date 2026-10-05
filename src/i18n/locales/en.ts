@@ -217,7 +217,7 @@ export const en = {
     },
   },
   home: {
-    title: "Cut something out",
+    title: "Make a sticker",
     body: "Upload a photo, draw around the part you want, and it becomes a sticker in your Library.",
     upload: "Upload a photo",
     how: "How it works",
@@ -322,6 +322,7 @@ export const en = {
     nicknameHint: "Friends see this name. You can change it any time.",
   },
   tape: {
+    starterNames: ["Pink dots", "Lime stripe", "Picnic", "Masking"],
     renameTitle: "Rename tape",
     renameFailed: "We couldn’t rename that tape. Try again.",
     nameLabel: "Name",

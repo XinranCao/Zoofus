@@ -2,6 +2,8 @@
  * The fonts a journal's text can use. Handwriting and Chinese hand fonts are fetched only when
  * chosen (their stylesheets come split by unicode-range, so only the glyphs used are downloaded).
  */
+import { ensureFontsFor } from "@/lib/cjkFonts";
+
 export interface JournalFont {
   key: string;
   /** The CSS font-family stack. */
@@ -137,11 +139,29 @@ export const DEFAULT_FONT = "caveat";
 export const fontOf = (key: string): JournalFont =>
   FONTS.find((f) => f.key === key) ?? FONTS.find((f) => f.key === DEFAULT_FONT)!;
 
+const HAN = /[㐀-鿿＀-￯]/;
 const loaded = new Map<string, Promise<void>>();
+
+/** The Chinese type face behind "typewriter" and "courier", for the characters in `sample`. */
+function loadCjk(sample: string): Promise<void> {
+  ensureFontsFor(sample);
+  return document.fonts
+    .load('24px "Xiaolai Mono SC"', sample)
+    .then(() => undefined)
+    .catch(() => undefined);
+}
 
 /** Make sure a font is on the page and ready to draw with. Resolves even if it fails (a fallback is used). */
 export function ensureFont(key: string, sample = "Aa字"): Promise<void> {
   const font = fontOf(key);
+  // Chinese text in a Latin font is drawn in the font's Chinese fallback (the handwriting fonts
+  // name Ma Shan Zheng, the type fonts Xiaolai): that fallback must be loaded too, or the browser
+  // quietly uses a plain serif
+  if (HAN.test(sample) && font.group !== "cjkhand") {
+    const fallback =
+      font.group === "hand" ? ensureFont("mashan", sample) : loadCjk(sample);
+    return Promise.all([ensureFont(key, "Aa"), fallback]).then(() => undefined);
+  }
   let p = loaded.get(font.key);
   if (!p) {
     p = (async () => {
