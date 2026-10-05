@@ -1,5 +1,5 @@
 {
-  "checked": 450,
+  "checked": 446,
   "lowest": [
     {
       "screen": "en-reduced/mobile/10-book-empty",
@@ -42,16 +42,6 @@
       "weight": 400
     },
     {
-      "screen": "en-reduced/mobile/20e-journal-studio",
-      "text": "All changes saved",
-      "ratio": 4.97,
-      "min": 4.5,
-      "fg": "#57620d",
-      "bg": "#e8ddd0",
-      "size": 13,
-      "weight": 400
-    },
-    {
       "screen": "en-reduced/mobile/20f-collections",
       "text": "Your own groups of stickers, tapes and j",
       "ratio": 4.97,
@@ -83,7 +73,7 @@
     },
     {
       "screen": "en-reduced/mobile/21-account",
-      "text": "ds-en-mobile-1791237871131@example.com",
+      "text": "ds-en-mobile-1791239333892@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -193,6 +183,16 @@
     },
     {
       "screen": "en-reduced/mobile/13-maker-lasso",
+      "text": "Cut it out",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
+      "screen": "en-reduced/mobile/14-maker-deselect-mode",
       "text": "Cut it out",
       "ratio": 5.15,
       "min": 4.5,
