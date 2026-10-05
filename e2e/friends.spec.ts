@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/csp-guard";
 import { makeSticker, signUp } from "./support/flows";
 
 test.use({ viewport: { width: 1280, height: 800 } });

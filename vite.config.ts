@@ -67,11 +67,16 @@ function hostingHeaders(reportOnly: boolean): Record<string, string> {
     headers: { key: string; value: string }[];
   }[];
   // the e2e build talks to the local emulators, which the production policy rightly does not name
-  const emulators = "http://localhost:9099 http://localhost:8080 http://localhost:9199";
+  // (the app reaches them by the host name of its own address: "localhost", or "127.0.0.1" for the
+  // second browser the friends and Together specs use)
+  const hosts = ["localhost", "127.0.0.1"];
+  const at = (port: number) => hosts.map((h) => `http://${h}:${port}`).join(" ");
+  const emulators = [9099, 8080, 9199].map(at).join(" ");
   const forEmulators = (csp: string) =>
     csp
       .replace(/connect-src /, `connect-src ${emulators} `)
-      .replace(/img-src /, "img-src http://localhost:9199 ");
+      .replace(/img-src /, `img-src ${at(9199)} `)
+      .replace(/frame-src /, `frame-src ${at(9099)} `);
   return Object.fromEntries(
     (rules.find((r) => r.source === "**")?.headers ?? []).map((h) => [
       reportOnly && h.key === "Content-Security-Policy"

@@ -58,7 +58,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "build:e2e": "vite build --mode emulator --outDir dist-e2e --emptyOutDir",
-    "preview:e2e": "vite preview --mode emulator --outDir dist-e2e --host localhost --port 4175 --strictPort",
+    "preview:e2e": "vite preview --mode emulator --outDir dist-e2e --host 0.0.0.0 --port 4175 --strictPort",
     "predeploy": "vite build",
     "deploy": "npm run predeploy && firebase deploy",
     "test": "vitest run",
