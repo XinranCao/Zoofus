@@ -285,10 +285,10 @@ export const en = {
     wrongPassword: "That password is not correct.",
     deleteFailed:
       "We couldn’t delete the account. Nothing was changed if you were asked to sign in again.",
-    verify: "Please verify your email address ({{email}}).",
-    resend: "Resend email",
+    verify: "Check your email to confirm it’s you.",
+    resend: "Resend",
     sent: "Sent",
-    verified: "I verified",
+    hideVerify: "Hide this note",
     profileTitle: "Your profile",
     makePicture: "Make a sticker picture",
     pickPicture: "Use one of my stickers",

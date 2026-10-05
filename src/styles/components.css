@@ -2020,3 +2020,55 @@
     order: -1;
   }
 }
+
+/* "Confirm your email": a one-line strip under the masthead. It follows the page in the DOM (so a
+   keyboard reaches it after the content) and is placed above it by flex order. */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+#app > .zf-masthead {
+  order: 0;
+}
+#app > .zf-verify {
+  order: 1;
+}
+#app > main {
+  order: 2;
+  flex: 1 1 auto;
+}
+.zf-verify {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  min-height: 44px;
+  max-height: 48px;
+  padding: 0 8px 0 16px;
+  background: var(--scrap-warm);
+  color: var(--ink-deep);
+  font-size: 14px;
+  overflow: hidden;
+}
+.zf-verify__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.zf-verify__hide {
+  all: unset;
+  cursor: pointer;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  box-sizing: border-box;
+}
+.zf-verify__hide:focus-visible {
+  outline: 2px solid var(--plum-900);
+  outline-offset: -4px;
+}

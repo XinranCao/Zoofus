@@ -87,7 +87,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         pathname={pathname}
         onLogout={() => void logout().then(() => navigate("/login"))}
       />
-      <VerifyEmailBanner />
       <ProfileSetupDialog />
       {currentUser && <MakeHost />}
       {/* tells a screen reader which page it moved to */}
@@ -97,6 +96,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main id="main" tabIndex={-1}>
         {children}
       </main>
+      {/* shown under the masthead (CSS order) but reached after the page content when tabbing */}
+      <VerifyEmailBanner />
     </div>
   );
 }
