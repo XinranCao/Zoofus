@@ -81,9 +81,11 @@ export function Dialog({
               e.preventDefault();
               const open = document.querySelectorAll<HTMLElement>('[role="dialog"]');
               const content = open[open.length - 1];
-              const field = content?.querySelector<HTMLElement>(
-                ".zf-dialog__scroll :is(input:not([type=hidden]):not([disabled]), textarea:not([disabled]), select:not([disabled]))",
-              );
+              const field = [
+                ...(content?.querySelectorAll<HTMLElement>(
+                  ".zf-dialog__scroll :is(input:not([type=hidden]):not([type=file]):not([disabled]), textarea:not([disabled]), select:not([disabled]))",
+                ) ?? []),
+              ].find((el) => el.offsetParent !== null); // a hidden input cannot take focus
               const title = content?.querySelector<HTMLElement>(".zf-dialog__title");
               if (field) field.focus();
               else if (title) {
