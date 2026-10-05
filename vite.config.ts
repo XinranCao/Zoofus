@@ -118,6 +118,13 @@ export default defineConfig(({ mode }) => ({
     environment: "jsdom",
     setupFiles: "./src/setupTests.ts",
     globals: true,
+    // `npm run test:coverage`: a number to watch, no threshold yet
+    coverage: {
+      provider: "v8",
+      reporter: ["text-summary", "html"],
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["src/**/*.test.*", "src/pages/dev/**", "src/setupTests.ts"],
+    },
     // Security rules tests need the emulators: run them with `npm run test:rules`.
     exclude: [...configDefaults.exclude, "rules-tests/**", "e2e/**"],
   },

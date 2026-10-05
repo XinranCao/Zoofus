@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
 import { Avatar } from "@/components/ui/Avatar";
 import {
@@ -11,6 +11,8 @@ import {
 
 const BUCKET = "zoofus-48264.firebasestorage.app";
 
+// a machine whose .env.local turns the emulator flag on must not change what these tests mean
+beforeEach(() => vi.stubEnv("VITE_USE_EMULATORS", ""));
 afterEach(() => vi.unstubAllEnvs());
 
 describe("isTrustedPictureUrl", () => {

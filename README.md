@@ -36,16 +36,18 @@ Use the emulated setup for anything that writes data. PR previews talk to the pr
 
 ## Commands
 
-| Command                                       | What it does                                        |
-| --------------------------------------------- | --------------------------------------------------- |
-| `npm run dev`                                 | Vite dev server (http://localhost:5173)             |
-| `npm run build`                               | Production build into `dist/`                       |
-| `npm run typecheck` / `lint` / `format:check` | TypeScript (strict), ESLint, Prettier               |
-| `npm test`                                    | Vitest suite                                        |
-| `npm run check`                               | Typecheck, lint, tests and build together           |
-| `npm run preview`                             | Serve the production build                          |
-| `npm run test:rules`                          | Firestore and Storage rules tests (emulators, Java) |
-| `npm run test:e2e`                            | Playwright end-to-end tests against the emulators   |
+| Command                                       | What it does                                                                                                             |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `npm run dev`                                 | Vite dev server (http://localhost:5173)                                                                                  |
+| `npm run build`                               | Production build into `dist/`                                                                                            |
+| `npm run typecheck` / `lint` / `format:check` | TypeScript (strict), ESLint, Prettier                                                                                    |
+| `npm test`                                    | Vitest suite                                                                                                             |
+| `npm run check`                               | Typecheck, lint, tests and build together                                                                                |
+| `npm run preview`                             | Serve the production build                                                                                               |
+| `npm run test:rules`                          | Firestore and Storage rules tests (emulators, Java)                                                                      |
+| `npm run test:coverage`                       | Unit tests with a coverage summary (no threshold yet)                                                                    |
+| `npm run emulators:lan`                       | The emulators open to your network, to try the app from a second device (the default emulators listen on 127.0.0.1 only) |
+| `npm run test:e2e`                            | Playwright end-to-end tests against the emulators                                                                        |
 
 ## Project structure
 
