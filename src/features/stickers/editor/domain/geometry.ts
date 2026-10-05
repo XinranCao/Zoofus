@@ -190,3 +190,111 @@ export function translateSelection(sel: Selection, dx: number, dy: number): Sele
   }
   return { ...sel, x: sel.x + dx, y: sel.y + dy };
 }
+
+/** A starting selection for someone who cannot drag: `kind` (a rectangle for the freehand tool), 60% of the photo, in its middle. */
+export function createDefaultSelection(
+  kind: ShapeKind | "freehand",
+  mode: SelectionMode,
+  id: string,
+  fit: { width: number; height: number },
+): ShapeSelection {
+  const k: ShapeKind = kind === "freehand" ? "rectangle" : kind;
+  return createShapeFromDrag(
+    k,
+    mode,
+    id,
+    fit.width * 0.2,
+    fit.height * 0.2,
+    fit.width * 0.8,
+    fit.height * 0.8,
+  )!;
+}
+
+/** A rectangle over the whole photo ("use the whole photo"). */
+export function createWholePhoto(
+  mode: SelectionMode,
+  id: string,
+  fit: { width: number; height: number },
+): ShapeSelection {
+  return {
+    id,
+    mode,
+    kind: "rectangle",
+    x: 0,
+    y: 0,
+    width: fit.width,
+    height: fit.height,
+    rotation: 0,
+  };
+}
+
+/** Smallest a selection can be made with the keyboard, in logical px. */
+const MIN_SIZE = 20;
+
+/** The same selection `dx` wider and `dy` taller (negative: narrower, shorter), keeping its centre. */
+export function resizeSelection(sel: Selection, dx: number, dy: number): Selection {
+  switch (sel.kind) {
+    case "rectangle": {
+      const width = Math.max(MIN_SIZE, sel.width + dx);
+      const height = Math.max(MIN_SIZE, sel.height + dy);
+      return {
+        ...sel,
+        width,
+        height,
+        x: sel.x - (width - sel.width) / 2,
+        y: sel.y - (height - sel.height) / 2,
+      };
+    }
+    case "triangle":
+      return { ...sel, radius: Math.max(MIN_SIZE / 2, sel.radius + (dx - dy) / 2) };
+    case "star": {
+      const outerRadius = Math.max(MIN_SIZE / 2, sel.outerRadius + (dx - dy) / 2);
+      return {
+        ...sel,
+        outerRadius,
+        innerRadius: (sel.innerRadius / sel.outerRadius) * outerRadius,
+      };
+    }
+    case "freehand": {
+      const xs = sel.points.filter((_, i) => i % 2 === 0);
+      const ys = sel.points.filter((_, i) => i % 2 === 1);
+      const [x0, x1, y0, y1] = [
+        Math.min(...xs),
+        Math.max(...xs),
+        Math.min(...ys),
+        Math.max(...ys),
+      ];
+      const w = Math.max(1, x1 - x0);
+      const h = Math.max(1, y1 - y0);
+      const fx = Math.max(MIN_SIZE, w + dx) / w;
+      const fy = Math.max(MIN_SIZE, h + dy) / h;
+      const cx = (x0 + x1) / 2;
+      const cy = (y0 + y1) / 2;
+      return {
+        ...sel,
+        points: sel.points.map((v, i) =>
+          i % 2 === 0 ? cx + (v - cx) * fx : cy + (v - cy) * fy,
+        ),
+      };
+    }
+  }
+}
+
+/** The selection's box as percentages of the photo: left, top, width, height. */
+export function selectionBoxPercent(
+  sel: Selection,
+  fit: { width: number; height: number },
+): { left: number; top: number; width: number; height: number } {
+  const pts = selectionToPoints(sel);
+  const xs = pts.filter((_, i) => i % 2 === 0);
+  const ys = pts.filter((_, i) => i % 2 === 1);
+  const x0 = Math.min(...xs);
+  const y0 = Math.min(...ys);
+  const pc = (v: number, of: number) => Math.round((v / of) * 100);
+  return {
+    left: pc(x0, fit.width),
+    top: pc(y0, fit.height),
+    width: pc(Math.max(...xs) - x0, fit.width),
+    height: pc(Math.max(...ys) - y0, fit.height),
+  };
+}

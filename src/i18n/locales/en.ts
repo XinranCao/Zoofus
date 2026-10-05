@@ -177,11 +177,18 @@ export const en = {
     },
     hint: {
       freehand: "Draw around what you want to keep, then let go.",
-      shape:
-        "Drag on the photo to draw the shape. Keyboard: focus the photo and press Space.",
+      shape: "Drag on the photo to draw the shape.",
+      keys: "Without a mouse: focus the photo, press Enter for a starting selection, arrow keys move it, Shift plus arrows resize it, Delete removes it, then press Enter again to cut it out.",
+    },
+    wholePhoto: "Use the whole photo",
+    announce: {
+      selected:
+        "{{shape}}, {{mode}}: {{width}} percent wide and {{height}} percent tall, {{left}} percent from the left and {{top}} percent from the top. Arrow keys move, Shift plus arrows resize.",
+      removed: "Selection removed. {{count}} left.",
+      none: "No selection. Press Enter for a starting selection, or use the whole photo.",
     },
     canvas:
-      "Photo with selection. Draw around the part you want to keep. Arrow keys move the selected outline, Delete removes it.",
+      "Photo with selection. Draw around the part you want to keep, or press Enter for a starting selection. Arrow keys move the selected outline, Shift plus arrows resize it, Delete removes it.",
     cutIt: "Cut it out",
     leave: {
       title: "Leave without saving?",

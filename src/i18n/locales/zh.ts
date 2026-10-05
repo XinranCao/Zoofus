@@ -173,9 +173,18 @@ export const zh: Messages = {
     },
     hint: {
       freehand: "沿着想留下的部分画一圈,然后松手。",
-      shape: "在照片上拖动来画出形状。键盘:先聚焦照片,再按空格。",
+      shape: "在照片上拖动来画出形状。",
+      keys: "不用鼠标:先聚焦照片,按回车得到一个起始选区,方向键移动,Shift 加方向键调整大小,Delete 删除,再按一次回车就剪下来。",
     },
-    canvas: "带选区的照片。沿着想留下的部分画一圈。方向键移动选中的轮廓,Delete 删除。",
+    wholePhoto: "用整张照片",
+    announce: {
+      selected:
+        "{{shape}},{{mode}}:宽 {{width}}%,高 {{height}}%,距左边 {{left}}%,距上边 {{top}}%。方向键移动,Shift 加方向键调整大小。",
+      removed: "选区已删除,还剩 {{count}} 个。",
+      none: "没有选区。按回车得到一个起始选区,或者用整张照片。",
+    },
+    canvas:
+      "带选区的照片。沿着想留下的部分画一圈,或按回车得到一个起始选区。方向键移动选中的轮廓,Shift 加方向键调整大小,Delete 删除。",
     cutIt: "剪下来",
     leave: {
       title: "不保存就离开吗?",

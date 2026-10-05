@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/Button";
 import { Divider } from "@/components/ui/Scribble";
 import { ToggleGroup } from "@/components/ui/ToggleGroup";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { createWholePhoto } from "../domain/geometry";
 import type { Tool } from "../domain/types";
+import { useEditorImage } from "../useEditorImage";
 import { useEditor } from "../store/editorStore";
 
 const isMac =
@@ -25,6 +27,8 @@ export function MakerTools({ disabled }: { disabled?: boolean }) {
   const undo = useEditor((s) => s.undo);
   const redo = useEditor((s) => s.redo);
   const clear = useEditor((s) => s.clear);
+  const addSelection = useEditor((s) => s.addSelection);
+  const { fit } = useEditorImage();
 
   return (
     <div style={{ display: "grid", gap: 18, alignContent: "start" }}>
@@ -64,6 +68,18 @@ export function MakerTools({ disabled }: { disabled?: boolean }) {
         <p className="zf-muted" style={{ margin: "10px 0 0", fontSize: 13 }}>
           {t(tool === "freehand" ? "maker.hint.freehand" : "maker.hint.shape")}
         </p>
+        <div style={{ marginTop: 10 }}>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon="image"
+            seed="whole"
+            disabled={disabled}
+            onClick={() => addSelection(createWholePhoto(mode, crypto.randomUUID(), fit))}
+          >
+            {t("maker.wholePhoto")}
+          </Button>
+        </div>
       </div>
       <Divider seed="tools" />
       <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>

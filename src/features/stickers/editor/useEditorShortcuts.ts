@@ -1,17 +1,24 @@
 import { useCallback, type KeyboardEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { createShape, translateSelection } from "./domain/geometry";
+import {
+  createDefaultSelection,
+  resizeSelection,
+  translateSelection,
+} from "./domain/geometry";
 import { useEditor } from "./store/editorStore";
 
-const STEP = 2;
-const BIG_STEP = 20;
+const STEP = 5;
+const BIG_STEP = 25;
+const RESIZE_STEP = 10;
 
 /**
- * Keyboard controls for the canvas: arrows move the active selection (Shift = bigger steps),
- * Delete removes it, Space adds a shape with a shape tool, Enter cuts it out, Ctrl/Cmd+Z undoes, Ctrl/Cmd+Shift+Z or Ctrl+Y redoes.
+ * Keyboard controls for the canvas, enough to make a sticker without a mouse: Enter (or Space)
+ * puts a starting selection (60% of the photo, in the middle) when there is none, and Enter again
+ * cuts it out; arrows move the active selection (Alt = bigger steps), Shift+arrows resize it,
+ * Delete removes it, Ctrl/Cmd+Z undoes, Ctrl/Cmd+Shift+Z or Ctrl+Y redoes.
  * (Escape is left to the dialog: it closes the maker, with a confirmation if there is unsaved work.)
  */
-export function useEditorShortcuts() {
+export function useEditorShortcuts(fit: { width: number; height: number }) {
   const {
     selections,
     activeId,
@@ -52,13 +59,15 @@ export function useEditorShortcuts() {
         return redo();
       }
 
-      // the keyboard way to add a shape: Space puts one in the middle (a shape tool must be chosen)
-      if (key === " " && tool !== "freehand") {
+      // the keyboard way to make a selection: Space (or Enter, when nothing can be cut yet) puts one
+      // in the middle; the freehand tool cannot be drawn without a pointer, so it gives a rectangle
+      const cuttable = selections.some((s) => s.mode === "select");
+      if (key === " " || (key === "enter" && !cuttable)) {
         e.preventDefault();
-        return addSelection(createShape(tool, mode, crypto.randomUUID()));
+        return addSelection(createDefaultSelection(tool, mode, crypto.randomUUID(), fit));
       }
 
-      if (key === "enter" && selections.some((s) => s.mode === "select")) {
+      if (key === "enter") {
         e.preventDefault();
         return confirm();
       }
@@ -71,18 +80,21 @@ export function useEditorShortcuts() {
         return removeSelection(active.id);
       }
 
-      const step = e.shiftKey ? BIG_STEP : STEP;
+      const step = e.altKey ? BIG_STEP : STEP;
       const delta: Record<string, [number, number]> = {
-        arrowleft: [-step, 0],
-        arrowright: [step, 0],
-        arrowup: [0, -step],
-        arrowdown: [0, step],
+        arrowleft: [-1, 0],
+        arrowright: [1, 0],
+        arrowup: [0, -1],
+        arrowdown: [0, 1],
       };
-      const move = delta[key];
-      if (move) {
+      const dir = delta[key];
+      if (dir) {
         e.preventDefault();
-        const moved = translateSelection(active, move[0], move[1]);
-        updateSelection(active.id, moved);
+        // Shift+arrows resize (right/down grow, left/up shrink), plain arrows move
+        const next = e.shiftKey
+          ? resizeSelection(active, dir[0] * RESIZE_STEP, dir[1] * RESIZE_STEP)
+          : translateSelection(active, dir[0] * step, dir[1] * step);
+        updateSelection(active.id, next);
       }
     },
     [
@@ -96,6 +108,7 @@ export function useEditorShortcuts() {
       undo,
       redo,
       confirm,
+      fit,
     ],
   );
 }
