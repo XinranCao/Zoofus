@@ -51,6 +51,7 @@ TypeScript (strict), path alias `@/` = `src/`. Feature-based layout; features ow
 
 ## Conventions
 
+- Anything another person writes that names a picture (`avatarUrl`, share `imageUrl`/`sourceUrl`/`thumbUrl`, shelf `url`, workspace `thumb`) goes through `pictureUrlSchema` / `safeDisplayUrl` (`src/lib/trustedUrl.ts`) when read and shown, and `isPictureUrl` in `firestore.rules` when written: an outside address is never requested.
 - Shapes in the sticker maker are drawn by dragging on the photo (no "Add shape" button); Space adds a default one from the keyboard. Saved data is read leniently (`patternSpecSchema` drops what it can't use; the stickers and tapes lists skip unreadable documents), so an older document can never make a list fail.
 - A dialog never grows past the screen: `Dialog` pins the title and the actions and scrolls only `.zf-dialog__scroll` (one scrolling part; the page behind does not scroll). Put long content in the dialog's children, never in its own scroller.
 - Server data (Firebase) goes through TanStack Query hooks; Redux and MUI are gone. Editor state lives in the Zustand store, never in components.

@@ -3,17 +3,17 @@
   "cpuThrottle": "4x",
   "bookLoad": {
     "generated": 14,
-    "ms": 11.699999988079071,
+    "ms": 13.900000095367432,
     "cache": 14
   },
   "afterTapeStudio": {
     "generated": 25,
-    "ms": 21.500000059604645,
+    "ms": 19.100000202655792,
     "cache": 25
   },
   "afterReturningToBook": {
     "generated": 25,
-    "ms": 21.500000059604645,
+    "ms": 19.100000202655792,
     "cache": 25
   }
 }

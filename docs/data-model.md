@@ -24,7 +24,7 @@ Members come in by accepting an invitation (a transaction that checks the limit 
 
 ## Storage
 
-`{uid}/stickers/`, `{uid}/profile/`, `{uid}/journals/{id}/` (thumbnails and copied pictures), `{uid}/shares/{sid}/` (pictures copied for a share, so the sender can delete theirs), `{uid}/collab/{wid}/` (what a member brought to a shelf). Pictures are served through token download URLs, which is how another person's image is shown. Uploads are capped (see `storage.rules`).
+`{uid}/stickers/`, `{uid}/profile/profile_pic/` (JPEG, PNG or WebP only, under 2 MB), `{uid}/journals/{id}/` (thumbnails and copied pictures), `{uid}/shares/{sid}/` (pictures copied for a share, so the sender can delete theirs), `{uid}/collab/{wid}/` (what a member brought to a shelf). Pictures are served through token download URLs, which is how another person's image is shown. Uploads are capped (see `storage.rules`).
 
 ## Rules
 
