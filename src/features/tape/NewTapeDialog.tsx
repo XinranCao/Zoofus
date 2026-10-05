@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { useToast } from "@/components/ui/Toast";
@@ -32,6 +33,7 @@ export function NewTapeDialog({
 }) {
   const { t } = useTranslation();
   const toast = useToast();
+  const navigate = useNavigate();
   const { data: tapes } = useTapes();
   const save = useSaveTape();
   const update = useUpdateTape();
@@ -60,6 +62,11 @@ export function NewTapeDialog({
         toast.push({
           kind: "success",
           title: edit ? t("tape.updated") : t("tape.added", { name }),
+          ...(edit
+            ? {}
+            : {
+                action: { label: t("tape.seeTapes"), onClick: () => navigate("/tapes") },
+              }),
         });
         onClose();
       },

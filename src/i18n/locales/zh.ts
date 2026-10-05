@@ -3,6 +3,7 @@ import type { Messages } from "./en";
 /** 简体中文。语气:简短、朴素、带一点温度;不用感叹号和表情符号。 */
 export const zh: Messages = {
   common: {
+    dismiss: "关闭提示",
     close: "关闭",
     cancel: "取消",
     back: "返回",
@@ -339,6 +340,7 @@ export const zh: Messages = {
     add: "加入我的胶带",
     adding: "加入中",
     added: "已把“{{name}}”加入你的胶带。",
+    seeTapes: "去胶带库看看",
     removed: "胶带已删除。",
     limit: "你的胶带已经满了,先删掉几卷。",
     saveFailed: "胶带没能保存。再试一次。",

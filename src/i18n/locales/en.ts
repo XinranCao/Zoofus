@@ -1,6 +1,7 @@
 /** English copy. Rules: sentence case, verbs on buttons, no exclamation marks, no emoji. */
 export const en = {
   common: {
+    dismiss: "Dismiss",
     close: "Close",
     cancel: "Cancel",
     back: "Back",
@@ -349,6 +350,7 @@ export const en = {
     add: "Add to my tapes",
     adding: "Adding",
     added: "Added “{{name}}” to your tapes.",
+    seeTapes: "See in Tapes",
     removed: "Tape deleted.",
     limit: "You have the most tapes you can keep. Delete one first.",
     saveFailed: "We couldn’t save that tape. Try again.",
