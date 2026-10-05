@@ -1,5 +1,5 @@
 {
-  "checked": 476,
+  "checked": 466,
   "lowest": [
     {
       "screen": "zh/mobile/10-book-empty",
@@ -83,7 +83,7 @@
     },
     {
       "screen": "zh/mobile/21-account",
-      "text": "ds-zh-mobile-1791172751360@example.com",
+      "text": "ds-zh-mobile-1791173748636@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",

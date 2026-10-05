@@ -2076,3 +2076,41 @@
 .zf-field__req {
   color: var(--danger-mark);
 }
+
+/* the account button: the picture and the name, at least 44px tall */
+.zf-acct {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--ink);
+}
+.zf-acct__name {
+  white-space: nowrap;
+}
+.zf-acct:focus-visible {
+  outline: 2px solid var(--plum-900);
+  outline-offset: 2px;
+}
+.zf-menu__langlabel {
+  padding: 8px 8px 0;
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--ink);
+}
+.zf-menu-btn .zf-btn {
+  min-height: 44px;
+}
+
+/* a menu taller than the screen scrolls inside itself (the phone menu holds every place + language) */
+.zf-menu {
+  max-height: var(--radix-dropdown-menu-content-available-height, 100dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
