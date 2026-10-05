@@ -25,7 +25,8 @@ test("a Google account with a photo gets a friend code and a name", async ({ pag
   // a Google account has no profile yet: the nickname dialog asks once
   const setup = page.getByRole("dialog", { name: "What should we call you?" });
   await expect(setup).toBeVisible({ timeout: 20_000 });
-  await setup.getByRole("button", { name: "Continue" }).click();
+  // Enter in the nickname field continues (it is a real form)
+  await setup.getByLabel("Nickname").press("Enter");
   await expect(setup).toBeHidden();
 
   await page.goto("/friends");

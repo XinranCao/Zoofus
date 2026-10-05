@@ -46,7 +46,6 @@ export const en = {
       passwordShort: "Use at least 8 characters.",
       name: "Enter a nickname between 1 and 40 characters.",
       emailInUse: "That email already has an account.",
-      wrongPassword: "Password doesn’t match this email.",
       weakPassword: "Pick a stronger password.",
       toastTitle: "That didn’t work",
       login: "Email or password is wrong. Try again or reset your password.",

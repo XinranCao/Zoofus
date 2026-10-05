@@ -48,7 +48,6 @@ export const zh: Messages = {
       passwordShort: "至少需要 8 个字符。",
       name: "请输入 1 到 40 个字符的昵称。",
       emailInUse: "这个邮箱已经注册过了。",
-      wrongPassword: "密码和这个邮箱对不上。",
       weakPassword: "请换一个更强的密码。",
       toastTitle: "没有成功",
       login: "邮箱或密码不对。再试一次,或者重置密码。",
