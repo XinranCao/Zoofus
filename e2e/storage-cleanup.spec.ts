@@ -49,8 +49,8 @@ test("a sticker is one stored file (its outline is text), and deleting it remove
   await maker.getByRole("radio", { name: /Rectangle/ }).click();
   await dragOnPhoto(page);
   await maker.getByRole("button", { name: "Cut it out" }).click();
-  await page.getByRole("button", { name: "Save to book" }).click();
-  await expect(page.getByText("Saved to your book.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Save to Library" }).click();
+  await expect(page.getByText("Saved to your Library.", { exact: true })).toBeVisible();
 
   await expect.poll(async () => (await stickerObjects()).length - before.length).toBe(1); // only the picture: the lasso outline lives in the document
 

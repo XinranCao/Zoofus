@@ -113,7 +113,7 @@ for (const vp of [
     }) => {
       await signUp(page);
       await toEdgeStudio(page);
-      const overflow = await expectWellBehaved(page, /Save to book/);
+      const overflow = await expectWellBehaved(page, /Save to Library/);
       expect(
         overflow,
         "this content is meant to be taller than the screen",

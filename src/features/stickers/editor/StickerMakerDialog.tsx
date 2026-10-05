@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogBody } from "@/components/ui/Dialog";
 import { TextField } from "@/components/ui/TextField";
@@ -67,6 +68,7 @@ function MakerBody({
   const [usingPicture, setUsingPicture] = useState(false);
   const { t, i18n } = useTranslation();
   const toast = useToast();
+  const navigate = useNavigate();
   const intake = useImageIntake();
   const save = useSaveSticker();
   const { image, fit } = useEditorImage();
@@ -152,11 +154,6 @@ function MakerBody({
         seed,
       });
       setSavedKey(editKey);
-      toast.push({
-        kind: "success",
-        title: t("maker.edge.saved"),
-        body: t("maker.edge.savedBody"),
-      });
     } catch (err) {
       const body =
         err instanceof StickerLimitError
@@ -211,16 +208,30 @@ function MakerBody({
         <Button variant="quiet" icon="undo" seed="ba" onClick={backToEdit}>
           {t("maker.edge.back")}
         </Button>
-        <Button
-          variant="secondary"
-          icon="book"
-          seed="sv"
-          disabled={saved || !source}
-          loading={save.isPending}
-          onClick={onSave}
-        >
-          {save.isPending ? t("maker.edge.saving") : t("maker.edge.save")}
-        </Button>
+        {saved ? (
+          <Button
+            variant="secondary"
+            icon="book"
+            seed="see"
+            onClick={() => {
+              onClose();
+              navigate("/stickers");
+            }}
+          >
+            {t("maker.edge.seeIt")}
+          </Button>
+        ) : (
+          <Button
+            variant="secondary"
+            icon="book"
+            seed="sv"
+            disabled={!source}
+            loading={save.isPending}
+            onClick={onSave}
+          >
+            {save.isPending ? t("maker.edge.saving") : t("maker.edge.save")}
+          </Button>
+        )}
         <Button
           variant="primary"
           icon="download"
@@ -280,6 +291,17 @@ function MakerBody({
         )}
         {view === "result" ? (
           <div style={{ marginTop: 10, marginBottom: 22 }}>
+            {saved && !onAvatar && (
+              <div style={{ marginBottom: 16 }}>
+                <ToastNote
+                  kind="success"
+                  title={t("maker.edge.saved")}
+                  body={t("maker.edge.savedBody")}
+                  seed="maker-saved"
+                  role="status"
+                />
+              </div>
+            )}
             {!onAvatar && (
               <div style={{ maxWidth: 360, marginBottom: 18 }}>
                 <TextField

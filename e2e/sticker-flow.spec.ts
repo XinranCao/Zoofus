@@ -38,11 +38,14 @@ test("sign up, cut and save a sticker, then delete the account", async ({ page }
   await expect(page.getByRole("dialog", { name: "Your sticker" })).toBeVisible();
   await expect(page.getByRole("img", { name: "Sticker preview" })).toBeVisible();
   await page.getByRole("radio", { name: "Torn" }).click();
-  await page.getByRole("button", { name: "Save to book" }).click();
-  await expect(page.getByText("Saved to your book.", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Close" }).first().click();
+  await page.getByRole("button", { name: "Save to Library" }).click();
+  await expect(page.getByText("Saved to your Library.", { exact: true })).toBeVisible();
+  // the dialog says where it went and takes you there
+  await page.getByRole("button", { name: "See it in Library" }).click();
+  await expect(page).toHaveURL(/\/stickers$/);
+  await expect(page.getByRole("dialog")).toBeHidden();
 
-  // It shows up in the sticker book
+  // It shows up in the Library
   await page.goto("/stickers");
   await expect(
     page.getByRole("heading", { name: "Stickers", exact: true }),

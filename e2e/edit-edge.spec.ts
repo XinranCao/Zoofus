@@ -34,8 +34,8 @@ test("editing the edge of a saved sticker saves", async ({ page }) => {
   await dragOnPhoto(page);
   await maker.getByRole("button", { name: "Cut it out" }).click();
   await page.getByRole("radio", { name: "Dots" }).click();
-  await page.getByRole("button", { name: "Save to book" }).click();
-  await expect(page.getByText("Saved to your book.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Save to Library" }).click();
+  await expect(page.getByText("Saved to your Library.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Close" }).first().click();
   await page.goto("/stickers");
   await page.getByRole("button", { name: /^Open Cut / }).click();
