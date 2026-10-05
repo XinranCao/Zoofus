@@ -43,15 +43,21 @@ export function VerifyEmailBanner() {
     <div className="zf-verify" role="status">
       <Icon name="alert" />
       <span className="zf-verify__text">{t("account.verify")}</span>
-      <Button
-        variant="quiet"
-        size="sm"
-        seed="vr"
-        disabled={sent}
-        onClick={() => void sendVerification().then(() => setSent(true))}
-      >
-        {sent ? t("account.sent") : t("account.resend")}
-      </Button>
+      {sent ? (
+        // not a disabled button: that would stay a Tab stop that does nothing
+        <span className="zf-verify__sent" role="status">
+          {t("account.sent")}
+        </span>
+      ) : (
+        <Button
+          variant="quiet"
+          size="sm"
+          seed="vr"
+          onClick={() => void sendVerification().then(() => setSent(true))}
+        >
+          {t("account.resend")}
+        </Button>
+      )}
       <button
         type="button"
         className="zf-verify__hide"

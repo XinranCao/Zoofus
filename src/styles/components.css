@@ -2129,3 +2129,10 @@
   padding-top: 8px;
   padding-bottom: 8px;
 }
+
+.zf-verify__sent {
+  flex: none;
+  padding: 0 12px;
+  font-family: var(--font-display);
+  font-size: 14px;
+}

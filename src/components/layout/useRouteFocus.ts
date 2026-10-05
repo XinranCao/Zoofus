@@ -13,13 +13,16 @@ function target(): HTMLElement | null {
  * lazily, so the heading is looked for for about a second. Does nothing on first load, and leaves
  * focus alone if it is already inside the page (a field that took focus itself) or a dialog is open.
  */
-export function useRouteFocus(pathname: string) {
-  const first = useRef(true);
+export function useRouteFocus(pathname: string, navigationType?: string) {
+  // the path we last looked at: the first load, and an effect run twice by React's strict mode in
+  // development, see no change and leave focus alone
+  const seen = useRef(pathname);
   useEffect(() => {
-    if (first.current) {
-      first.current = false;
-      return;
-    }
+    if (seen.current === pathname) return;
+    seen.current = pathname;
+    // a redirect (the login page sending a signed-out visitor, a route that moved) is not the
+    // person going somewhere: the page is still a fresh load, so the first Tab reaches the skip link
+    if (navigationType === "REPLACE") return;
     let frame = 0;
     let tries = 0;
     const seek = () => {
@@ -39,5 +42,6 @@ export function useRouteFocus(pathname: string) {
     };
     frame = requestAnimationFrame(seek);
     return () => cancelAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only a new path moves focus
   }, [pathname]);
 }

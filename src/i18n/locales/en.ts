@@ -304,7 +304,7 @@ export const en = {
     wrongPassword: "That password is not correct.",
     deleteFailed:
       "We couldn’t delete the account. Nothing was changed if you were asked to sign in again.",
-    verify: "Check your email to confirm it’s you.",
+    verify: "Confirm your email",
     resend: "Resend",
     sent: "Sent",
     hideVerify: "Hide this note",

@@ -295,7 +295,7 @@ export const zh: Messages = {
     deleting: "删除中",
     wrongPassword: "密码不对。",
     deleteFailed: "账号没能删除。如果要求重新登录,你的数据没有任何改动。",
-    verify: "请查收邮件,确认是你本人。",
+    verify: "请确认你的邮箱",
     resend: "重发",
     sent: "已发送",
     hideVerify: "收起提示",
