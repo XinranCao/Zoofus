@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { signUp } from "./support/flows";
+import { makeSticker, signUp } from "./support/flows";
 
 // Walks the Tab order on the main screens. For every control that takes focus, the area around it is
 // compared with and without focus: something must change, and some changed pixel must differ from its
@@ -130,7 +130,9 @@ test("every control shows a visible focus indicator", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   bad.push(...(await walk(page, "login")));
   await signUp(page, "Ring");
+  await makeSticker(page); // so Home shows "See all"
   for (const path of [
+    "/",
     "/stickers",
     "/tapes",
     "/journals",
@@ -142,7 +144,40 @@ test("every control shows a visible focus indicator", async ({ page }) => {
     await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
     bad.push(...(await walk(page, path, 30)));
   }
+  // the dialogs of the Make menu: the focus stays inside, and every control in them has a ring
+  for (const path of [
+    "/stickers?make=1",
+    "/tapes?make=1",
+    "/journals?make=1",
+    "/together?make=1",
+  ]) {
+    await page.goto(path);
+    await expect(page.getByRole("dialog")).toBeVisible();
+    bad.push(...(await walk(page, path, 25)));
+  }
   expect(bad, bad.join("\n")).toEqual([]);
+});
+
+test("the in-page buttons on Home (Upload a photo, How it works, See all) show a ring", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await signUp(page, "Home");
+  await makeSticker(page);
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
+  for (const name of ["Upload a photo", "How it works", "See all"]) {
+    const button = page.getByRole("button", { name, exact: true });
+    await button.scrollIntoViewIfNeeded();
+    await button.focus();
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Tab"); // keyboard focus, so :focus-visible applies
+    await expect(button).toBeFocused();
+    const r = await measure(page);
+    expect(r && r.changed >= 12 && r.best >= 3, `${name}: ${JSON.stringify(r)}`).toBe(
+      true,
+    );
+  }
 });
 
 test("forced colours show the system focus ring, and the skip link lands in main", async ({

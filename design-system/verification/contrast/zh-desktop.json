@@ -1,5 +1,5 @@
 {
-  "checked": 534,
+  "checked": 536,
   "lowest": [
     {
       "screen": "zh/desktop/10-book-empty",
@@ -23,7 +23,7 @@
     },
     {
       "screen": "zh/desktop/17-book-grid",
-      "text": "10月4日 剪的",
+      "text": "10月5日 剪的",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -83,7 +83,7 @@
     },
     {
       "screen": "zh/desktop/21-account",
-      "text": "ds-zh-desktop-1791182585174@example.com",
+      "text": "ds-zh-desktop-1791186291676@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",

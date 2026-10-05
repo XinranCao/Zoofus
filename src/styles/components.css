@@ -534,6 +534,11 @@
     filter: var(--focus-trace);
     transform: rotate(0);
   }
+  /* the chosen swatch always wears the trace, so the focused one needs a ring of its own */
+  .zf-swatch:focus-visible {
+    outline: 2px solid var(--plum-900);
+    outline-offset: 4px;
+  }
   .zf-swatch__check {
     position: absolute;
     left: 50%;
