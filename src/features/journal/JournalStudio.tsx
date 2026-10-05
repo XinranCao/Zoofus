@@ -317,6 +317,8 @@ export function JournalStudio({
 
   return (
     <div className="zf-jstudio" onKeyDown={onKeyDown}>
+      {/* the page's heading for screen readers (when the title is an editable field, not a heading) */}
+      {onTitle && <h1 className="sr-only">{title}</h1>}
       <div className="zf-jstudio__bar">
         {backTo && (
           <Link to={backTo.to} className="zf-backlink">
@@ -446,6 +448,7 @@ export function JournalStudio({
             tabIndex={0}
             role="application"
             aria-label={t("journal.pageLabel")}
+            aria-describedby="journal-items"
           >
             {areaWidth > 0 && (
               <JournalCanvas
@@ -459,6 +462,14 @@ export function JournalStudio({
             )}
           </div>
         </div>
+
+        {/* what is on the page, in words: the canvas itself cannot be read by a screen reader */}
+        <ul id="journal-items" className="sr-only" aria-label={t("journal.items.label")}>
+          {items.length === 0 && <li>{t("journal.items.none")}</li>}
+          {items.map((item) => (
+            <li key={item.id}>{describeItem(item, resolve, t)}</li>
+          ))}
+        </ul>
 
         <div className="zf-jstudio__panel">
           {tool === "draw" || tool === "erase" ? (
@@ -827,4 +838,22 @@ function ItemPanel({
       </div>
     </Paper>
   );
+}
+
+/** One item on the page in a few words, for the screen-reader list. */
+function describeItem(
+  item: Item,
+  resolve: StickerResolver,
+  t: (key: string, options?: Record<string, unknown>) => string,
+): string {
+  switch (item.t) {
+    case "s":
+      return t("journal.items.sticker", { name: resolve(item.ref)?.name ?? "?" });
+    case "t":
+      return t("journal.items.tape");
+    case "x":
+      return t("journal.items.text", { text: item.text.trim().slice(0, 60) });
+    case "p":
+      return t("journal.items.drawing", { tool: t(`journal.pen.tools.${item.tool}`) });
+  }
 }

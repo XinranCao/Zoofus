@@ -60,13 +60,13 @@ export function SharedWithYou() {
   );
 }
 
-function Preview({ share }: { share: Share }) {
+function Preview({ share, alt }: { share: Share; alt: string }) {
   if (share.kind === "sticker") {
     const p = stickerPayloadSchema.safeParse(share.payload);
     return p.success ? (
       <img
         src={p.data.imageUrl}
-        alt=""
+        alt={alt}
         width={p.data.width}
         height={p.data.height}
         loading="lazy"
@@ -103,7 +103,7 @@ function Preview({ share }: { share: Share }) {
   return p.data.thumbUrl ? (
     <img
       src={p.data.thumbUrl}
-      alt=""
+      alt={alt}
       loading="lazy"
       style={{ maxWidth: "100%", maxHeight: 190, width: "auto", height: "auto" }}
     />
@@ -144,7 +144,7 @@ function SharedCard({ share, index }: { share: Share; index: number }) {
       <div
         style={{ minHeight: 100, display: "grid", placeItems: "center", width: "100%" }}
       >
-        <Preview share={share} />
+        <Preview share={share} alt={t(`shared.from.${share.kind}`, { name: who })} />
       </div>
       <div className="zf-h2" style={{ fontSize: 17 }}>
         {share.name}

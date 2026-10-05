@@ -130,6 +130,8 @@ test("two people become friends, name each other, share and keep a sticker", asy
         .evaluateAll((els) => els.map((e) => (e as HTMLImageElement).src)),
     )
     .toEqual(expect.arrayContaining([expect.stringContaining("http://127.0.0.1:9199/")]));
+  // the shared picture says who it is from (not an empty alt)
+  await expect(b.getByRole("img", { name: /^Sticker from / }).first()).toBeVisible();
   await b.getByRole("button", { name: "Add to my stickers" }).click();
   await expect(b.getByText("Added to your stickers.").first()).toBeVisible({
     timeout: 15000,

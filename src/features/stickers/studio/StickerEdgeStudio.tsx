@@ -35,7 +35,7 @@ export function StickerEdgeStudio({
     ? Math.max(120, Math.min(previewSize, Math.round(window.innerHeight * 0.4) - 32))
     : previewSize;
   return (
-    <div className="zf-studio">
+    <div className="zf-studio zf-studio--sticker">
       <div className="zf-studio__preview">
         <div
           className="zf-studio__stage zf-ground"

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
@@ -125,6 +125,11 @@ function MakerBody({
 
   const editKey = JSON.stringify([edge, seed, selections.map((s) => s.id)]);
   const saved = savedKey === editKey;
+  // Saving swaps the Save button for "See it in Library": focus goes to it, not to nowhere
+  const seeRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (saved) seeRef.current?.focus();
+  }, [saved]);
   const dirty = selections.length > 0 && !saved;
   const requestClose = () => (dirty ? setLeaving(true) : onClose());
 
@@ -223,6 +228,7 @@ function MakerBody({
               {t("maker.edge.another")}
             </Button>
             <Button
+              ref={seeRef}
               variant="primary"
               icon="book"
               seed="see"

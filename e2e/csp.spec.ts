@@ -106,7 +106,7 @@ test("sign up, a sticker, a tape, a journal, friends, together, sign in: no viol
     .getByLabel("Name")
     .fill("Csp tape");
   await page.getByRole("button", { name: "Add to my tapes" }).click();
-  await expect(page.getByText("Added to your tapes.", { exact: true })).toBeVisible();
+  await expect(page.getByText(/^Added .* to your tapes\.$/)).toBeVisible();
   await page.goto("/journals?make=1");
   await page
     .getByRole("dialog", { name: "New journal" })

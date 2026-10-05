@@ -344,7 +344,7 @@ export const en = {
     defaultName: "My tape {{n}}",
     add: "Add to my tapes",
     adding: "Adding",
-    added: "Added to your tapes.",
+    added: "Added “{{name}}” to your tapes.",
     removed: "Tape deleted.",
     limit: "You have the most tapes you can keep. Delete one first.",
     saveFailed: "We couldn’t save that tape. Try again.",
@@ -512,6 +512,14 @@ export const en = {
       select:
         "Add stickers and tape, or choose Text or Draw. Click anything on the page to move, turn or resize it.",
       erase: "Drag across a pen line to erase it.",
+    },
+    items: {
+      label: "On the page",
+      none: "Nothing on the page yet.",
+      sticker: "Sticker: {{name}}",
+      tape: "Tape",
+      text: "Text: {{text}}",
+      drawing: "Drawing ({{tool}})",
     },
     tools: {
       sticker: "Sticker",

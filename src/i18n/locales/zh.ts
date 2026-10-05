@@ -335,7 +335,7 @@ export const zh: Messages = {
     defaultName: "我的胶带 {{n}}",
     add: "加入我的胶带",
     adding: "加入中",
-    added: "已加入你的胶带。",
+    added: "已把“{{name}}”加入你的胶带。",
     removed: "胶带已删除。",
     limit: "你的胶带已经满了,先删掉几卷。",
     saveFailed: "胶带没能保存。再试一次。",
@@ -499,6 +499,14 @@ export const zh: Messages = {
       select:
         "添加贴纸和胶带,或者选“文字”“画画”。点页面上的任何东西可以移动、旋转、改大小。",
       erase: "在笔迹上拖过去就能擦掉。",
+    },
+    items: {
+      label: "页面上有什么",
+      none: "页面上还什么都没有。",
+      sticker: "贴纸:{{name}}",
+      tape: "胶带",
+      text: "文字:{{text}}",
+      drawing: "涂画({{tool}})",
     },
     tools: {
       sticker: "贴纸",

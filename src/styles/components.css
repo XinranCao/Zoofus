@@ -1191,6 +1191,10 @@
       z-index: 3;
       background: var(--scrap);
     }
+    /* what is scrolled or focused into view stays clear of the pinned preview above it */
+    .zf-dialog__scroll:has(.zf-studio--sticker) {
+      scroll-padding-top: 48vh;
+    }
   }
   .zf-pixels {
     display: grid;
