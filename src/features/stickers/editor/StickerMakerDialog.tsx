@@ -130,6 +130,12 @@ function MakerBody({
   useEffect(() => {
     if (saved) seeRef.current?.focus();
   }, [saved]);
+  // step 2 opens at the top, where the whole preview is (step 1 may have scrolled)
+  const resultRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (view === "result")
+      resultRef.current?.closest(".zf-dialog__scroll")?.scrollTo?.(0, 0);
+  }, [view]);
   const dirty = selections.length > 0 && !saved;
   const requestClose = () => (dirty ? setLeaving(true) : onClose());
 
@@ -310,7 +316,7 @@ function MakerBody({
           </div>
         )}
         {view === "result" ? (
-          <div style={{ marginTop: 10, marginBottom: 22 }}>
+          <div style={{ marginTop: 10, marginBottom: 22 }} ref={resultRef}>
             {saved && !onAvatar && (
               <div style={{ marginBottom: 16 }}>
                 <ToastNote

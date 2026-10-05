@@ -53,6 +53,44 @@ test.describe("phone", () => {
   });
 });
 
+// UX-036: on small phones and at 200% zoom the whole sticker is shown, never cropped
+for (const [width, height] of [
+  [375, 667],
+  [360, 740],
+  [640, 360],
+] as const) {
+  test(`the preview is whole and reachable at ${width}x${height}`, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    await signUp(page, "Small");
+    const dlg = await toSaveDialog(page);
+    const scroller = dlg.locator(".zf-dialog__scroll");
+    const actions = dlg.locator(".zf-dialog__actions");
+    const preview = dlg.getByRole("img", { name: "Sticker preview" });
+    const stage = dlg.locator(".zf-studio__stage");
+    // step 2 opens at the top of the dialog
+    expect(await scroller.evaluate((el) => el.scrollTop)).toBe(0);
+    // (tall enough: the preview is pinned, so it stays in view whatever the scroll; short: it scrolls)
+    if (height >= 560) await scroller.evaluate((el) => (el.scrollTop = el.scrollHeight));
+    else await preview.scrollIntoViewIfNeeded();
+    const p = (await preview.boundingBox())!;
+    const st = (await stage.boundingBox())!;
+    const sc = (await scroller.boundingBox())!;
+    const ac = (await actions.boundingBox())!;
+    // inside its own box (nothing cropped), at least 120 px tall unless the screen is tiny
+    expect(p.x).toBeGreaterThanOrEqual(st.x - 1);
+    expect(p.x + p.width).toBeLessThanOrEqual(st.x + st.width + 1);
+    expect(p.y).toBeGreaterThanOrEqual(st.y - 1);
+    expect(p.y + p.height).toBeLessThanOrEqual(st.y + st.height + 1);
+    expect(p.height).toBeGreaterThanOrEqual(100);
+    expect(p.height).toBeLessThanOrEqual(height * 0.4 + 1);
+    // and visible in the scrolling part, with the Save row below it
+    expect(p.y).toBeGreaterThanOrEqual(sc.y - 1);
+    expect(p.y + p.height).toBeLessThanOrEqual(sc.y + sc.height + 1);
+    expect(sc.y + sc.height).toBeLessThanOrEqual(ac.y + 1);
+    await expect(dlg.getByRole("button", { name: "Save to Library" })).toBeVisible();
+  });
+}
+
 test.describe("desktop", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 

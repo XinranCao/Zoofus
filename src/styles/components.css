@@ -1127,6 +1127,11 @@
     overflow: hidden;
     touch-action: none;
   }
+  /* the preview is always shown whole (contain): never wider than its box, ratio kept */
+  .zf-studio__stage canvas {
+    max-width: 100%;
+    height: auto;
+  }
   .zf-studio__controls {
     display: grid;
     gap: 20px;
