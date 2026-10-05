@@ -19,7 +19,7 @@ jobs:
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "Tag $GITHUB_REF_NAME is not on main"; exit 1; }
           pkg="v$(node -p "require('./package.json').version")"
           [ "$pkg" = "$GITHUB_REF_NAME" ] || { echo "package.json is $pkg but tag is $GITHUB_REF_NAME"; exit 1; }
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
