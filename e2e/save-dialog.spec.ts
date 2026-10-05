@@ -137,7 +137,7 @@ test.describe("desktop", () => {
     const edit = dlg.getByRole("button", { name: "Edit edge" });
     expect((await edit.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await edit.click();
-    await expect(page).toHaveURL(/\/stickers$/);
+    await expect(page).toHaveURL(/\/stickers(\?edit=[\w-]+)?$/);
     await expect(page.getByRole("dialog", { name: "Edit the edge" })).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(page.locator(".zf-tile")).toHaveCount(1);
