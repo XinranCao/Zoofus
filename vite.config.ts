@@ -40,12 +40,26 @@ const { version } = JSON.parse(readFileSync("./package.json", "utf8")) as {
   version: string;
 };
 
-export default defineConfig({
+/** The hosting headers (firebase.json) as the emulated dev server sends them too, so the e2e run sees any CSP violation. */
+function hostingHeaders(): Record<string, string> {
+  const rules = JSON.parse(readFileSync("./firebase.json", "utf8")).hosting.headers as {
+    source: string;
+    headers: { key: string; value: string }[];
+  }[];
+  return Object.fromEntries(
+    (rules.find((r) => r.source === "**")?.headers ?? [])
+      .filter((h) => h.key === "Content-Security-Policy-Report-Only")
+      .map((h) => [h.key, h.value]),
+  );
+}
+
+export default defineConfig(({ mode }) => ({
   define: { __APP_VERSION__: JSON.stringify(version) },
   plugins: [react(), tailwindcss(), preloadFonts()],
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
+  server: { headers: mode === "emulator" ? hostingHeaders() : {} },
   build: {
     rollupOptions: {
       output: {
@@ -77,4 +91,4 @@ export default defineConfig({
     // Security rules tests need the emulators: run them with `npm run test:rules`.
     exclude: [...configDefaults.exclude, "rules-tests/**", "e2e/**"],
   },
-});
+}));

@@ -64,6 +64,12 @@ Also open the book on an account that already had stickers from the earlier vers
 
 Also look at one older sticker saved before the redesign, if the account has any: it shows, downloads and renames, and says it cannot change its edge.
 
+### Security headers and the CSP
+
+`firebase.json` sends the security headers on every page and a year-long cache on `/assets/**`. The Content-Security-Policy is **report-only** for now: the browser logs violations in its console and blocks nothing. After each release, open the live site and watch the console on sign in, a sticker, a tape, a journal, Friends and Together for `Content-Security-Policy-Report-Only` messages (`e2e/csp.spec.ts` does the same against the emulators; zod's `eval` probe is expected and falls back).
+
+To **promote** it to enforcing: when a release has shown no violations, change the header key in `firebase.json` from `Content-Security-Policy-Report-Only` to `Content-Security-Policy` (and the key `vite.config.ts` and `e2e/csp.spec.ts` look for), deploy, and repeat the smoke test above, including Google sign in. If something breaks, change the key back and redeploy; a missing origin goes into the matching directive.
+
 ## 4. Rollback
 
 - **App**: Firebase console → Hosting → Release history → roll back to the previous release (or `git revert` on `main`, tag a patch, and let the workflow redeploy). The sticker documents the new version writes (`edge`, `seed`, `sourcePath`) are ignored by the old version, which is why the rollback is safe; the old version shows the baked image.
