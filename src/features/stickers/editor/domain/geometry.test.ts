@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { Selection } from "./types";
 import {
   createFreehand,
   createDefaultSelection,
@@ -172,20 +173,19 @@ describe("keyboard selection helpers", () => {
     expect(bigger).toMatchObject({ width: 250, height: 170, x: 75, y: 65 });
     const tiny = resizeSelection(rect, -1000, -1000);
     expect(tiny).toMatchObject({ width: 20, height: 20 });
-    const stroke = {
+    const stroke: Selection = {
       id: "f",
       mode: "select",
       kind: "freehand",
       points: [0, 0, 100, 0, 100, 100],
-    } as const;
-    const grown = resizeSelection(stroke, 100, 0) as typeof stroke;
-    expect(
-      Math.max(...grown.points.filter((_, i) => i % 2 === 0)) -
-        Math.min(...grown.points.filter((_, i) => i % 2 === 0)),
-    ).toBeCloseTo(200);
+    };
+    const grown = resizeSelection(stroke, 100, 0);
+    const box = selectionBoxPercent(grown, { width: 1000, height: 1000 });
+    expect(box.width).toBeCloseTo(20); // 200 of 1000, was 100
     const star = createDefaultSelection("star", "select", "s", fit);
-    const larger = resizeSelection(star, 20, 0) as typeof star;
-    expect(larger.outerRadius).toBeGreaterThan((star as typeof star).outerRadius);
+    const larger = resizeSelection(star, 20, 0);
+    if (star.kind !== "star" || larger.kind !== "star") throw new Error("star");
+    expect(larger.outerRadius).toBeGreaterThan(star.outerRadius);
     expect(larger.innerRadius / larger.outerRadius).toBeCloseTo(0.5);
   });
 });
