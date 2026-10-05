@@ -18,6 +18,7 @@ export function StickerEdgeStudio({
   seed,
   onChange,
   previewSize = 300,
+  locked = false,
 }: {
   /** The transparent, edge-less cut-out. */
   source: HTMLCanvasElement | null;
@@ -25,6 +26,8 @@ export function StickerEdgeStudio({
   seed: string;
   onChange: (patch: Partial<EdgeSpec>) => void;
   previewSize?: number;
+  /** Read-only: the options cannot be reached (a saved sticker is changed with "Edit edge"). */
+  locked?: boolean;
 }) {
   const { t } = useTranslation();
   const long = source ? Math.max(source.width, source.height) : previewSize;
@@ -57,7 +60,11 @@ export function StickerEdgeStudio({
           />
         </div>
       </StudioPreview>
-      <div className="zf-studio__controls">
+      <div
+        className="zf-studio__controls"
+        inert={locked}
+        style={locked ? { opacity: 0.6 } : undefined}
+      >
         <div>
           <div className="zf-label" style={{ marginBottom: 8 }}>
             {t("maker.edge.shape")}

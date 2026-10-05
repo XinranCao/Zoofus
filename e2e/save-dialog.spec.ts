@@ -115,4 +115,31 @@ test.describe("desktop", () => {
     await dlg.getByRole("button", { name: "Make another" }).click();
     await expect(page.getByRole("dialog", { name: "Make a sticker" })).toBeVisible();
   });
+
+  test("once saved, step 2 is read-only: no second sticker, Edit edge opens the saved one", async ({
+    page,
+  }) => {
+    await signUp(page, "Once");
+    const dlg = await toSaveDialog(page);
+    await dlg.getByRole("button", { name: "Save to Library" }).click();
+    const note = dlg.getByText("Saved to your Library.", { exact: true });
+    await expect(note).toBeVisible();
+    // the options cannot be touched any more, so "Saved" never disappears and nothing can be saved twice
+    await expect(dlg.getByRole("button", { name: "Save to Library" })).toHaveCount(0);
+    await expect(dlg.getByRole("button", { name: "Back to editing" })).toHaveCount(0);
+    expect(
+      await dlg
+        .getByRole("radio", { name: "Torn" })
+        .evaluate((el) => !!el.closest("[inert]")),
+    ).toBe(true);
+    await expect(note).toBeVisible();
+    // Edit edge is a real button, at least 44 px high, and opens the sticker just saved
+    const edit = dlg.getByRole("button", { name: "Edit edge" });
+    expect((await edit.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await edit.click();
+    await expect(page).toHaveURL(/\/stickers$/);
+    await expect(page.getByRole("dialog", { name: "Edit the edge" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.locator(".zf-tile")).toHaveCount(1);
+  });
 });

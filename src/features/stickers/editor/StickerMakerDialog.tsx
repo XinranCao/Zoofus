@@ -86,7 +86,9 @@ function MakerBody({
   const setImage = useEditor((s) => s.setImage);
 
   const [leaving, setLeaving] = useState(false);
-  const [savedKey, setSavedKey] = useState<string | null>(null);
+  // the id of the library item this cut became: once saved, step 2 is read-only, so a second
+  // press can never make a second sticker (changing the edge is "Edit edge" in the Library)
+  const [savedId, setSavedId] = useState<string | null>(null);
   const [name, setName] = useState("");
 
   // A photo handed over from Home.
@@ -123,8 +125,7 @@ function MakerBody({
   }, [view, image, selections, fit]);
   const source = cutout?.canvas ?? null;
 
-  const editKey = JSON.stringify([edge, seed, selections.map((s) => s.id)]);
-  const saved = savedKey === editKey;
+  const saved = savedId !== null;
   // Saving swaps the Save button for "See it in Library": focus goes to it, not to nowhere
   const seeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -158,14 +159,14 @@ function MakerBody({
         day: "numeric",
         month: "short",
       }).format(new Date());
-      await save.mutateAsync({
+      const id = await save.mutateAsync({
         name: name.trim() || t("maker.edge.defaultName", { date }),
         sticker,
         outline: cutout?.outline ?? "",
         edge,
         seed,
       });
-      setSavedKey(editKey);
+      setSavedId(id);
     } catch (err) {
       const body =
         err instanceof StickerLimitError
@@ -217,9 +218,11 @@ function MakerBody({
       </>
     ) : view === "result" ? (
       <>
-        <Button variant="quiet" icon="undo" seed="ba" onClick={backToEdit}>
-          {t("maker.edge.back")}
-        </Button>
+        {!saved && (
+          <Button variant="quiet" icon="undo" seed="ba" onClick={backToEdit}>
+            {t("maker.edge.back")}
+          </Button>
+        )}
         {saved ? (
           <>
             <Button
@@ -228,10 +231,22 @@ function MakerBody({
               seed="more"
               onClick={() => {
                 setName("");
+                setSavedId(null);
                 setImage(null);
               }}
             >
               {t("maker.edge.another")}
+            </Button>
+            <Button
+              variant="secondary"
+              icon="pen"
+              seed="ee"
+              onClick={() => {
+                onClose();
+                navigate(`/stickers?edit=${savedId}`);
+              }}
+            >
+              {t("book.editEdge")}
             </Button>
             <Button
               ref={seeRef}
@@ -329,7 +344,10 @@ function MakerBody({
               </div>
             )}
             {!onAvatar && (
-              <div style={{ maxWidth: 360, marginBottom: 18 }}>
+              <div
+                style={{ maxWidth: 360, marginBottom: 18, opacity: saved ? 0.6 : 1 }}
+                inert={saved}
+              >
                 <TextField
                   label={t("maker.edge.nameLabel")}
                   hint={t("maker.edge.nameHint")}
@@ -345,6 +363,7 @@ function MakerBody({
               edge={edge}
               seed={seed}
               onChange={setEdge}
+              locked={saved}
             />
           </div>
         ) : (

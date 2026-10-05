@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Loader";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { LibraryTabs } from "@/features/library/LibraryTabs";
+import { useSearchParams } from "react-router-dom";
 import { useMakeParam } from "@/lib/useMakeParam";
 import { useSelection } from "@/lib/useSelection";
 import { BulkBar } from "@/components/ui/BulkBar";
@@ -44,6 +45,17 @@ export default function StickerBookPage() {
   const [bulkDelete, setBulkDelete] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
   useMakeParam(() => setMakerOpen(true));
+  // `/stickers?edit=<id>` (from "Edit edge" in the maker's saved step) opens that sticker's edge editor
+  const [params, setParams] = useSearchParams();
+  const wantedEdit = params.get("edit");
+  useEffect(() => {
+    if (!wantedEdit || !data) return;
+    if (data.some((s) => s.id === wantedEdit)) setEditEdgeId(wantedEdit);
+    const next = new URLSearchParams(params);
+    next.delete("edit");
+    setParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs when the parameter or the list arrives
+  }, [wantedEdit, data]);
   // Deleted stickers disappear at once; the real delete runs after the Undo window.
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const pending = useRef(
