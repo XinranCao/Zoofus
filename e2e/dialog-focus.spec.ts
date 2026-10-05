@@ -94,18 +94,18 @@ test("New tape from the Make menu returns focus to Make; headings are visible; l
   test.setTimeout(120_000);
   await page.setViewportSize({ width: 1280, height: 720 });
   const { email } = await signUp(page, "Menu");
-  const make = page.getByRole("button", { name: "Make", exact: true }).first();
+  const make = page.getByRole("button", { name: /^Make/ }).first();
   for (const how of ["Escape", "Add"]) {
     await make.click();
-    await page.getByRole("menuitem", { name: "New tape" }).click();
+    await page.getByRole("menuitem", { name: "Tape", exact: true }).click();
     const dlg = page.getByRole("dialog", { name: "New tape" });
     await expect(dlg).toBeVisible();
     // the first field has focus, and Close is the last stop in the dialog
     await expect(dlg.getByLabel("Name")).toBeFocused();
     const closeLast = await dlg.evaluate((d) => {
-      const stops = [...d.querySelectorAll<HTMLElement>("button,input,[tabindex='0']")].filter(
-        (e) => e.tabIndex >= 0,
-      );
+      const stops = [
+        ...d.querySelectorAll<HTMLElement>("button,input,[tabindex='0']"),
+      ].filter((e) => e.tabIndex >= 0);
       return stops[stops.length - 1]?.getAttribute("aria-label") === "Close";
     });
     expect(closeLast).toBe(true);

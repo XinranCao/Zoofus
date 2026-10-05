@@ -1922,6 +1922,12 @@
 @media (max-width: 1099px) {
   .zf-jstudio {
     gap: 10px;
+    min-width: 0;
+  }
+  .zf-jstudio > *,
+  .zf-jstudio__body > * {
+    min-width: 0;
+    max-width: 100%;
   }
   /* stacked: the controls are single scrolling rows, so the page itself comes into the first screen */
   .zf-jstudio__barbtns {

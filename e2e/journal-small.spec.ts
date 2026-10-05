@@ -23,7 +23,10 @@ for (const [width, height] of [
     await page.setViewportSize({ width, height });
     await signUp(page, "Small");
     await openJournal(page);
-    const canvas = (await page.locator(".zf-jstudio__page canvas").first().boundingBox())!;
+    const canvas = (await page
+      .locator(".zf-jstudio__page canvas")
+      .first()
+      .boundingBox())!;
     // part of the page is visible without scrolling (at least 40 px of it)
     expect(canvas.y).toBeLessThan(height - 40);
     if (width < 1100) {
@@ -31,10 +34,10 @@ for (const [width, height] of [
       const ys = await page
         .locator(".zf-jstudio__tools .zf-chip")
         .evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().y)));
-      expect(new Set(ys).size).toBe(1);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
-        true,
-      );
+      expect(Math.max(...ys) - Math.min(...ys)).toBeLessThan(6); // (tilted a little by hand)
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      ).toBe(true);
     }
   });
 }
