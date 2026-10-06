@@ -27,7 +27,34 @@ export interface DieCutOptions {
   seed?: string;
   /** Canvas factory, so the same code can run in a Worker with OffscreenCanvas. */
   createCanvas?: (w: number, h: number) => Canvas2D;
+  /**
+   * Keep the grown edge shape for this same `src` canvas, so changing only the colour or print
+   * (not the shape, width or size) costs two draws instead of thousands. The live preview uses
+   * it; `src` must not be changed afterwards.
+   */
+  cacheMasks?: boolean;
 }
+
+/** Edge shapes grown for a source canvas, kept by `cacheMasks` (dropped with the source). */
+const maskCache = new WeakMap<
+  object,
+  { key: string; plain: Canvas2D; fiber?: Canvas2D }
+>();
+
+/** Give back the grown edge kept for `src` (call when `src` is replaced or no longer shown). */
+export function forgetMasks(src: object): void {
+  const masks = maskCache.get(src);
+  if (!masks) return;
+  release(masks.plain);
+  if (masks.fiber) release(masks.fiber);
+  maskCache.delete(src);
+}
+
+const release = (c: Canvas2D) => {
+  // a canvas holds its pixels (and graphics memory) until it is collected: give them back now
+  c.width = 0;
+  c.height = 0;
+};
 
 /** Edge width as a fraction of the cut-out's long side. */
 export const EDGE_RATIO = 0.045;
@@ -142,29 +169,45 @@ export function dieCut(src: CanvasSource, opts: DieCutOptions = {}): Canvas2D {
   const ctx = ctxOf(out);
 
   if (bw > 0) {
-    // the silhouette of the cut-out, as a solid shape
-    const sil = create(W, H);
-    const s = ctxOf(sil);
-    s.drawImage(src, 0, 0, W, H);
-    s.globalCompositeOperation = "source-in";
-    s.fillStyle = "#000";
-    s.fillRect(0, 0, W, H);
+    // the silhouette of the cut-out, as a solid shape (made when a shape is grown, not for a
+    // kept one)
+    let silhouette: Canvas2D | null = null;
+    const sil = () => {
+      if (silhouette) return silhouette;
+      silhouette = create(W, H);
+      const s = ctxOf(silhouette);
+      s.drawImage(src, 0, 0, W, H);
+      s.globalCompositeOperation = "source-in";
+      s.fillStyle = "#000";
+      s.fillRect(0, 0, W, H);
+      return silhouette;
+    };
 
     const rad = edgeRadius(shape, opts.seed ?? "", bw);
-    const N = shape === "torn" ? 720 : Math.max(36, Math.round(bw * 4));
+    // enough stamps that neighbours are about a pixel apart (they cost fill rate: each one draws
+    // the whole cut-out), at most 720 for the finest torn edge of a large export
+    const N =
+      shape === "torn"
+        ? Math.min(720, Math.max(200, Math.round(bw * 9)))
+        : Math.max(36, Math.round(bw * 4));
     // stamp the silhouette around the edge radius, three rings deep, to grow it into a mask
     const stamp = (withFiber: boolean) => {
       const c = create(out.width, out.height);
       const g = ctxOf(c);
+      const shape0 = sil();
       for (let ring = 1; ring <= 3; ring++) {
         for (let i = 0; i < N; i++) {
           const a = i / N;
           const e = rad(a);
           const r = ((e.r + (withFiber ? e.f : 0)) * ring) / 3;
-          g.drawImage(sil, pad + Math.cos(a * 6.283) * r, pad + Math.sin(a * 6.283) * r);
+          g.drawImage(
+            shape0,
+            pad + Math.cos(a * 6.283) * r,
+            pad + Math.sin(a * 6.283) * r,
+          );
         }
       }
-      g.drawImage(sil, pad, pad);
+      g.drawImage(shape0, pad, pad);
       return c;
     };
     const paint = (c: Canvas2D, color: string, img?: CanvasImageSource | null) => {
@@ -177,9 +220,48 @@ export function dieCut(src: CanvasSource, opts: DieCutOptions = {}): Canvas2D {
       }
       return c;
     };
-    if (shape === "torn")
-      ctx.drawImage(paint(stamp(true), opts.fiber ?? "#fbf6ee"), 0, 0);
-    ctx.drawImage(paint(stamp(false), opts.color ?? "#fbf6ee", opts.fill), 0, 0);
+    if (opts.cacheMasks) {
+      const key = `${shape}|${bw}|${opts.seed ?? ""}|${W}x${H}|${N}`;
+      let masks = maskCache.get(src);
+      if (!masks || masks.key !== key) {
+        if (masks) {
+          release(masks.plain);
+          if (masks.fiber) release(masks.fiber);
+        }
+        masks = {
+          key,
+          plain: stamp(false),
+          ...(shape === "torn" ? { fiber: stamp(true) } : {}),
+        };
+        maskCache.set(src, masks);
+      }
+      // the colour or print goes onto a copy of the kept shape
+      const layer = (mask: Canvas2D, color: string, img?: CanvasImageSource | null) => {
+        const c = create(out.width, out.height);
+        ctxOf(c).drawImage(mask, 0, 0);
+        return paint(c, color, img);
+      };
+      if (masks.fiber) {
+        const l = layer(masks.fiber, opts.fiber ?? "#fbf6ee");
+        ctx.drawImage(l, 0, 0);
+        release(l);
+      }
+      const l = layer(masks.plain, opts.color ?? "#fbf6ee", opts.fill);
+      ctx.drawImage(l, 0, 0);
+      release(l);
+    } else {
+      const layers: Canvas2D[] = [];
+      if (shape === "torn") {
+        const l = paint(stamp(true), opts.fiber ?? "#fbf6ee");
+        ctx.drawImage(l, 0, 0);
+        layers.push(l);
+      }
+      const l = paint(stamp(false), opts.color ?? "#fbf6ee", opts.fill);
+      ctx.drawImage(l, 0, 0);
+      layers.push(l);
+      layers.forEach(release);
+    }
+    if (silhouette) release(silhouette);
   }
   ctx.drawImage(src, pad, pad, W, H);
   return out;

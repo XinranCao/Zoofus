@@ -68,6 +68,29 @@ describe("journals", () => {
     await assertSucceeds(deleteDoc(ref));
   });
 
+  it("lets the owner add a page picture alone, but nothing else without a new updated time", async () => {
+    const ref = doc(as("alice"), "users/alice/journals/j1");
+    await assertSucceeds(setDoc(ref, journal()));
+    await assertSucceeds(
+      updateDoc(ref, {
+        thumbUrl: "https://example.com/t.webp",
+        thumbPath: "alice/journals/j1/thumb_1.webp",
+      }),
+    );
+    // another file's path, other fields, or a missing path: refused
+    await assertFails(
+      updateDoc(ref, { thumbUrl: "https://example.com/t.webp", thumbPath: "bob/x.webp" }),
+    );
+    await assertFails(updateDoc(ref, { title: "Sneaky" }));
+    await assertFails(
+      updateDoc(ref, {
+        title: "Sneaky",
+        thumbUrl: "https://example.com/t.webp",
+        thumbPath: "alice/journals/j1/thumb_2.webp",
+      }),
+    );
+  });
+
   it("denies everyone else", async () => {
     await assertFails(setDoc(doc(as("bob"), "users/alice/journals/j1"), journal()));
     await seed((db) =>

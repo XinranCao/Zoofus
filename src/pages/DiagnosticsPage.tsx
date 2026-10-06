@@ -1,3 +1,4 @@
+import { graphicsName, isLite } from "@/lib/lite";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/features/auth/useAuth";
@@ -41,6 +42,20 @@ export default function DiagnosticsPage() {
     ["Secure context", String(window.isSecureContext)],
     ["Verbose logging", verbose ? "on" : "off"],
     ["Browser", navigator.userAgent],
+    // for a report about a slow computer (see src/lib/lite.ts)
+    [
+      "Drawing",
+      isLite() ? "lite (?lite=0 turns it off)" : "full (?lite=1 turns lite on)",
+    ],
+    [
+      "Screen",
+      `${window.innerWidth}×${window.innerHeight} at ${window.devicePixelRatio}× pixels`,
+    ],
+    [
+      "Computer",
+      `${navigator.hardwareConcurrency ?? "?"} cores, ${(navigator as { deviceMemory?: number }).deviceMemory ?? "?"} GB`,
+    ],
+    ["Graphics", graphicsName()],
   ];
 
   const run = async () => {

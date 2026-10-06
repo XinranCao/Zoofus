@@ -1,5 +1,5 @@
 {
-  "checked": 516,
+  "checked": 543,
   "lowest": [
     {
       "screen": "en-reduced/desktop/10-book-empty",
@@ -83,7 +83,7 @@
     },
     {
       "screen": "en-reduced/desktop/21-account",
-      "text": "ds-en-desktop-1791251914838@example.com",
+      "text": "ds-en-desktop-1791267064031@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -142,6 +142,16 @@
       "weight": 400
     },
     {
+      "screen": "en-reduced/desktop/06-signup-step2",
+      "text": "Start cutting",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
       "screen": "en-reduced/desktop/07-home-empty",
       "text": "Upload a photo",
       "ratio": 5.15,
@@ -183,16 +193,6 @@
     },
     {
       "screen": "en-reduced/desktop/13-maker-lasso",
-      "text": "Cut it out",
-      "ratio": 5.15,
-      "min": 4.5,
-      "fg": "#fbf6ee",
-      "bg": "#bc3b22",
-      "size": 15,
-      "weight": 400
-    },
-    {
-      "screen": "en-reduced/desktop/14-maker-deselect-mode",
       "text": "Cut it out",
       "ratio": 5.15,
       "min": 4.5,

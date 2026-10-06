@@ -45,6 +45,8 @@ export function loadImage(
 export interface RenderIO {
   createCanvas?: (w: number, h: number) => HTMLCanvasElement | OffscreenCanvas;
   loadImage?: (src: string) => Promise<CanvasImageSource>;
+  /** Keep the grown edge for this `source` (see `DieCutOptions.cacheMasks`): the live preview. */
+  cacheMasks?: boolean;
 }
 
 /**
@@ -85,6 +87,7 @@ export async function renderSticker(
     fiber: edge.fill.bg === "sheet-50" ? "#e8ddd0" : "#fbf6ee",
     seed,
     createCanvas: io.createCanvas,
+    cacheMasks: io.cacheMasks,
   }) as HTMLCanvasElement;
 }
 

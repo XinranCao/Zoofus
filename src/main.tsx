@@ -8,8 +8,10 @@ import "@fontsource/courier-prime/700.css";
 import "@/styles/index.css";
 import "@/i18n";
 import { installDiagnostics } from "@/lib/diagnostics";
+import { initLite } from "@/lib/lite";
 
 installDiagnostics();
+initLite();
 
 // `crypto.randomUUID` only exists in secure contexts (HTTPS or localhost). Opening a dev build over
 // plain http on the local network (http://192.168.x.x:5173) would otherwise break every save.

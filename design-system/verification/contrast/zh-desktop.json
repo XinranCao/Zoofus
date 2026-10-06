@@ -1,5 +1,5 @@
 {
-  "checked": 520,
+  "checked": 545,
   "lowest": [
     {
       "screen": "zh/desktop/10-book-empty",
@@ -23,7 +23,7 @@
     },
     {
       "screen": "zh/desktop/20-tapes",
-      "text": "可以贴在手账页上的和纸胶带、纸胶带。自己做一卷,留在这里。",
+      "text": "和纸胶带和美纹纸胶带,贴在手账页上用。你也可以自己做一卷,留在这里。",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -33,7 +33,7 @@
     },
     {
       "screen": "zh/desktop/20c-journals-empty",
-      "text": "用你的贴纸和胶带做出来的页面,再写字、画画。",
+      "text": "用贴纸和胶带拼出一页,再写写字、画一画。",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -53,7 +53,7 @@
     },
     {
       "screen": "zh/desktop/20f-collections",
-      "text": "你自己分的一组组贴纸、胶带和手账,想建多少都行。",
+      "text": "把贴纸、胶带和手账分成一组一组,想建多少个都可以。",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -83,7 +83,7 @@
     },
     {
       "screen": "zh/desktop/21-account",
-      "text": "ds-zh-desktop-1791251832703@example.com",
+      "text": "ds-zh-desktop-1791266978199@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -142,6 +142,16 @@
       "weight": 400
     },
     {
+      "screen": "zh/desktop/06-signup-step2",
+      "text": "开始剪贴纸",
+      "ratio": 5.15,
+      "min": 4.5,
+      "fg": "#fbf6ee",
+      "bg": "#bc3b22",
+      "size": 15,
+      "weight": 400
+    },
+    {
       "screen": "zh/desktop/07-home-empty",
       "text": "上传照片",
       "ratio": 5.15,
@@ -183,16 +193,6 @@
     },
     {
       "screen": "zh/desktop/13-maker-lasso",
-      "text": "剪下来",
-      "ratio": 5.15,
-      "min": 4.5,
-      "fg": "#fbf6ee",
-      "bg": "#bc3b22",
-      "size": 15,
-      "weight": 400
-    },
-    {
-      "screen": "zh/desktop/14-maker-deselect-mode",
       "text": "剪下来",
       "ratio": 5.15,
       "min": 4.5,

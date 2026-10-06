@@ -13,7 +13,7 @@
     drop-shadow(-2px 0 0 var(--plum-900)) drop-shadow(0 2px 0 var(--plum-900))
     drop-shadow(0 -2px 0 var(--plum-900));
   /* paper grain, tinted cocoa (overrides the plain colour of the same name in tokens.css) */
-  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .42  0 0 0 0 .29  0 0 0 0 .23  0 0 0 .55 0'/></filter><rect width='160' height='160' filter='url(%23g)'/></svg>");
+  --grain: url("/grain.png");
 }
 
 @theme {
@@ -118,7 +118,9 @@
   }
   /* the focus ring is a zero-blur trace around the torn silhouette */
   .zf-torn:focus-visible,
-  .zf-torn:has(:focus-visible):not(.zf-dialog-box) {
+  .zf-torn:has(:focus-visible):not(.zf-dialog-box):not(.zf-paper.is-block):not(
+      .zf-masthead
+    ) {
     filter: var(--focus-trace);
   }
 
@@ -128,7 +130,6 @@
     z-index: 3;
     pointer-events: none;
     display: block;
-    mix-blend-mode: multiply;
   }
   .zf-pattern {
     display: block;
@@ -2370,4 +2371,39 @@
 .zf-toast__close:focus-visible {
   outline: 2px solid var(--plum-900);
   outline-offset: -6px;
+}
+
+/* ---------- lite drawing (src/lib/lite.ts): the same shapes, without the costly extras ---------- */
+.zf-lite *,
+.zf-lite *::before,
+.zf-lite *::after {
+  animation: none !important;
+  transition: none !important;
+}
+.zf-lite .zf-face::after {
+  display: none;
+}
+.zf-lite body {
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    var(--dot) 1.1px,
+    transparent 1.6px
+  );
+  background-size: 22px 22px;
+}
+/* big torn pieces become plain rectangles: a path clip over a large area is what some graphics
+   chips draw slowly (small buttons, chips and swatches keep their tear) */
+.zf-lite .zf-dialog-box > .zf-face,
+.zf-lite .zf-dialog-box::before,
+.zf-lite .zf-masthead > .zf-face,
+.zf-lite .zf-masthead::before,
+.zf-lite .zf-paper.is-block > .zf-face,
+.zf-lite .zf-paper.is-block::before {
+  clip-path: none;
+}
+.zf-lite .zf-torn:focus-visible,
+.zf-lite .zf-torn:has(:focus-visible) {
+  filter: none;
+  outline: 3px solid var(--plum-900);
+  outline-offset: 2px;
 }
