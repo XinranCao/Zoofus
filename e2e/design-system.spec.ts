@@ -88,10 +88,7 @@ for (const variant of VARIANTS) {
       await page.getByRole("button", { name: t("auth.login.submit") }).click();
       await expect(page.getByText(t("auth.errors.login"))).toBeVisible();
       await shot("02-login-error");
-      await page
-        .locator("form")
-        .getByRole("button", { name: t("auth.login.forgot") })
-        .click();
+      await page.getByRole("button", { name: t("auth.login.forgot") }).click();
       await expect(
         page.getByRole("dialog", { name: t("auth.reset.title") }),
       ).toBeVisible();

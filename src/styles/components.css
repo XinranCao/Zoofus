@@ -727,6 +727,33 @@
     color: var(--ink-deep);
     display: block;
   }
+  /* a note in the page (the login banner): icon and title on one line, the message across the
+     full width beneath, the action on its own line */
+  .zf-toast--stack {
+    display: block;
+    width: 100%;
+    max-width: none;
+  }
+  .zf-toast--stack .zf-face {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 10px;
+    row-gap: 4px;
+    max-width: none;
+  }
+  .zf-toast--stack .zf-face > div {
+    display: contents;
+  }
+  .zf-toast--stack .zf-toast__body,
+  .zf-toast--stack .zf-face > :last-child:not(div):not(svg) {
+    grid-column: 1 / -1;
+    display: block;
+  }
+  .zf-toast--stack .zf-face > button,
+  .zf-toast--stack .zf-face > .zf-btn {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
   .zf-toast-in {
     animation: zf-toast-in var(--dur-slow) var(--ease-paper) both;
   }
@@ -2157,6 +2184,11 @@
 @media (min-width: 1000px) {
   .zf-auth__art {
     order: -1;
+  }
+  /* the card sits at the top beside the tall sticker art, so the form (and an error above it) is
+     on the first screen of a 768 px laptop */
+  .zf-auth {
+    align-items: flex-start;
   }
 }
 
