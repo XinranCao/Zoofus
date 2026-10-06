@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Reel } from "@/components/ui/Loader";
 import { useToast } from "@/components/ui/Toast";
 import { downloadBlob } from "@/features/stickers/studio/export";
-import { AUTOSAVE_MS } from "./autosave";
+import { AUTOSAVE_MS, ITEMS_SAVE_MS } from "./autosave";
 import { JournalStudio, type JournalExport } from "./JournalStudio";
 import type { Journal } from "./journal.schema";
 import {
@@ -126,6 +126,7 @@ function Editor({ journal }: { journal: Journal }) {
 
   const saveNow = async () => {
     try {
+      thumbStale.current = false;
       await persist(true);
       toast.push({ kind: "success", title: t("journal.saved") });
     } catch (err) {
@@ -141,26 +142,38 @@ function Editor({ journal }: { journal: Journal }) {
   const unsavedTitle = () =>
     titleRef.current.trim() !== "" && titleRef.current.trim() !== savedTitleRef.current;
 
-  // Autosave at most once a minute while there are changes (the timer is not pushed back by every
-  // edit, so a long session is still kept), and when leaving (items, and a title typed just before).
+  // Edits are written a couple of seconds after the last one (items and page: cheap), so the
+  // status settles at once. The page picture (a thumbnail upload) is kept separately: at most once
+  // a minute while editing (the timer is not pushed back by every edit) and when leaving.
   const latest = useRef({ persist });
   useEffect(() => {
     latest.current = { persist };
   });
+  const thumbStale = useRef(false);
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null;
+    let data: ReturnType<typeof setTimeout> | null = null;
+    let picture: ReturnType<typeof setTimeout> | null = null;
     const unsub = store.subscribe((s, prev) => {
       if (!s.dirty || (s.items === prev.items && s.page === prev.page)) return;
-      if (timer) return;
-      timer = setTimeout(() => {
-        timer = null;
-        void latest.current.persist(true).catch(() => {});
-      }, AUTOSAVE_MS);
+      thumbStale.current = true;
+      if (data) clearTimeout(data);
+      data = setTimeout(() => {
+        data = null;
+        void latest.current.persist(false).catch(() => {});
+      }, ITEMS_SAVE_MS);
+      if (!picture)
+        picture = setTimeout(() => {
+          picture = null;
+          thumbStale.current = false;
+          void latest.current.persist(true).catch(() => {});
+        }, AUTOSAVE_MS);
     });
     return () => {
       unsub();
-      if (timer) clearTimeout(timer);
-      if (store.getState().dirty) void latest.current.persist(true).catch(() => {});
+      if (data) clearTimeout(data);
+      if (picture) clearTimeout(picture);
+      if (store.getState().dirty || thumbStale.current)
+        void latest.current.persist(true).catch(() => {});
       else if (unsavedTitle()) void latest.current.persist(false).catch(() => {});
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- refs only

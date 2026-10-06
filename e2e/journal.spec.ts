@@ -263,3 +263,23 @@ test("a title typed and followed at once by Back, or by a reload, is kept", asyn
     .filter({ hasText: /changes saved|Saving|Not saved/ });
   await expect(status).toHaveText("All changes saved");
 });
+
+// PM-v1.7.2-002: what you place is written within seconds, not a minute
+test("a placed item is saved within seconds and is there after a reload", async ({
+  page,
+}) => {
+  await signUp(page, "Quick");
+  await newJournal(page, "Seconds");
+  const status = page
+    .getByRole("status")
+    .filter({ hasText: /changes saved|Saving|Not saved/ });
+  await expect(status).toHaveText("All changes saved");
+  await page.getByRole("button", { name: "Text", exact: true }).click();
+  const box = (await page.locator(".zf-jstudio__page canvas").first().boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.3);
+  await page.getByLabel("Text", { exact: true }).fill("Placed words");
+  await expect(status).toHaveText("Not saved yet");
+  await expect(status).toHaveText("All changes saved", { timeout: 6000 });
+  await page.reload();
+  await expect(page.locator("#journal-items")).toContainText("Placed words");
+});
