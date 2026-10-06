@@ -507,10 +507,15 @@ export const zh: Messages = {
     full: "这一页满了。删掉一些再添加。",
     pickSticker: "选一张贴纸",
     pickTape: "选一卷胶带",
+    group: {
+      count_one: "已选 {{count}} 样东西",
+      count_other: "已选 {{count}} 样东西",
+      hint: "拖动即可一起移动,拖动上方的圆点可以一起旋转。按 Ctrl 或 Cmd 加 C、X、V 可以拷贝、剪切和粘贴。",
+    },
     hint: {
       text: "点一下页面上想写字的位置,然后在右边面板里输入。",
       select:
-        "添加贴纸和胶带,或者选“文字”“画画”。点页面上的任何东西可以移动、旋转、改大小。",
+        "添加贴纸和胶带,或者选“文字”“画画”。点页面上的任何东西可以移动、旋转、改大小;在页面上拖出一块区域,可以一次选中好几样。",
       erase: "在笔迹上拖过去就能擦掉。",
     },
     items: {
@@ -548,6 +553,7 @@ export const zh: Messages = {
       front: "置顶",
       back: "置底",
       duplicate: "复制",
+      copy: "拷贝",
       rotation: "旋转",
       size: "大小",
       length: "长度",

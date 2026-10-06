@@ -41,6 +41,10 @@ export interface JournalState {
   page: PageSpec;
   items: Item[];
   selectedId: string | null;
+  /** Several things chosen together (an area dragged on the page, or Select all); `selectedId` is then null. */
+  group: string[];
+  /** What Copy or Cut last took, and how many times it has been pasted (each copy lands further along). */
+  clip: { items: Item[]; pastes: number } | null;
   tool: JournalTool;
   pen: PenState;
   text: TextStyle;
@@ -61,6 +65,11 @@ export interface JournalState {
   undo: () => void;
   redo: () => void;
   select: (id: string | null) => void;
+  /** Choose these things together. One thing that can take handles is chosen as a single object. */
+  selectGroup: (ids: string[]) => void;
+  setClip: (items: Item[]) => void;
+  /** Counts a paste and returns how many have been made, this one included. */
+  countPaste: () => number;
   setTool: (tool: JournalTool) => void;
   setPen: (patch: Partial<PenState>) => void;
   setText: (patch: Partial<TextStyle>) => void;
@@ -78,6 +87,8 @@ export function createJournalStore(): JournalStore {
     page: DEFAULT_PAGE,
     items: [],
     selectedId: null,
+    group: [],
+    clip: null,
     tool: "select",
     pen: { tool: "pen", color: "cocoa-800", size: 4 },
     text: { font: DEFAULT_FONT, size: 44, color: "cocoa-800", bold: false },
@@ -86,10 +97,18 @@ export function createJournalStore(): JournalStore {
     dirty: false,
 
     load: (page, items) =>
-      set({ page, items, selectedId: null, past: [], future: [], dirty: false }),
+      set({
+        page,
+        items,
+        selectedId: null,
+        group: [],
+        past: [],
+        future: [],
+        dirty: false,
+      }),
 
     apply: (ops, { record = true, remote = false, coalesce } = {}) => {
-      const { page, items, past, selectedId } = get();
+      const { page, items, past, selectedId, group } = get();
       const r = applyOps({ page, items }, ops);
       if (r.applied.length === 0) return;
       const next: Partial<JournalState> = {
@@ -100,6 +119,7 @@ export function createJournalStore(): JournalStore {
           selectedId && r.state.items.some((i) => i.id === selectedId)
             ? selectedId
             : null,
+        group: group.filter((id) => r.state.items.some((i) => i.id === id)),
       };
       if (record) {
         const now = Date.now();
@@ -130,6 +150,7 @@ export function createJournalStore(): JournalStore {
         future: [entry, ...future],
         dirty: true,
         selectedId: null,
+        group: [],
       });
       listener?.(r.applied);
     },
@@ -147,13 +168,36 @@ export function createJournalStore(): JournalStore {
         future: future.slice(1),
         dirty: true,
         selectedId: null,
+        group: [],
       });
       listener?.(r.applied);
     },
 
-    select: (selectedId) => set({ selectedId }),
+    select: (selectedId) => set({ selectedId, group: [] }),
+    selectGroup: (ids) => {
+      const { items } = get();
+      const live = ids.filter((id) => items.some((i) => i.id === id));
+      const only = items.find((i) => i.id === live[0]);
+      // a single thing that can take handles is just "selected"; a pen stroke has none, so it stays a group
+      if (live.length === 0) set({ selectedId: null, group: [] });
+      else if (live.length === 1 && only && only.t !== "p")
+        set({ selectedId: live[0]!, group: [] });
+      else set({ selectedId: null, group: live });
+    },
+    setClip: (items) => set({ clip: { items, pastes: 0 } }),
+    countPaste: () => {
+      const clip = get().clip;
+      if (!clip) return 0;
+      const pastes = clip.pastes + 1;
+      set({ clip: { ...clip, pastes } });
+      return pastes;
+    },
     setTool: (tool) =>
-      set({ tool, selectedId: tool === "select" ? get().selectedId : null }),
+      set({
+        tool,
+        selectedId: tool === "select" ? get().selectedId : null,
+        group: tool === "select" ? get().group : [],
+      }),
     setPen: (patch) => set({ pen: { ...get().pen, ...patch } }),
     setText: (patch) => set({ text: { ...get().text, ...patch } }),
     markSaved: () => set({ dirty: false }),

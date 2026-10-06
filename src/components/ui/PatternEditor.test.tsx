@@ -103,6 +103,14 @@ describe("PatternEditor", () => {
     expect(last(seen).weight).toBe(0.9);
   });
 
+  it("a pixel print can be turned", async () => {
+    const seen: PatternSpec[] = [];
+    render(<Harness initial={{ kind: "pixels" }} seen={seen} />);
+    screen.getByRole("slider", { name: /^Turn/ }).focus();
+    await userEvent.keyboard("{End}");
+    expect(last(seen).angle).toBe(180);
+  });
+
   it("a solid print has colour only: no ink, size, turn or weight", async () => {
     render(<Harness initial={{ kind: "solid" }} seen={[]} />);
     expect(screen.queryByRole("slider")).toBeNull();

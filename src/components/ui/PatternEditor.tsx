@@ -293,8 +293,7 @@ export function PatternEditor({
   const ink = s.ink ?? "sheet-50";
   const update = <K extends keyof PatternSpec>(key: K, v: PatternSpec[K]) =>
     onChange({ ...s, [key]: v });
-  // a pixel stamp is not turned: its cells stay on the grid
-  const turns = s.kind !== "solid" && s.kind !== "pixels";
+  const turns = s.kind !== "solid";
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div>

@@ -26,4 +26,20 @@ describe("PatternFill (the one innerHTML sink)", () => {
       unmount();
     }
   });
+
+  it("a new size or angle is a new pattern (a reused id can leave the old print on screen)", () => {
+    const spec: PatternSpec = {
+      kind: "stripes",
+      bg: "mustard-300",
+      ink: "plum-900",
+      scale: 12,
+    };
+    const { container, rerender } = render(<PatternFill spec={spec} />);
+    const id = () => container.querySelector("pattern")!.id;
+    const first = id();
+    rerender(<PatternFill spec={{ ...spec, scale: 20 }} />);
+    const second = id();
+    rerender(<PatternFill spec={{ ...spec, scale: 20, angle: 90 }} />);
+    expect(new Set([first, second, id()]).size).toBe(3);
+  });
 });

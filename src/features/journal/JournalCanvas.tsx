@@ -10,6 +10,8 @@ import {
   useState,
 } from "react";
 import {
+  Circle,
+  Group,
   Image as KImage,
   Layer,
   Line,
@@ -28,12 +30,28 @@ import {
   type PageSpec,
   type StickerItem,
   type StrokeItem,
-  type StrokeTool,
   type TapeItem,
   type TextItem,
 } from "./journal.schema";
 import { drawPaper } from "./paper";
 import { topZ, type Op } from "./ops";
+import {
+  boxesTouch,
+  moveOf,
+  moveOps,
+  unionBox,
+  type Box,
+  type GroupMove,
+} from "./groupOps";
+import {
+  isTextured,
+  layoutOf,
+  paintStroke,
+  PEN_ALPHA,
+  PEN_WIDTH,
+  ratioFor,
+  releaseCanvas,
+} from "./penTexture";
 import { decodeStroke, erasePieces, strokesFromLine } from "./strokes";
 import { useTapeCanvas } from "./tapeCanvas";
 import type { JournalTool, PenState, TextStyle } from "./store/journalStore";
@@ -49,22 +67,6 @@ export type StickerResolver = (ref: string) => StickerInfo | null;
 
 const PLUM = PALETTE["plum-900"];
 const SHEET = PALETTE["sheet-50"];
-
-/** How a pen tool looks: width factor, opacity and how it is drawn. */
-const PEN_LOOK: Record<
-  StrokeTool,
-  {
-    alpha: number;
-    compo?: GlobalCompositeOperation;
-    dash?: (s: number) => number[];
-    wide: number;
-  }
-> = {
-  pen: { alpha: 1, wide: 1 },
-  pencil: { alpha: 0.78, wide: 0.8, dash: (s) => [s * 0.06, s * 0.5] },
-  marker: { alpha: 0.5, compo: "multiply", wide: 2.6 },
-  crayon: { alpha: 0.85, wide: 1.7, dash: (s) => [s * 0.5, s * 0.34] },
-};
 
 /** Cache of decoded strokes, so a redraw does not decode every line again. */
 const decoded = new Map<string, number[]>();
@@ -318,32 +320,80 @@ const TextNodeView = memo(function TextNodeView({
   );
 });
 
-/** A pen stroke. Marker is wide and see-through, pencil is thin and grainy, crayon is broken. */
+/**
+ * A pen stroke. A pen is a crisp line; pencil, marker and crayon are painted with the grain of the
+ * real thing (`penTexture.ts`). Every stroke node sits at the page's origin, so a chosen group can
+ * be moved and turned by changing its position and rotation (see `GroupMove`).
+ */
 function StrokeLine({
   item,
   points,
   live,
+  register,
+  id,
 }: {
   item: Pick<StrokeItem, "tool" | "color" | "size">;
   points: number[];
   live?: boolean;
+  register?: (id: string, node: Konva.Node | null) => void;
+  id?: string;
 }) {
-  const look = PEN_LOOK[item.tool];
-  const width = item.size * look.wide;
+  const width = item.size * PEN_WIDTH[item.tool];
+  const layout = useMemo(
+    () => (isTextured(item.tool) ? layoutOf(points, width) : null),
+    [item.tool, points, width],
+  );
+  const canvas = useMemo(
+    () =>
+      layout
+        ? paintStroke(
+            item.tool,
+            points,
+            item.size,
+            hex(item.color),
+            layout,
+            ratioFor(layout, Boolean(live)),
+          )
+        : null,
+    [layout, item.tool, item.size, item.color, points, live],
+  );
+  // a line still being drawn makes a new canvas at every step: give the old one back
+  useEffect(() => (live ? () => releaseCanvas(canvas) : undefined), [canvas, live]);
+  const ref = (n: Konva.Node | null) => {
+    if (id) register?.(id, n);
+  };
+  if (!isTextured(item.tool))
+    return (
+      <Line
+        ref={ref}
+        points={points}
+        stroke={hex(item.color)}
+        strokeWidth={width}
+        lineCap="round"
+        lineJoin="round"
+        tension={0.4}
+        listening={false}
+        perfectDrawEnabled={false}
+        shadowForStrokeEnabled={false}
+        name={live ? "live" : undefined}
+      />
+    );
+  if (!layout || !canvas) return null;
   return (
-    <Line
-      points={points}
-      stroke={hex(item.color)}
-      strokeWidth={width}
-      opacity={look.alpha}
-      lineCap="round"
-      lineJoin="round"
-      tension={0.4}
-      dash={look.dash?.(width)}
-      globalCompositeOperation={look.compo}
+    <KImage
+      ref={ref}
+      image={canvas}
+      // x, y stay 0 and the picture is placed with the offset, so turning the node turns it about the page's origin like every other stroke
+      x={0}
+      y={0}
+      offsetX={-layout.x}
+      offsetY={-layout.y}
+      width={layout.w}
+      height={layout.h}
+      opacity={PEN_ALPHA[item.tool]}
+      globalCompositeOperation={item.tool === "marker" ? "multiply" : "source-over"}
       listening={false}
       perfectDrawEnabled={false}
-      shadowForStrokeEnabled={false}
       name={live ? "live" : undefined}
     />
   );
@@ -351,12 +401,43 @@ function StrokeLine({
 
 // ------------------------------------------------------------------ the canvas
 
+/** How far above a group's box its turning handle sits, in screen pixels. */
+const HANDLE_GAP = 26;
+
+/** A turn in degrees; with Shift it snaps to steps of 15. */
+export const turnDeg = (deg: number, snap: boolean) =>
+  snap ? Math.round(deg / 15) * 15 : Math.round(deg * 10) / 10;
+
+/**
+ * What a dragged area chooses: the things at least half inside it (a thing too thin to have an area
+ * counts if it touches). A page-sized sticker is not caught by a small area drawn on it.
+ */
+export function enclosed(
+  items: Item[],
+  area: Box,
+  boxOf: (item: Item) => Box | null,
+): string[] {
+  const out: string[] = [];
+  for (const it of items) {
+    const b = boxOf(it);
+    if (!b || !boxesTouch(area, b)) continue;
+    const w = Math.min(area.x + area.w, b.x + b.w) - Math.max(area.x, b.x);
+    const h = Math.min(area.y + area.h, b.y + b.h) - Math.max(area.y, b.y);
+    const own = b.w * b.h;
+    if (own < 1 || (w * h) / own >= 0.5) out.push(it.id);
+  }
+  return out;
+}
+
 export interface EditorBinding {
   tool: JournalTool;
   selectedId: string | null;
   pen: PenState;
   text: TextStyle;
   onSelect: (id: string | null) => void;
+  /** Several things chosen together (dragged out on the page), and the way to choose them. */
+  group: string[];
+  onGroup: (ids: string[]) => void;
   /** Local changes, as operations; `group` joins a gesture into one undo step. */
   onOps: (ops: Op[]) => void;
 }
@@ -410,6 +491,26 @@ export const JournalCanvas = memo(function JournalCanvas({
     null,
   );
 
+  /** Sizes of the nodes (their own, before any turning), to find where a group of things lies. */
+  const [sizes] = useState(() => new Map<string, readonly [number, number]>());
+  /** The area being dragged out to choose things. */
+  const [marquee, setMarquee] = useState<Box | null>(null);
+  const marqueeFrom = useRef<readonly [number, number] | null>(null);
+  /** Moving or turning the chosen group: how it started, and (state) how far it has got. */
+  const groupDrag = useRef<{
+    kind: "move" | "turn";
+    sx: number;
+    sy: number;
+    a0: number;
+    cx: number;
+    cy: number;
+    moved: boolean;
+    ids: string[];
+    from: Map<string, { x: number; y: number; r: number }>;
+    last: GroupMove;
+  } | null>(null);
+  const [gesture, setGesture] = useState<GroupMove | null>(null);
+
   const editing = editor?.tool === "select";
   const selectedId = editor?.selectedId ?? null;
   const selected = items.find((i) => i.id === selectedId);
@@ -422,9 +523,47 @@ export const JournalCanvas = memo(function JournalCanvas({
   }, [selectedId, editing, items, nodeVersion]);
 
   const register = (id: string, node: Konva.Node | null) => {
-    if (node) nodes.current.set(id, node);
-    else nodes.current.delete(id);
+    if (node) {
+      nodes.current.set(id, node);
+      sizes.set(id, [node.width(), node.height()]);
+    } else nodes.current.delete(id);
   };
+
+  /** The box an item covers on the page (turned items: the box round them). */
+  const boxOf = (it: Item): Box | null => {
+    if (it.t === "p") {
+      const pts = pointsOf(it);
+      const l = layoutOf(pts, it.size * PEN_WIDTH[it.tool]);
+      if (!l) return null;
+      const pad = 3; // layoutOf leaves room for the ragged edge; the box itself is tighter
+      return {
+        x: l.x + pad,
+        y: l.y + pad,
+        w: Math.max(1, l.w - pad * 2),
+        h: Math.max(1, l.h - pad * 2),
+      };
+    }
+    const sz = sizes.get(it.id);
+    if (!sz) return null;
+    const [w, h] = sz;
+    const a = (it.r * Math.PI) / 180;
+    const c = Math.abs(Math.cos(a));
+    const sn = Math.abs(Math.sin(a));
+    const bw = w * c + h * sn;
+    const bh = w * sn + h * c;
+    // the item's x, y is the middle of its box
+    return { x: it.x - bw / 2, y: it.y - bh / 2, w: bw, h: bh };
+  };
+  const group = editor?.group ?? [];
+  const groupBox = useMemo(() => {
+    if (group.length === 0) return null;
+    const set = new Set(group);
+    const b = unionBox(items.filter((i) => set.has(i.id)).flatMap((i) => boxOf(i) ?? []));
+    if (!b) return null;
+    const pad = 8;
+    return { x: b.x - pad, y: b.y - pad, w: b.w + pad * 2, h: b.h + pad * 2 };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sizes and nodes are read when the items or pictures change
+  }, [items, group, nodeVersion]);
   const onPut = (item: Item) => editor?.onOps([{ k: "put", item }]);
 
   const pointer = (e: KonvaEventObject<PointerEvent>) => {
@@ -468,11 +607,46 @@ export const JournalCanvas = memo(function JournalCanvas({
     } else if (editor.tool === "select") {
       // the handles take their own presses
       if (e.target.getParent()?.className === "Transformer") return;
+      // a chosen group: its turning handle, or anywhere inside its box, takes the press
+      if (groupBox && group.length > 0) {
+        const cx = groupBox.x + groupBox.w / 2;
+        const cy = groupBox.y + groupBox.h / 2;
+        const onHandle =
+          Math.hypot(p[0] - cx, p[1] - (groupBox.y - HANDLE_GAP / k)) <= 14 / k;
+        const inside =
+          p[0] >= groupBox.x &&
+          p[0] <= groupBox.x + groupBox.w &&
+          p[1] >= groupBox.y &&
+          p[1] <= groupBox.y + groupBox.h;
+        if (onHandle || inside) {
+          const from = new Map<string, { x: number; y: number; r: number }>();
+          for (const id of group) {
+            const n = nodes.current.get(id);
+            if (n) from.set(id, { x: n.x(), y: n.y(), r: n.rotation() });
+          }
+          groupDrag.current = {
+            kind: onHandle ? "turn" : "move",
+            sx: p[0],
+            sy: p[1],
+            a0: Math.atan2(p[1] - cy, p[0] - cx),
+            cx,
+            cy,
+            moved: false,
+            ids: [...group],
+            from,
+            last: { cx, cy, dx: 0, dy: 0, deg: 0 },
+          };
+          return;
+        }
+      }
       const stage = e.target.getStage();
       const hits = stage ? hitsAt(stage) : [];
       const current = editor.selectedId;
       if (hits.length === 0) {
+        // nothing there: a click clears the choice, a drag chooses what it encloses
         press.current = null;
+        marqueeFrom.current = [p[0], p[1]];
+        setMarquee({ x: p[0], y: p[1], w: 0, h: 0 });
         return editor.onSelect(null);
       }
       // pressing on the chosen object keeps it (so it can be dragged even when something lies on
@@ -519,7 +693,7 @@ export const JournalCanvas = memo(function JournalCanvas({
     for (const i of items) {
       if (i.t !== "p") continue;
       const before = e.left.get(i.id) ?? [pointsOf(i)];
-      const reach = radius + (i.size * PEN_LOOK[i.tool].wide) / 2;
+      const reach = radius + (i.size * PEN_WIDTH[i.tool]) / 2;
       const after = erasePieces(before, lx, ly, x, y, reach);
       if (after.length !== before.length || after.some((pc, k) => pc !== before[k])) {
         e.left.set(i.id, after);
@@ -532,7 +706,43 @@ export const JournalCanvas = memo(function JournalCanvas({
     if (!editor) return;
     const p = pointer(e);
     if (!p) return;
-    if (dragging.current) {
+    if (groupDrag.current) {
+      const g = groupDrag.current;
+      if (!g.moved && Math.hypot(p[0] - g.sx, p[1] - g.sy) < 3) return;
+      g.moved = true;
+      const m: GroupMove =
+        g.kind === "move"
+          ? { cx: g.cx, cy: g.cy, dx: p[0] - g.sx, dy: p[1] - g.sy, deg: 0 }
+          : {
+              cx: g.cx,
+              cy: g.cy,
+              dx: 0,
+              dy: 0,
+              deg: turnDeg(
+                (Math.atan2(p[1] - g.cy, p[0] - g.cx) - g.a0) * (180 / Math.PI),
+                e.evt.shiftKey,
+              ),
+            };
+      g.last = m;
+      // everything chosen follows, without touching the list until the gesture ends
+      for (const [id, o] of g.from) {
+        const n = nodes.current.get(id);
+        if (!n) continue;
+        const [nx, ny] = moveOf(m, o.x, o.y);
+        n.position({ x: nx, y: ny });
+        n.rotation(o.r + m.deg);
+      }
+      nodes.current.get(g.ids[0]!)?.getLayer()?.batchDraw();
+      setGesture(m);
+    } else if (marqueeFrom.current) {
+      const [x0, y0] = marqueeFrom.current;
+      setMarquee({
+        x: Math.min(x0, p[0]),
+        y: Math.min(y0, p[1]),
+        w: Math.abs(p[0] - x0),
+        h: Math.abs(p[1] - y0),
+      });
+    } else if (dragging.current) {
       const d = dragging.current;
       if (!d.moved && Math.hypot(p[0] - d.sx, p[1] - d.sy) < 3) return;
       d.moved = true;
@@ -552,6 +762,41 @@ export const JournalCanvas = memo(function JournalCanvas({
   };
   const up = (e?: KonvaEventObject<PointerEvent>) => {
     if (!editor) return;
+    if (groupDrag.current) {
+      const g = groupDrag.current;
+      groupDrag.current = null;
+      setGesture(null);
+      // put the pieces back where the list has them; the new list then places them
+      for (const [id, o] of g.from) {
+        const n = nodes.current.get(id);
+        n?.position({ x: o.x, y: o.y });
+        n?.rotation(o.r);
+      }
+      if (g.moved) editor.onOps(moveOps(items, g.ids, g.last));
+      else {
+        // a click that did not drag: choose what is under it, as without a group
+        const stage = e?.target.getStage();
+        const hits = stage ? hitsAt(stage) : [];
+        editor.onSelect(hits[0] ?? null);
+      }
+      return;
+    }
+    if (marqueeFrom.current) {
+      const from = marqueeFrom.current;
+      marqueeFrom.current = null;
+      const p = e ? pointer(e) : null;
+      const area: Box | null = p
+        ? {
+            x: Math.min(from[0], p[0]),
+            y: Math.min(from[1], p[1]),
+            w: Math.abs(p[0] - from[0]),
+            h: Math.abs(p[1] - from[1]),
+          }
+        : null;
+      setMarquee(null);
+      if (area && area.w + area.h > 8 / k) editor.onGroup(enclosed(items, area, boxOf));
+      return;
+    }
     if (dragging.current) {
       const d = dragging.current;
       dragging.current = null;
@@ -686,7 +931,15 @@ export const JournalCanvas = memo(function JournalCanvas({
               return left.map((piece, k) => (
                 <StrokeLine key={`${item.id}.${k}`} item={item} points={piece} />
               ));
-            return <StrokeLine key={item.id} item={item} points={pointsOf(item)} />;
+            return (
+              <StrokeLine
+                key={item.id}
+                id={item.id}
+                register={register}
+                item={item}
+                points={pointsOf(item)}
+              />
+            );
           })}
         </Layer>
         <Layer>
@@ -700,6 +953,49 @@ export const JournalCanvas = memo(function JournalCanvas({
               points={line}
               live
             />
+          )}
+          {marquee && (
+            <Rect
+              x={marquee.x}
+              y={marquee.y}
+              width={marquee.w}
+              height={marquee.h}
+              fill="rgba(122,14,77,0.07)"
+              stroke={PLUM}
+              strokeWidth={1.2 / k}
+              dash={[5 / k, 4 / k]}
+              listening={false}
+            />
+          )}
+          {groupBox && editing && (
+            <Group
+              x={groupBox.x + groupBox.w / 2 + (gesture?.dx ?? 0)}
+              y={groupBox.y + groupBox.h / 2 + (gesture?.dy ?? 0)}
+              rotation={gesture?.deg ?? 0}
+              listening={false}
+            >
+              <Rect
+                x={-groupBox.w / 2}
+                y={-groupBox.h / 2}
+                width={groupBox.w}
+                height={groupBox.h}
+                stroke={PLUM}
+                strokeWidth={1.2 / k}
+                dash={[4 / k, 4 / k]}
+              />
+              <Line
+                points={[0, -groupBox.h / 2, 0, -groupBox.h / 2 - HANDLE_GAP / k]}
+                stroke={PLUM}
+                strokeWidth={1.2 / k}
+              />
+              <Circle
+                y={-groupBox.h / 2 - HANDLE_GAP / k}
+                radius={7 / k}
+                fill={SHEET}
+                stroke={PLUM}
+                strokeWidth={2 / k}
+              />
+            </Group>
           )}
           <Transformer
             ref={transformer}
