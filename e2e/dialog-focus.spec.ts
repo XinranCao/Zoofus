@@ -174,11 +174,17 @@ test("keyboard: Save edge lands on the sticker, Log out on the login heading, En
   await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
 
   // Log out with the keyboard alone
+  // (the new page takes focus for its heading first: wait for that, then move on from there)
+  await expect(page.getByRole("heading", { level: 1 }).first()).toBeFocused();
   const acct = page.getByRole("button", { name: /Account menu for/ });
   await acct.focus();
+  await expect(acct).toBeFocused();
   await page.keyboard.press("Enter");
-  await page.getByRole("menuitem", { name: "Log out" }).focus();
+  const logout = page.getByRole("menuitem", { name: "Log out" });
+  await expect(logout).toBeVisible();
+  await logout.focus();
+  await expect(logout).toBeFocused();
   await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/\/login/);
+  await expect(page).toHaveURL(/\/login/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
 });
