@@ -16,4 +16,17 @@ test("a wrong password keeps the email, clears the password and focuses it", asy
   await expect(page.getByLabel("Email")).toHaveValue(email);
   await expect(page.getByLabel("Password")).toHaveValue("");
   await expect(page.getByLabel("Password")).toBeFocused();
+  // said once: one alert, the field points at it, and it offers the way out
+  await expect(page.getByRole("alert")).toHaveCount(1);
+  await expect(page.getByRole("alert")).toContainText(
+    "Email or password is wrong. Try again or reset your password.",
+  );
+  await expect(page.getByText(/Password doesn’t match this email/)).toHaveCount(0);
+  const password = page.getByLabel("Password");
+  await expect(password).toHaveAttribute("aria-invalid", "true");
+  await expect(password).toHaveAttribute("aria-describedby", "login-error");
+  await expect(page.locator("#login-error")).toContainText("Email or password is wrong");
+  await expect(
+    page.locator("#login-error").getByRole("button", { name: "Forgot password?" }),
+  ).toBeVisible();
 });

@@ -2,6 +2,8 @@ import { useEffect, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useNavigationType } from "react-router-dom";
 import { Masthead } from "@/components/ui/Masthead";
+import { useTitleDetail } from "@/lib/pageTitle";
+import { focusPageHeading } from "./useRouteFocus";
 import { VerifyEmailBanner } from "@/features/account/VerifyEmailBanner";
 import { useAuth } from "@/features/auth/useAuth";
 import { ProfileSetupDialog } from "@/features/profile/ProfileSetupDialog";
@@ -45,7 +47,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  const pageTitle = `Zoofus · ${t(titleKeyFor(pathname))}`;
+  const detail = useTitleDetail();
+  const pageTitle = `Zoofus · ${detail ?? t(titleKeyFor(pathname))}`;
   useEffect(() => {
     document.title = pageTitle;
   }, [pageTitle]);
@@ -85,7 +88,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             : null
         }
         pathname={pathname}
-        onLogout={() => void logout().then(() => navigate("/login"))}
+        onLogout={() =>
+          void logout().then(() => {
+            navigate("/login");
+            focusPageHeading(); // the login page's heading, not the top of the document
+          })
+        }
       />
       <ProfileSetupDialog />
       {currentUser && <MakeHost />}

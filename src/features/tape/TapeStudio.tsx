@@ -4,6 +4,7 @@ import { Icon } from "@/components/ui/Icon";
 import { Paper } from "@/components/ui/Paper";
 import { PatternEditor } from "@/components/ui/PatternEditor";
 import { Slider } from "@/components/ui/Slider";
+import { StudioPreview } from "@/components/ui/StudioPreview";
 import { Tape } from "@/components/ui/Tape";
 import { TextField } from "@/components/ui/TextField";
 import { ToggleGroup } from "@/components/ui/ToggleGroup";
@@ -104,7 +105,7 @@ export function TapeStudio({
 
   return (
     <div className="zf-studio">
-      <div className="zf-studio__preview">
+      <StudioPreview>
         <div
           ref={stage}
           className="zf-studio__stage zf-ground"
@@ -181,7 +182,7 @@ export function TapeStudio({
             </div>
           </div>
         </div>
-      </div>
+      </StudioPreview>
 
       <div className="zf-studio__controls">
         <TextField

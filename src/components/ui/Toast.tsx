@@ -3,10 +3,12 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/cn";
 import { Icon, type IconName } from "./Icon";
 import { Paper } from "./Paper";
@@ -103,7 +105,7 @@ interface Item extends ToastInput {
 }
 
 /**
- * Radix Toast. Bottom-centre on mobile, bottom-right on desktop; success lasts 4s, an error 8s; never more than three at once.
+ * Radix Toast. Bottom-centre on mobile, bottom-right on desktop; a note with words or an action stays 8 to 10 s (WCAG 2.2.1), pauses while the pointer or focus is on it, and goes with its close button or Esc; never more than three at once.
  */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<Item[]>([]);
@@ -117,6 +119,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     return id;
   }, []);
   const value = useMemo(() => ({ push, dismiss }), [push, dismiss]);
+  const { t } = useTranslation();
+  // Esc puts the newest note away, unless a dialog is open (Esc belongs to it then)
+  useEffect(() => {
+    if (!items.length) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || document.querySelector('[role="dialog"]')) return;
+      const last = items[items.length - 1];
+      if (last) dismiss(last.id);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [items, dismiss]);
 
   return (
     <ToastContext.Provider value={value}>
@@ -127,7 +141,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={item.id}
             asChild
             type={item.kind === "error" ? "foreground" : "background"}
-            duration={item.kind === "error" ? 8000 : item.action ? 6000 : 4000}
+            duration={item.kind === "error" || item.action ? 10000 : 8000}
             onOpenChange={(open) => !open && dismiss(item.id)}
           >
             <ToastNote
@@ -138,17 +152,28 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               role={item.kind === "error" ? "alert" : "status"}
               className="zf-toast-in"
               action={
-                item.action && (
-                  <RToast.Action altText={item.action.label} asChild>
+                <>
+                  {item.action && (
+                    <RToast.Action altText={item.action.label} asChild>
+                      <button
+                        type="button"
+                        className="zf-btn zf-torn quiet sm"
+                        onClick={item.action.onClick}
+                      >
+                        <span className="zf-face">{item.action.label}</span>
+                      </button>
+                    </RToast.Action>
+                  )}
+                  <RToast.Close asChild>
                     <button
                       type="button"
-                      className="zf-btn zf-torn quiet sm"
-                      onClick={item.action.onClick}
+                      className="zf-toast__close"
+                      aria-label={t("common.dismiss")}
                     >
-                      <span className="zf-face">{item.action.label}</span>
+                      <Icon name="x" />
                     </button>
-                  </RToast.Action>
-                )
+                  </RToast.Close>
+                </>
               }
             />
           </RToast.Root>

@@ -68,13 +68,25 @@ export default function LoginPage() {
         {t("auth.login.title")}
       </h1>
       {error && (
-        <div style={{ marginBottom: 16 }}>
+        <div id="login-error" style={{ marginBottom: 16 }}>
           <ToastNote
             kind="error"
             title={t("auth.errors.toastTitle")}
             body={t(error === "google" ? "auth.errors.google" : "auth.errors.login")}
             seed="login-error"
             role="alert"
+            action={
+              error === "login" ? (
+                <Button
+                  variant="quiet"
+                  size="sm"
+                  seed="lerr-fg"
+                  onClick={() => setResetOpen(true)}
+                >
+                  {t("auth.login.forgot")}
+                </Button>
+              ) : undefined
+            }
           />
         </div>
       )}
@@ -103,13 +115,10 @@ export default function LoginPage() {
             type="password"
             autoComplete="current-password"
             seed="pw"
-            error={
-              errors.password
-                ? t(errors.password.message!)
-                : wrong
-                  ? t("auth.errors.wrongPassword")
-                  : null
-            }
+            error={errors.password ? t(errors.password.message!) : null}
+            // a wrong password is said once, in the banner above; the field only points at it
+            aria-invalid={wrong || undefined}
+            aria-describedby={wrong ? "login-error" : undefined}
             {...register("password")}
           />
         </fieldset>

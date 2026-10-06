@@ -51,6 +51,7 @@ export function LassoCanvas() {
   const [ref, width] = useElementWidth<HTMLDivElement>();
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
+  const [keysOpen, setKeysOpen] = useState(false);
 
   const pick = (file?: File | null) => {
     if (file) void intake(file);
@@ -68,6 +69,10 @@ export function LassoCanvas() {
             setOver(true);
           }}
           onDragLeave={() => setOver(false)}
+          // the shortcuts open once, the first time the photo takes keyboard focus
+          onFocus={(e) => {
+            if (e.target.getAttribute("role") === "application") setKeysOpen(true);
+          }}
           onDrop={(e) => {
             e.preventDefault();
             setOver(false);
@@ -176,13 +181,20 @@ export function LassoCanvas() {
       </Paper>
       {imageUrl && !loading && (
         <>
-          <p
-            id="maker-keys"
-            className="zf-muted"
-            style={{ margin: "10px 0 0", fontSize: 13 }}
-          >
+          {/* the shortcuts stay in the page for screen readers (the canvas points at this text) */}
+          <p id="maker-keys" className="sr-only">
             {t("maker.hint.keys")}
           </p>
+          {/* sighted keyboard users get them as a disclosure that opens once the photo has focus;
+              touch screens (pointer: coarse) do not show it, the hint beside the tools says what to do */}
+          <details
+            className="zf-keys-help"
+            open={keysOpen}
+            onToggle={(e) => setKeysOpen(e.currentTarget.open)}
+          >
+            <summary>{t("maker.hint.keysTitle")}</summary>
+            <p aria-hidden="true">{t("maker.hint.keys")}</p>
+          </details>
           <SelectionAnnouncer />
         </>
       )}

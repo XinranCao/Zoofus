@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Reel } from "@/components/ui/Loader";
 import { useToast } from "@/components/ui/Toast";
 import { useAuth } from "@/features/auth/useAuth";
+import { SaveStatus } from "@/features/journal/SaveStatus";
 import { JournalStudio, type JournalExport } from "@/features/journal/JournalStudio";
 import { AUTOSAVE_MS } from "@/features/journal/autosave";
 import type { StickerResolver } from "@/features/journal/JournalCanvas";
@@ -308,7 +309,7 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
     setCopying(true);
     try {
       const thumb = await exportRef.current?.thumb().catch(() => null);
-      const id = await saveCopy(
+      const { id, skipped } = await saveCopy(
         me,
         latest.current,
         store.getState().items,
@@ -317,8 +318,9 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
         thumb,
       );
       toast.push({
-        kind: "success",
+        kind: skipped ? "info" : "success",
         title: t("together.copySaved"),
+        ...(skipped ? { body: t("together.copySkipped", { count: skipped }) } : {}),
         action: {
           label: t("together.openCopy"),
           onClick: () => navigate(`/journals/${id}`),
@@ -360,22 +362,16 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
         header={
           <>
             {/* one plain status, so nobody wonders whether their work is kept */}
-            <span role="status" className="zf-savestate">
-              {saving
-                ? t("together.statusSaving")
-                : unsaved
-                  ? t("together.statusUnsaved")
-                  : t("together.statusSaved")}
-            </span>
+            <SaveStatus state={saving ? "saving" : unsaved ? "pending" : "saved"} />
             <Button
-              variant={unsaved ? "primary" : "quiet"}
+              variant="quiet"
               size="sm"
               icon="check"
               seed="wsave"
               loading={saving}
               onClick={() => void saveNow()}
             >
-              {unsaved ? t("common.save") : t("journal.savedShort")}
+              {t("common.save")}
             </Button>
             <Button
               variant="secondary"

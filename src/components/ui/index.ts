@@ -12,7 +12,7 @@ export {
 export { Dialog, DialogBody } from "./Dialog";
 export { EmptyState } from "./EmptyState";
 export { Icon, ICONS, type IconName } from "./Icon";
-export { Reel, Skeleton, Typing } from "./Loader";
+export { LoadingNote, Reel, Skeleton, Typing } from "./Loader";
 export { Masthead, type MastheadUser } from "./Masthead";
 export { Paper, type PaperProps } from "./Paper";
 export { DoodlePad, PatternEditor, PixelGrid } from "./PatternEditor";

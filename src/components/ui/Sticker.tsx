@@ -100,8 +100,8 @@ export function Sticker({
     >
       <canvas
         ref={ref}
-        role="img"
-        aria-label={label ?? "Sticker"}
+        // a sticker with no name is decoration (a heading's art): nothing to announce
+        {...(label ? { role: "img", "aria-label": label } : { "aria-hidden": true })}
         style={{ width: reserveW, height: reserveH }}
       />
     </span>

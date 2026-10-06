@@ -66,7 +66,7 @@ Also look at one older sticker saved before the redesign, if the account has any
 
 ### Security headers and the CSP
 
-`firebase.json` sends the security headers on every page, an **enforcing** Content-Security-Policy and a year-long cache on `/assets/**`. `e2e/csp.spec.ts` proves, on a production build, that the main flows raise no violation and that an inline script, an unlisted frame, an outside image and an outside request are all caught.
+`firebase.json` sends the security headers on every page, an **enforcing** Content-Security-Policy and a year-long cache on `/assets/**`. `e2e/csp.spec.ts` proves, on a production build, that the main flows raise no violation (the share, Together and Google sign-in specs `friends`, `together` and `google-signin` run there too, and fail on any violation, through `e2e/support/csp-guard.ts`) and that an inline script, an unlisted frame, an outside image and an outside request are all caught.
 
 After the deploy, check the real headers and the console:
 
@@ -75,7 +75,7 @@ curl -sI https://zoofus-48264.web.app | grep -iE "content-security-policy|x-cont
 curl -sI "https://zoofus-48264.web.app/assets/$(curl -s https://zoofus-48264.web.app | grep -o 'index-[^"]*\.js' | head -1)" | grep -i cache-control
 ```
 
-Then open the live site and watch the browser console on sign in (**including Google sign-in**, which the e2e run cannot do), a sticker, a tape, a journal, Friends and Together: a `Refused to ...` message means the policy blocked something the app needs. zod's `eval` probe is expected (it falls back). To fix one, add the origin to the matching directive in `firebase.json` and release again. To switch the policy off in an emergency, change the key `Content-Security-Policy` to `Content-Security-Policy-Report-Only` and redeploy hosting.
+Then open the live site and watch the browser console on sign in (**including Google sign-in with the real Google popup**; the e2e run only has the Auth Emulator's), Together "Save a copy", a sticker, a tape, a journal, Friends and Together: a `Refused to ...` message means the policy blocked something the app needs. zod's `eval` probe is expected (it falls back). To fix one, add the origin to the matching directive in `firebase.json` and release again. To switch the policy off in an emergency, change the key `Content-Security-Policy` to `Content-Security-Policy-Report-Only` and redeploy hosting.
 
 ## 4. Rollback
 

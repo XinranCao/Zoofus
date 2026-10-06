@@ -122,7 +122,7 @@ export function StickerDetailDialog({
               </Button>
             )}
             {onEditEdge && sticker.kind === "editable" && (
-              <Button variant="quiet" seed="dee" onClick={onEditEdge}>
+              <Button variant="secondary" icon="pen" seed="dee" onClick={onEditEdge}>
                 {t("book.editEdge")}
               </Button>
             )}

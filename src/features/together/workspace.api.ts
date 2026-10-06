@@ -354,19 +354,26 @@ export async function saveCopy(
   shelf: Map<string, ShelfEntry>,
   existing: number,
   thumb?: Blob | null,
-): Promise<string> {
+): Promise<{ id: string; skipped: number }> {
   const id = crypto.randomUUID();
+  let skipped = 0;
   const assets: Record<string, Asset> = {};
   const kept: Item[] = [];
   for (const item of items) {
     if (item.t === "s" && item.ref.startsWith("a:")) {
       const aid = item.ref.slice(2);
       const entry = shelf.get(aid);
-      if (!entry || entry.kind !== "sticker") continue; // its picture was taken off the shelf
+      if (!entry || entry.kind !== "sticker") {
+        skipped++; // its picture was taken off the shelf
+        continue;
+      }
       if (!assets[aid]) {
         // a picture that cannot be read leaves its place empty rather than losing the whole copy
         const raw = await readPicture(entry.url).catch(() => null);
-        if (!raw) continue;
+        if (!raw) {
+          skipped++;
+          continue;
+        }
         const blob =
           raw.type === "image/png" || raw.type === "image/webp"
             ? raw
@@ -394,7 +401,7 @@ export async function saveCopy(
     await uploadBytes(r, thumb, { contentType: "image/webp" });
     thumbUrl = await getDownloadURL(r);
   }
-  return createJournal(
+  const created = await createJournal(
     me,
     {
       id,
@@ -408,4 +415,5 @@ export async function saveCopy(
     },
     existing,
   );
+  return { id: created, skipped };
 }

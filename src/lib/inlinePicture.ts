@@ -1,4 +1,5 @@
 import { COMPRESSION, encodeWithin } from "./image";
+import { dataUrlToBlob } from "./dataUrl";
 import { assertTrustedPictureUrl } from "./trustedUrl";
 
 /** A picture small enough to keep inside a database document, as a `data:` URL. */
@@ -30,9 +31,12 @@ export async function toInlinePicture(
   let blob: Blob;
   if (typeof source === "string") {
     assertTrustedPictureUrl(source);
-    const res = await fetch(source);
-    if (!res.ok) throw new Error(`Could not read a picture (${res.status})`);
-    blob = await res.blob();
+    if (/^data:/i.test(source)) blob = dataUrlToBlob(source);
+    else {
+      const res = await fetch(source);
+      if (!res.ok) throw new Error(`Could not read a picture (${res.status})`);
+      blob = await res.blob();
+    }
   } else blob = source;
   const bitmap = await createImageBitmap(blob);
   const canvas = document.createElement("canvas");

@@ -58,7 +58,13 @@ export function Dialog({
   // (noted in a layout effect: it runs before the dialog takes focus)
   const opener = useRef<HTMLElement | null>(null);
   useLayoutEffect(() => {
-    if (open) opener.current = document.activeElement as HTMLElement | null;
+    if (!open) return;
+    const active = document.activeElement as HTMLElement | null;
+    // opened from a menu item (the Make menu): the item goes away with the menu, so what the
+    // dialog gives focus back to is the button that opened that menu
+    const menu = active?.closest('[role="menu"]');
+    const trigger = menu?.getAttribute("aria-labelledby");
+    opener.current = (trigger && document.getElementById(trigger)) || active;
   }, [open]);
   return (
     <RDialog.Root open={open} onOpenChange={onOpenChange}>
@@ -70,6 +76,23 @@ export function Dialog({
             aria-describedby={undefined}
             onEscapeKeyDown={onEscapeKeyDown}
             onInteractOutside={onInteractOutside}
+            onOpenAutoFocus={(e) => {
+              // one rule: the first field to fill in, else the title (never the Close button)
+              e.preventDefault();
+              const open = document.querySelectorAll<HTMLElement>('[role="dialog"]');
+              const content = open[open.length - 1];
+              const field = [
+                ...(content?.querySelectorAll<HTMLElement>(
+                  ".zf-dialog__scroll :is(input:not([type=hidden]):not([type=file]):not([disabled]), textarea:not([disabled]), select:not([disabled]))",
+                ) ?? []),
+              ].find((el) => el.offsetParent !== null); // a hidden input cannot take focus
+              const title = content?.querySelector<HTMLElement>(".zf-dialog__title");
+              if (field) field.focus();
+              else if (title) {
+                title.setAttribute("tabindex", "-1");
+                title.focus();
+              }
+            }}
             onCloseAutoFocus={(e) => {
               e.preventDefault();
               const el = opener.current;
@@ -104,11 +127,6 @@ export function Dialog({
                 )
               }
             >
-              {!hideClose && (
-                <RDialog.Close className="zf-close" aria-label={t("common.close")}>
-                  <Icon name="x" />
-                </RDialog.Close>
-              )}
               {kicker && (
                 <div className="zf-kicker" style={{ marginBottom: 6 }}>
                   {kicker}
@@ -118,6 +136,12 @@ export function Dialog({
               {/* the one scrolling part: title and actions stay in view, the page behind stays put */}
               <div className="zf-dialog__scroll">{children}</div>
               {actions && <div className="zf-dialog__actions">{actions}</div>}
+              {/* last in the Tab order (it sits at the top corner by position) */}
+              {!hideClose && (
+                <RDialog.Close className="zf-close" aria-label={t("common.close")}>
+                  <Icon name="x" />
+                </RDialog.Close>
+              )}
             </Paper>
           </RDialog.Content>
         </div>

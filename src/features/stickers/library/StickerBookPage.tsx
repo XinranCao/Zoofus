@@ -3,9 +3,10 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogBody } from "@/components/ui/Dialog";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Skeleton } from "@/components/ui/Loader";
+import { LoadingNote, Skeleton } from "@/components/ui/Loader";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { LibraryTabs } from "@/features/library/LibraryTabs";
+import { useSearchParams } from "react-router-dom";
 import { useMakeParam } from "@/lib/useMakeParam";
 import { useSelection } from "@/lib/useSelection";
 import { BulkBar } from "@/components/ui/BulkBar";
@@ -44,6 +45,20 @@ export default function StickerBookPage() {
   const [bulkDelete, setBulkDelete] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
   useMakeParam(() => setMakerOpen(true));
+  // `/stickers?edit=<id>` (from "Edit edge" in the maker's saved step) opens that sticker's edge editor
+  const [params, setParams] = useSearchParams();
+  const wantedEdit = params.get("edit");
+  const openEdgeId =
+    editEdgeId ??
+    (wantedEdit && data?.some((s) => s.id === wantedEdit) ? wantedEdit : null);
+  const closeEdge = () => {
+    setEditEdgeId(null);
+    if (wantedEdit) {
+      const next = new URLSearchParams(params);
+      next.delete("edit");
+      setParams(next, { replace: true });
+    }
+  };
   // Deleted stickers disappear at once; the real delete runs after the Undo window.
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const pending = useRef(
@@ -189,6 +204,7 @@ export default function StickerBookPage() {
           role="alert"
         />
       )}
+      {isPending && <LoadingNote text={t("book.loadingList")} />}
       {isPending && (
         <div className="zf-grid-book" aria-busy="true">
           {Array.from({ length: 5 }, (_, i) => (
@@ -351,7 +367,7 @@ export default function StickerBookPage() {
           setDetailId(null);
         }}
       />
-      <EditEdgeDialog sticker={find(editEdgeId)} onClose={() => setEditEdgeId(null)} />
+      <EditEdgeDialog sticker={find(openEdgeId)} onClose={closeEdge} />
       <Dialog
         open={confirmId !== null}
         onOpenChange={(o) => !o && setConfirmId(null)}

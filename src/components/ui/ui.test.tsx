@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -251,6 +251,29 @@ describe("Toast", () => {
     await userEvent.click(screen.getByText("bad"));
     expect(await screen.findByText("Saved")).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent("Failed");
+  });
+
+  it("stays at least 8 s, goes with its close button or Esc", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      render(
+        <ToastProvider>
+          <Trigger />
+        </ToastProvider>,
+      );
+      await userEvent.click(screen.getByText("ok"));
+      expect(await screen.findByText("Saved")).toBeInTheDocument();
+      act(() => void vi.advanceTimersByTime(7500));
+      expect(screen.getByText("Saved")).toBeInTheDocument(); // still there after 7.5 s
+      await userEvent.click(screen.getByRole("button", { name: "Dismiss" }));
+      await waitFor(() => expect(screen.queryByText("Saved")).toBeNull());
+      await userEvent.click(screen.getByText("ok"));
+      expect(await screen.findByText("Saved")).toBeInTheDocument();
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(screen.queryByText("Saved")).toBeNull());
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("never shows more than three at once", async () => {

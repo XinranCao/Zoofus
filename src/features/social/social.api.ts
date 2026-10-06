@@ -14,6 +14,7 @@ import {
 import { db } from "@/lib/firebase";
 import { localizeUrls } from "@/lib/emulatorUrl";
 import { toInlinePicture } from "@/lib/inlinePicture";
+import { isTrustedPictureUrl } from "@/lib/trustedUrl";
 import { isCode, makeFriendCode, normalizeCode } from "./friendCode";
 import {
   friendDocSchema,
@@ -69,7 +70,8 @@ const keyOf = (url: string) => {
  * small copy of my picture inside my public profile. If the copy cannot be made the link is kept.
  */
 async function publicAvatar(source: string): Promise<string> {
-  if (!source) return "";
+  // a link the rules would refuse (a Google photo) must never block the whole profile write
+  if (!source || !isTrustedPictureUrl(source)) return "";
   try {
     return (await toInlinePicture(source, AVATAR_INLINE)).url;
   } catch {

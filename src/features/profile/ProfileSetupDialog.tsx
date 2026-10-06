@@ -43,22 +43,33 @@ export function ProfileSetupDialog() {
           seed="setup-go"
           disabled={!valid}
           loading={save.isPending}
-          onClick={() => save.mutate({ displayName: value.trim() })}
+          type="submit"
+          form="profile-setup-form"
         >
           {t("profileSetup.go")}
         </Button>
       }
     >
       <DialogBody>{t("profileSetup.body")}</DialogBody>
-      <TextField
-        label={t("auth.nickname")}
-        required
-        seed="setup-name"
-        value={value}
-        maxLength={MAX_NICKNAME}
-        onChange={(e) => setName(e.target.value)}
-        error={name !== null && !valid ? t("auth.errors.name") : undefined}
-      />
+      {/* a real form, so Enter in the field continues */}
+      <form
+        id="profile-setup-form"
+        noValidate
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (valid && !save.isPending) save.mutate({ displayName: value.trim() });
+        }}
+      >
+        <TextField
+          label={t("auth.nickname")}
+          required
+          seed="setup-name"
+          value={value}
+          maxLength={MAX_NICKNAME}
+          onChange={(e) => setName(e.target.value)}
+          error={name !== null && !valid ? t("auth.errors.name") : undefined}
+        />
+      </form>
     </Dialog>
   );
 }

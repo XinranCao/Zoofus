@@ -15,12 +15,13 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   // The CSP is judged on a production build served with the real hosting headers (the policy
-  // enforcing); everything else runs on the dev server.
+  // enforcing); everything else runs on the dev server. The share, Together and Google flows run
+  // in both (their `csp-guard` fixture fails on a violation in the "csp" project).
   projects: [
     { name: "app", testIgnore: /csp\.spec\.ts/ },
     {
       name: "csp",
-      testMatch: /csp\.spec\.ts/,
+      testMatch: /(csp|friends|together|google-signin)\.spec\.ts/,
       use: { baseURL: "http://localhost:4175" },
     },
   ],

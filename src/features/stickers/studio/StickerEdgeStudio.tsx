@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { PatternEditor } from "@/components/ui/PatternEditor";
 import { Slider } from "@/components/ui/Slider";
+import { StudioPreview } from "@/components/ui/StudioPreview";
 import { Sticker } from "@/components/ui/Sticker";
 import { ToggleGroup } from "@/components/ui/ToggleGroup";
 import { edgeWidth, type EdgeShape } from "@/paper/dieCut";
@@ -17,6 +18,7 @@ export function StickerEdgeStudio({
   seed,
   onChange,
   previewSize = 300,
+  locked = false,
 }: {
   /** The transparent, edge-less cut-out. */
   source: HTMLCanvasElement | null;
@@ -24,6 +26,8 @@ export function StickerEdgeStudio({
   seed: string;
   onChange: (patch: Partial<EdgeSpec>) => void;
   previewSize?: number;
+  /** Read-only: the options cannot be reached (a saved sticker is changed with "Edit edge"). */
+  locked?: boolean;
 }) {
   const { t } = useTranslation();
   const long = source ? Math.max(source.width, source.height) : previewSize;
@@ -36,7 +40,7 @@ export function StickerEdgeStudio({
     : previewSize;
   return (
     <div className="zf-studio zf-studio--sticker">
-      <div className="zf-studio__preview">
+      <StudioPreview>
         <div
           className="zf-studio__stage zf-ground"
           style={{
@@ -55,8 +59,12 @@ export function StickerEdgeStudio({
             label={t("maker.edge.preview")}
           />
         </div>
-      </div>
-      <div className="zf-studio__controls">
+      </StudioPreview>
+      <div
+        className="zf-studio__controls"
+        inert={locked}
+        style={locked ? { opacity: 0.6 } : undefined}
+      >
         <div>
           <div className="zf-label" style={{ marginBottom: 8 }}>
             {t("maker.edge.shape")}

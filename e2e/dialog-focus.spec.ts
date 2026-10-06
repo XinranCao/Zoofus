@@ -35,9 +35,17 @@ test("focus returns to the opener: New tape, the sticker save dialog, Share", as
   const newSticker = page
     .getByRole("button", { name: /New sticker|Make your first sticker/ })
     .first();
-  await newSticker.focus();
-  await page.keyboard.press("Enter");
-  await expect(page.getByRole("dialog", { name: "Make a sticker" })).toBeVisible();
+  // (the first time the maker is opened, the dev server may find a new dependency and reload the
+  // page, which closes it: open it again if so)
+  await expect(async () => {
+    if (!(await page.getByRole("dialog", { name: "Make a sticker" }).isVisible())) {
+      await newSticker.focus();
+      await page.keyboard.press("Enter");
+    }
+    await expect(page.getByRole("dialog", { name: "Make a sticker" })).toBeVisible({
+      timeout: 6000,
+    });
+  }).toPass({ timeout: 40_000 });
   await page
     .locator('input[type="file"]')
     .first()
@@ -61,7 +69,9 @@ test("focus returns to the opener: New tape, the sticker save dialog, Share", as
   const another = page.getByRole("button", { name: "New sticker" }).first();
   await another.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("dialog", { name: "Make a sticker" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Make a sticker" })).toBeVisible({
+    timeout: 20_000,
+  });
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toBeHidden();
   await expect(another).toBeFocused();
@@ -74,4 +84,52 @@ test("focus returns to the opener: New tape, the sticker save dialog, Share", as
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toBeHidden();
   await expect(share).toBeFocused();
+});
+
+// UX-050/059: opened from the Make menu, focus goes back to the Make button; headings stay clear of
+// the sticky header; after logging out the login heading has focus
+test("New tape from the Make menu returns focus to Make; headings are visible; logout focuses the login heading", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 1280, height: 720 });
+  const { email } = await signUp(page, "Menu");
+  const make = page.getByRole("button", { name: /^Make/ }).first();
+  for (const how of ["Escape", "Add"]) {
+    await make.click();
+    await page.getByRole("menuitem", { name: "Tape", exact: true }).click();
+    const dlg = page.getByRole("dialog", { name: "New tape" });
+    await expect(dlg).toBeVisible();
+    // the first field has focus, and Close is the last stop in the dialog
+    await expect(dlg.getByLabel("Name")).toBeFocused();
+    const closeLast = await dlg.evaluate((d) => {
+      const stops = [
+        ...d.querySelectorAll<HTMLElement>("button,input,[tabindex='0']"),
+      ].filter((e) => e.tabIndex >= 0);
+      return stops[stops.length - 1]?.getAttribute("aria-label") === "Close";
+    });
+    expect(closeLast).toBe(true);
+    if (how === "Escape") await page.keyboard.press("Escape");
+    else {
+      await dlg.getByLabel("Name").fill("Menu tape");
+      await page.getByRole("button", { name: "Add to my tapes" }).click();
+    }
+    await expect(page.getByRole("dialog")).toBeHidden();
+    await expect(make).toBeFocused();
+  }
+
+  // a heading that takes focus is fully visible under the sticky header
+  await page.getByRole("link", { name: "Friends", exact: true }).first().click();
+  const h1 = page.getByRole("heading", { level: 1 }).first();
+  await expect(h1).toBeFocused();
+  const bar = (await page.locator(".zf-masthead").first().boundingBox())!;
+  const box = (await h1.boundingBox())!;
+  expect(box.y).toBeGreaterThanOrEqual(bar.y + bar.height - 1);
+
+  // log out: the login heading has focus
+  await page.getByRole("button", { name: /Account menu for/ }).click();
+  await page.getByRole("menuitem", { name: "Log out" }).click();
+  await expect(page).toHaveURL(/\/login/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
+  void email;
 });

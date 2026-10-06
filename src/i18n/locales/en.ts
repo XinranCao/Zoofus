@@ -1,6 +1,7 @@
 /** English copy. Rules: sentence case, verbs on buttons, no exclamation marks, no emoji. */
 export const en = {
   common: {
+    dismiss: "Dismiss",
     close: "Close",
     cancel: "Cancel",
     back: "Back",
@@ -46,7 +47,6 @@ export const en = {
       passwordShort: "Use at least 8 characters.",
       name: "Enter a nickname between 1 and 40 characters.",
       emailInUse: "That email already has an account.",
-      wrongPassword: "Password doesn’t match this email.",
       weakPassword: "Pick a stronger password.",
       toastTitle: "That didn’t work",
       login: "Email or password is wrong. Try again or reset your password.",
@@ -117,8 +117,10 @@ export const en = {
     "moss-700": "Moss",
     "cocoa-800": "Cocoa",
     "kraft-100": "Kraft",
+    "loden-900": "Loden",
   },
   pattern: {
+    lowContrast: "Pick an ink colour to see the pattern.",
     kinds: {
       solid: "Solid",
       stripes: "Stripes",
@@ -179,6 +181,7 @@ export const en = {
     hint: {
       freehand: "Draw around what you want to keep, then let go.",
       shape: "Drag on the photo to draw the shape.",
+      keysTitle: "Keyboard shortcuts",
       keys: "Without a mouse: focus the photo, press Enter for a starting selection, arrow keys move it, Shift plus arrows resize it, Delete removes it, then press Enter again to cut it out.",
     },
     wholePhoto: "Use the whole photo",
@@ -236,6 +239,7 @@ export const en = {
     drop: "Drop a photo to start cutting",
   },
   book: {
+    loadingList: "Loading your stickers…",
     title: "Stickers",
     newSticker: "New sticker",
     cutOn: "Cut {{date}}",
@@ -307,6 +311,7 @@ export const en = {
     deleteFailed:
       "We couldn’t delete the account. Nothing was changed if you were asked to sign in again.",
     verify: "Confirm your email",
+    verifyWhy: "Optional for now. Confirming lets you reset your password.",
     resend: "Resend",
     sent: "Sent",
     hideVerify: "Hide this note",
@@ -323,6 +328,7 @@ export const en = {
     nicknameHint: "Friends see this name. You can change it any time.",
   },
   tape: {
+    loadingList: "Loading your tapes…",
     starterNames: ["Pink dots", "Lime stripe", "Picnic", "Masking"],
     renameTitle: "Rename tape",
     renameFailed: "We couldn’t rename that tape. Try again.",
@@ -347,6 +353,7 @@ export const en = {
     add: "Add to my tapes",
     adding: "Adding",
     added: "Added “{{name}}” to your tapes.",
+    seeTapes: "See in Tapes",
     removed: "Tape deleted.",
     limit: "You have the most tapes you can keep. Delete one first.",
     saveFailed: "We couldn’t save that tape. Try again.",
@@ -392,6 +399,7 @@ export const en = {
     account: "Account",
     logIn: "Log in",
     signUp: "Sign up",
+    signUpStep2: "Sign up: your nickname",
     journals: "Journals",
     collections: "Collections",
     friends: "Friends",
@@ -469,6 +477,7 @@ export const en = {
     taken_other: "{{count}} items taken out.",
   },
   journal: {
+    loadingList: "Loading your journals…",
     toolbar: "Journal tools",
     pageTitle: "Journals",
     lead: "Pages you make from your stickers and tapes, with writing and drawing on top.",
@@ -497,7 +506,11 @@ export const en = {
     missingTitle: "We couldn’t find that journal",
     missingBody: "It may have been deleted, or the link is old.",
     saved: "Journal saved.",
-    savedShort: "Saved",
+    status: {
+      saved: "All changes saved",
+      saving: "Saving…",
+      pending: "Saving in a moment",
+    },
     saveFailed: "We couldn’t save the journal. Your changes are still here. Try again.",
     backToJournals: "← Journals",
     download: "Download PNG",
@@ -660,9 +673,6 @@ export const en = {
     inviteMore: "Invite more",
     invited_one: "Invited {{count}} friend",
     invited_other: "Invited {{count}} friends",
-    statusSaving: "Saving…",
-    statusUnsaved: "Saving in a moment",
-    statusSaved: "All changes saved",
     pagePicture: "The page “{{title}}” as last saved",
     inviteFailed: "We couldn't send the invitations. Try again.",
     invitedSome:
@@ -695,6 +705,8 @@ export const en = {
     allTapes: "All my tapes",
     saveCopy: "Save a copy",
     copySaved: "A copy is in your journals",
+    copySkipped_one: "{{count}} sticker could not be copied.",
+    copySkipped_other: "{{count}} stickers could not be copied.",
     openCopy: "Open",
     copyFailed: "We couldn't save a copy. Try again.",
     changeFailed: "A change couldn't be shared. Check your connection.",
@@ -705,6 +717,8 @@ export const en = {
     inviteBody: "Join to make this page with your friends.",
   },
   friends: {
+    loadingList: "Loading your friends…",
+    loadingRequests: "Loading your requests…",
     title: "Friends",
     lead: "Connect with friends to share stickers, tapes and journals, and to make journals together.",
     sections: "Friends sections",
@@ -713,6 +727,8 @@ export const en = {
     tabShared: "Shared with you · {{count}}",
     yourCode: "Your friend code",
     yourCodeHint: "Give this to a friend. They type it in to send you a request.",
+    codeFailed: "We could not load your friend code.",
+    codeRetry: "Try again",
     copy: "Copy code",
     copied: "Code copied.",
     addTitle: "Add a friend",

@@ -183,8 +183,16 @@ export const journalDocSchema = z.object({
     .object({ from: z.string().optional(), workspace: z.string().optional() })
     .optional()
     .catch(undefined),
-  createdAt: z.instanceof(Timestamp).transform((t) => t.toDate()),
-  updatedAt: z.instanceof(Timestamp).transform((t) => t.toDate()),
+  // (null while the server has not stamped a write made just now: a list read straight after
+  // saving must still show the journal)
+  createdAt: z
+    .instanceof(Timestamp)
+    .nullable()
+    .transform((t) => (t ? t.toDate() : new Date())),
+  updatedAt: z
+    .instanceof(Timestamp)
+    .nullable()
+    .transform((t) => (t ? t.toDate() : new Date())),
 });
 export type Journal = z.output<typeof journalDocSchema> & { id: string };
 

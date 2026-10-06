@@ -1,8 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
+import { setTitleDetail } from "@/lib/pageTitle";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Divider } from "@/components/ui/Scribble";
@@ -26,6 +27,12 @@ export default function SignUpPage() {
   const navigate = useNavigate();
   // After step 1 the account exists, so "Back" never creates it twice.
   const [step, setStep] = useState<1 | 2>(1);
+  // the tab title follows the step (step 2 is no longer "Sign up", it asks for a nickname)
+  const step2Title = t("pageTitle.signUpStep2");
+  useEffect(() => {
+    setTitleDetail(step === 2 ? step2Title : null);
+    return () => setTitleDetail(null);
+  }, [step, step2Title]);
   const created = Boolean(currentUser);
   const [error, setError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<{ email?: string; password?: string }>({});

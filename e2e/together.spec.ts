@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import { type Page } from "@playwright/test";
+import { expect, test } from "./support/csp-guard";
 import { makeSticker, signUp } from "./support/flows";
 
 test.use({ viewport: { width: 1280, height: 800 } });
@@ -102,6 +103,9 @@ test("two friends make a journal page together and each keeps a copy", async ({
   await expect(b.getByText("A copy is in your journals").first()).toBeVisible({
     timeout: 20000,
   });
+  // nothing was left out of the copy (the shelf sticker is a data: picture, which the enforcing
+  // policy stops `fetch` from reading)
+  await expect(b.getByText(/could not be copied/)).toHaveCount(0);
   // the copy and the list both show the page as it looks, not bare paper
   await b.goto("/journals");
   const copy = b.getByRole("link", { name: /Open Trip page/ });

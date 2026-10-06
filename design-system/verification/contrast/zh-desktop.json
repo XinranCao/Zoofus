@@ -1,5 +1,5 @@
 {
-  "checked": 535,
+  "checked": 520,
   "lowest": [
     {
       "screen": "zh/desktop/10-book-empty",
@@ -42,6 +42,16 @@
       "weight": 400
     },
     {
+      "screen": "zh/desktop/20e-journal-studio",
+      "text": "所有改动都已保存",
+      "ratio": 4.97,
+      "min": 4.5,
+      "fg": "#57620d",
+      "bg": "#e8ddd0",
+      "size": 13,
+      "weight": 400
+    },
+    {
       "screen": "zh/desktop/20f-collections",
       "text": "你自己分的一组组贴纸、胶带和手账,想建多少都行。",
       "ratio": 4.97,
@@ -73,7 +83,7 @@
     },
     {
       "screen": "zh/desktop/21-account",
-      "text": "ds-zh-desktop-1791208779576@example.com",
+      "text": "ds-zh-desktop-1791239290221@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -184,16 +194,6 @@
     {
       "screen": "zh/desktop/14-maker-deselect-mode",
       "text": "剪下来",
-      "ratio": 5.15,
-      "min": 4.5,
-      "fg": "#fbf6ee",
-      "bg": "#bc3b22",
-      "size": 15,
-      "weight": 400
-    },
-    {
-      "screen": "zh/desktop/15-maker-edge-torn",
-      "text": "存进资料库",
       "ratio": 5.15,
       "min": 4.5,
       "fg": "#fbf6ee",

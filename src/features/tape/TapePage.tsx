@@ -17,6 +17,7 @@ import { useForgetItems } from "@/features/collections/useCollections";
 import { useStarterTapes } from "./starters";
 import { MAX_TAPE_NAME, type Tape, type TapeSpec } from "./tape.schema";
 import { NewTapeDialog } from "./NewTapeDialog";
+import { LoadingNote, Skeleton } from "@/components/ui/Loader";
 import { TapeTile } from "./TapeTile";
 import { useDeleteTape, useRenameTape, useTapes } from "./useTapes";
 
@@ -24,7 +25,7 @@ import { useDeleteTape, useRenameTape, useTapes } from "./useTapes";
 export default function TapePage() {
   const { t } = useTranslation();
   const toast = useToast();
-  const { data: tapes, isError } = useTapes();
+  const { data: tapes, isError, isPending } = useTapes();
   const starters = useStarterTapes();
   const remove = useDeleteTape();
   const rename = useRenameTape();
@@ -89,7 +90,16 @@ export default function TapePage() {
       <h2 className="zf-h1" style={{ margin: "0 0 14px" }}>
         {t("tape.mine", { count: mine.length })}
       </h2>
-      {mine.length === 0 ? (
+      {isPending && !isError ? (
+        <>
+          <LoadingNote text={t("tape.loadingList")} />
+          <div className="zf-grid-book" aria-busy="true">
+            {Array.from({ length: 3 }, (_, i) => (
+              <Skeleton key={i} seed={"tsk" + i} width="100%" height={150} />
+            ))}
+          </div>
+        </>
+      ) : mine.length === 0 ? (
         <EmptyState
           seed="tapes-empty"
           title={t("tape.emptyTitle")}

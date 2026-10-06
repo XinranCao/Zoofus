@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Dialog } from "@/components/ui/Dialog";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { LoadingNote, Skeleton } from "@/components/ui/Loader";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Paper } from "@/components/ui/Paper";
 import { Sticker as Art } from "@/components/ui/Sticker";
@@ -90,8 +91,17 @@ export default function FriendsPage() {
 function CodeCard() {
   const { t } = useTranslation();
   const toast = useToast();
-  const { data: me } = useMyPublicProfile();
+  const { data: me, isError, refetch } = useMyPublicProfile();
   const code = me?.friendCode;
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    if (code) return;
+    const timer = setTimeout(() => setSlow(true), 5000);
+    return () => {
+      clearTimeout(timer);
+      setSlow(false);
+    };
+  }, [code]);
   return (
     <Paper
       seed="fcode"
@@ -108,6 +118,19 @@ function CodeCard() {
       <div className="zf-code" aria-live="polite">
         {code ? formatCode(code) : "········"}
       </div>
+      {!code && (isError || slow) && (
+        <p role="status" style={{ margin: "0 0 10px" }}>
+          {t("friends.codeFailed")}{" "}
+          <Button
+            variant="secondary"
+            size="sm"
+            seed="fretry"
+            onClick={() => void refetch()}
+          >
+            {t("friends.codeRetry")}
+          </Button>
+        </p>
+      )}
       <Button
         variant="secondary"
         size="sm"
@@ -260,6 +283,19 @@ function AddFriendCard() {
   );
 }
 
+function ListLoading({ text }: { text: string }) {
+  return (
+    <div aria-busy="true">
+      <LoadingNote text={text} />
+      <div style={{ display: "grid", gap: 12 }}>
+        {[0, 1, 2].map((i) => (
+          <Skeleton key={i} seed={"fsk" + i} width="100%" height={56} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function FriendList() {
   const { t } = useTranslation();
   const toast = useToast();
@@ -270,7 +306,7 @@ function FriendList() {
   const [naming, setNaming] = useState<Friend | null>(null);
   const [removing, setRemoving] = useState<Friend | null>(null);
 
-  if (isPending) return <div aria-busy="true" />;
+  if (isPending) return <ListLoading text={t("friends.loadingList")} />;
   return (
     <div style={{ display: "grid", gap: 28 }}>
       {friends.length === 0 ? (
@@ -457,7 +493,7 @@ function Requests() {
   const { data: incoming = [], isPending } = useIncomingRequests();
   const accept = useAcceptRequest();
   const decline = useDeclineRequest();
-  if (isPending) return <div aria-busy="true" />;
+  if (isPending) return <ListLoading text={t("friends.loadingRequests")} />;
   if (incoming.length === 0)
     return (
       <EmptyState

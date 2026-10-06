@@ -890,6 +890,24 @@
   }
 
   /* ---------- lasso canvas ---------- */
+  .zf-keys-help {
+    margin: 10px 0 0;
+    font-size: 13px;
+    color: var(--ink-muted);
+  }
+  .zf-keys-help summary {
+    cursor: pointer;
+    min-height: 24px;
+  }
+  .zf-keys-help p {
+    margin: 6px 0 0;
+  }
+  /* a touch screen has no keyboard to use them with: only the touch hint beside the tools shows */
+  @media (pointer: coarse) {
+    .zf-keys-help {
+      display: none;
+    }
+  }
   .zf-well .zf-face {
     --tone: var(--field);
     padding: 12px;
@@ -1127,6 +1145,11 @@
     overflow: hidden;
     touch-action: none;
   }
+  /* the preview is always shown whole (contain): never wider than its box, ratio kept */
+  .zf-studio__stage canvas {
+    max-width: 100%;
+    height: auto;
+  }
   .zf-studio__controls {
     display: grid;
     gap: 20px;
@@ -1195,10 +1218,6 @@
       top: 0;
       z-index: 3;
       background: var(--scrap);
-    }
-    /* what is scrolled or focused into view stays clear of the pinned preview above it */
-    .zf-dialog__scroll:has(.zf-studio--sticker) {
-      scroll-padding-top: 48vh;
     }
   }
   .zf-pixels {
@@ -1895,13 +1914,49 @@
   top: 90px;
   min-width: 0;
 }
+/* the tool being used is also underlined, so it can be told apart without colour (3:1) */
+.zf-jstudio__tools .zf-chip[aria-pressed="true"] .zf-face {
+  text-decoration: underline 2px;
+  text-underline-offset: 5px;
+}
 @media (max-width: 1099px) {
+  .zf-jstudio {
+    gap: 10px;
+    min-width: 0;
+  }
+  .zf-jstudio > *,
+  .zf-jstudio__body > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+  /* stacked: the controls are single scrolling rows, so the page itself comes into the first screen */
+  .zf-jstudio__barbtns {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+    flex: 1 1 100%;
+    padding-bottom: 2px;
+  }
+  .zf-jstudio__barbtns > * {
+    flex: none;
+  }
   .zf-jstudio__body {
     grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
   }
   .zf-jstudio__tools {
     position: static;
-    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 2px;
+  }
+  .zf-jstudio__tools > * {
+    flex: none;
+  }
+  .zf-jstudio__tools .zf-chip {
+    width: auto;
   }
   .zf-jstudio__area {
     max-height: none;
@@ -2056,9 +2111,8 @@
   gap: 8px;
   box-sizing: border-box;
   min-height: 44px;
-  max-height: 48px;
-  padding: 0 8px 0 16px;
-  background: var(--scrap-warm);
+  padding: 4px 8px 4px 16px;
+  background: var(--sage-100);
   color: var(--ink-deep);
   font-size: 14px;
   overflow: hidden;
@@ -2066,9 +2120,11 @@
 .zf-verify__text {
   flex: 1 1 auto;
   min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+/* shrunk to its icon: no taller than the button itself */
+.zf-verify--small {
+  justify-content: flex-end;
+  padding: 0 8px;
 }
 .zf-verify__hide {
   all: unset;
@@ -2154,4 +2210,20 @@
   font-size: 13px;
   color: var(--ink-muted);
   white-space: nowrap;
+}
+
+.zf-toast__close {
+  all: unset;
+  cursor: pointer;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -12px -8px -12px 0;
+  box-sizing: border-box;
+}
+.zf-toast__close:focus-visible {
+  outline: 2px solid var(--plum-900);
+  outline-offset: -6px;
 }

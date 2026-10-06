@@ -52,9 +52,12 @@ test("hosting sends an enforcing policy, the security headers and a year of cach
   const res = await page.request.get(baseURL!);
   const sent = res.headers();
   // (the e2e server adds the local emulators to connect-src and img-src, nothing else)
-  expect(sent["content-security-policy"]!.replace(/http:\/\/localhost:\d+ ?/g, "")).toBe(
-    csp,
-  );
+  expect(
+    sent["content-security-policy"]!.replace(
+      /http:\/\/(?:localhost|127\.0\.0\.1):\d+ ?/g,
+      "",
+    ),
+  ).toBe(csp);
   expect(sent["x-content-type-options"]).toBe("nosniff");
   expect(sent["x-frame-options"]).toBe("DENY");
 });
