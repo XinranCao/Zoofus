@@ -210,7 +210,8 @@ export const en = {
       save: "Save to Library",
       saving: "Saving",
       saved: "Saved to your Library.",
-      savedBody: "You’ll find it under Library → Stickers.",
+      savedHelp:
+        "You’ll find it under Library → Stickers. To change the edge, use Edit edge. The name is fixed.",
       seeIt: "See it in Library",
       another: "Make another",
       download: "Download PNG",

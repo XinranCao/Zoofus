@@ -78,7 +78,7 @@ export function StickerEdgeStudio({
             rotate={0}
             seed={seed}
             edge={edge}
-            label={t("maker.edge.preview")}
+            label={`${t("maker.edge.preview")}: ${t(`maker.edge.shapes.${edge.shape}`)}`}
           />
         </div>
       </StudioPreview>
@@ -86,6 +86,7 @@ export function StickerEdgeStudio({
         {lead}
         <div
           inert={locked}
+          aria-disabled={locked || undefined}
           style={{ display: "grid", gap: 20, opacity: locked ? 0.6 : undefined }}
         >
           <div>

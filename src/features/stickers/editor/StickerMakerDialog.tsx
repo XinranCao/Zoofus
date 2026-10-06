@@ -318,8 +318,15 @@ function MakerBody({
         seed="maker"
         kicker={kicker}
         title={title}
+        description={
+          view === "result" && saved && !onAvatar ? t("maker.edge.savedHelp") : undefined
+        }
         actions={actions}
       >
+        {/* moving to step 2 is said out loud (the title alone does not change for a screen reader) */}
+        <div className="sr-only" role="status" aria-live="polite">
+          {view === "result" ? `${kicker}: ${title}` : ""}
+        </div>
         {status === "error" && imageError && (
           <div style={{ margin: "6px 0 14px" }}>
             <ToastNote
@@ -347,7 +354,7 @@ function MakerBody({
                         <ToastNote
                           kind="success"
                           title={t("maker.edge.saved")}
-                          body={t("maker.edge.savedBody")}
+                          body={t("maker.edge.savedHelp")}
                           seed="maker-saved"
                           role="status"
                         />
@@ -367,6 +374,7 @@ function MakerBody({
                           hint={t("maker.edge.nameHint")}
                           value={name}
                           maxLength={MAX_STICKER_NAME}
+                          disabled={saved}
                           seed="stname"
                           onChange={(e) => setName(e.target.value)}
                         />

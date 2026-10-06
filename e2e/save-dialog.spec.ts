@@ -185,6 +185,13 @@ test.describe("desktop", () => {
   }) => {
     await signUp(page, "Once");
     const dlg = await toSaveDialog(page);
+    // moving to step 2 is announced, and the preview says what it shows
+    await expect(
+      page.getByRole("status").filter({ hasText: /Step 2 of 2/i }),
+    ).toHaveCount(1);
+    await expect(
+      dlg.getByRole("img", { name: /^Sticker preview: Wobbly/i }),
+    ).toBeVisible();
     await dlg.getByRole("button", { name: "Save to Library" }).click();
     const note = dlg.getByText("Saved to your Library.", { exact: true });
     await expect(note).toBeVisible();
@@ -197,6 +204,25 @@ test.describe("desktop", () => {
         .evaluate((el) => !!el.closest("[inert]")),
     ).toBe(true);
     await expect(note).toBeVisible();
+    // the lock is explained in words, in the dialog's description too, and Tab skips what is locked
+    await expect(
+      dlg.getByText(/To change the edge, use Edit edge\. The name is fixed\./).first(),
+    ).toBeVisible();
+    await expect(dlg).toHaveAccessibleDescription(/To change the edge, use Edit edge/);
+    await expect(dlg.getByLabel("Name")).toBeDisabled();
+    const landed: string[] = [];
+    for (let i = 0; i < 8; i++) {
+      await page.keyboard.press("Tab");
+      landed.push(
+        await page.evaluate(
+          () =>
+            (document.activeElement as HTMLElement | null)?.getAttribute("aria-label") ??
+            document.activeElement?.textContent ??
+            "",
+        ),
+      );
+    }
+    expect(landed.join("|")).not.toMatch(/Smooth|Wobbly|Torn|Name|Stripes|Dots/);
     // Edit edge is a real button, at least 44 px high, and opens the sticker just saved
     const edit = dlg.getByRole("button", { name: "Edit edge" });
     expect((await edit.boundingBox())!.height).toBeGreaterThanOrEqual(44);

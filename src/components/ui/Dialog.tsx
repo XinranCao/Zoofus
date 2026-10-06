@@ -28,6 +28,8 @@ export interface DialogProps {
   onInteractOutside?: (e: Event) => void;
   /** No close button (a step the person must finish). */
   hideClose?: boolean;
+  /** Read out with the title by a screen reader (not shown). */
+  description?: string;
 }
 
 /**
@@ -50,6 +52,7 @@ export function Dialog({
   onEscapeKeyDown,
   onInteractOutside,
   hideClose,
+  description,
 }: DialogProps) {
   const { t } = useTranslation();
   const id = useSeed(seed);
@@ -73,7 +76,7 @@ export function Dialog({
         <div className={cn("zf-dialog-pos", sheet && "zf-sheet-pos")}>
           <RDialog.Content
             asChild
-            aria-describedby={undefined}
+            {...(description ? {} : { "aria-describedby": undefined })}
             onEscapeKeyDown={onEscapeKeyDown}
             onInteractOutside={onInteractOutside}
             onOpenAutoFocus={(e) => {
@@ -133,6 +136,11 @@ export function Dialog({
                 </div>
               )}
               <RDialog.Title className="zf-dialog__title">{title}</RDialog.Title>
+              {description && (
+                <RDialog.Description className="sr-only">
+                  {description}
+                </RDialog.Description>
+              )}
               {/* the one scrolling part: title and actions stay in view, the page behind stays put */}
               <div className="zf-dialog__scroll">{children}</div>
               {actions && <div className="zf-dialog__actions">{actions}</div>}

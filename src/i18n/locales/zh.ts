@@ -206,7 +206,7 @@ export const zh: Messages = {
       save: "存进资料库",
       saving: "保存中",
       saved: "已存进你的资料库。",
-      savedBody: "在“资料库 → 贴纸”里能找到。",
+      savedHelp: "在“资料库 → 贴纸”里能找到。想改边缘,请点“改边缘”。名字已固定。",
       seeIt: "去资料库看看",
       another: "再做一张",
       download: "下载 PNG",
