@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.7.6 – 2026-10-06
+
+No rules change in this release.
+
+### Fixes
+
+- **The "Keyboard shortcuts" note in the sticker maker no longer opens by itself.** It used to open when the photo took focus (a moment after the dialog opened, and again after every click or stroke on the photo once closed), which moved the layout under someone already circling the photo. It now stays closed until the person opens it, and stays as they leave it. Screen readers still get the same text (always in the page, `#maker-keys`), and a keyboard user sees the "Keyboard shortcuts" line to open.
+
 ## v1.7.5 – 2026-10-06
 
 No rules change in this release.

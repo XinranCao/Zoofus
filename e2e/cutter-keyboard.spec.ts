@@ -129,16 +129,35 @@ test.describe("touch screen", () => {
 
 test.describe("mouse and keyboard", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
-  test("the shortcuts are a closed disclosure that opens when the photo has focus", async ({
+  test("the shortcuts are a closed disclosure that only the person opens: focusing or drawing on the photo never moves anything", async ({
     page,
   }) => {
     await signUp(page, "Mouse");
     const maker = await openCutter(page);
     const summary = maker.getByText("Keyboard shortcuts");
+    const help = maker.locator(".zf-keys-help");
     await expect(summary).toBeVisible();
-    await expect(maker.locator(".zf-keys-help")).not.toHaveAttribute("open", "");
-    await page.getByRole("application").focus();
-    await expect(maker.locator(".zf-keys-help")).toHaveAttribute("open", "");
-    await expect(maker.locator(".zf-keys-help p")).toBeVisible();
+    await expect(help).not.toHaveAttribute("open", "");
+    const photo = page.getByRole("application");
+    const before = (await photo.boundingBox())!;
+    // focus by keyboard and by drawing on the photo: still closed, nothing moves
+    await photo.focus();
+    const box = (await page.getByTestId("lasso-well").boundingBox())!;
+    await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.3);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.5, {
+      steps: 6,
+    });
+    await page.mouse.up();
+    await page.waitForTimeout(600);
+    await expect(help).not.toHaveAttribute("open", "");
+    expect(await photo.boundingBox()).toEqual(before);
+    // the person opens it, and it stays as they leave it
+    await summary.click();
+    await expect(help).toHaveAttribute("open", "");
+    await expect(help.locator("p")).toBeVisible();
+    await summary.click();
+    await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.5);
+    await expect(help).not.toHaveAttribute("open", "");
   });
 });
