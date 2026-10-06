@@ -707,6 +707,7 @@ export const zh: Messages = {
     tabShared: "收到的分享 · {{count}}",
     yourCode: "我的好友码",
     yourCodeHint: "把它发给朋友,他们输入后就能向你发出好友请求。",
+    codeNeedsName: "先选一个昵称,就能拿到你的好友码。",
     codeFailed: "没能加载你的好友码。",
     codeRetry: "再试一次",
     copy: "复制好友码",

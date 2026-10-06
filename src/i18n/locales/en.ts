@@ -729,6 +729,7 @@ export const en = {
     tabShared: "Shared with you · {{count}}",
     yourCode: "Your friend code",
     yourCodeHint: "Give this to a friend. They type it in to send you a request.",
+    codeNeedsName: "Choose a nickname to get your friend code.",
     codeFailed: "We could not load your friend code.",
     codeRetry: "Try again",
     copy: "Copy code",
