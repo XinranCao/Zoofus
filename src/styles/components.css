@@ -1220,6 +1220,31 @@
       background: var(--scrap);
     }
   }
+  /* a short screen (a phone on its side, 200% zoom): the sticker studios sit side by side, the
+     preview pinned on the left while the options scroll on the right, and the dialog's step label
+     and title give back their height */
+  @media (max-height: 480px) {
+    .zf-studio--sticker {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 12px 20px;
+    }
+    .zf-studio--sticker .zf-studio__preview {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: var(--scrap);
+    }
+    .zf-studio--sticker .zf-studio__stage {
+      min-height: 0;
+    }
+    .zf-dialog-box .zf-kicker {
+      display: none;
+    }
+    .zf-dialog-box .zf-dialog__title {
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+  }
   .zf-pixels {
     display: grid;
     grid-template-columns: repeat(8, 22px);

@@ -134,9 +134,10 @@ function MakerBody({
   // step 2 opens at the top, where the whole preview is (step 1 may have scrolled)
   const resultRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    // (and after saving, so the "Saved" note is in view)
     if (view === "result")
       resultRef.current?.closest(".zf-dialog__scroll")?.scrollTo?.(0, 0);
-  }, [view]);
+  }, [view, saved]);
   const dirty = selections.length > 0 && !saved;
   const requestClose = () => (dirty ? setLeaving(true) : onClose());
 
@@ -332,38 +333,48 @@ function MakerBody({
         )}
         {view === "result" ? (
           <div style={{ marginTop: 10, marginBottom: 22 }} ref={resultRef}>
-            {saved && !onAvatar && (
-              <div style={{ marginBottom: 16 }}>
-                <ToastNote
-                  kind="success"
-                  title={t("maker.edge.saved")}
-                  body={t("maker.edge.savedBody")}
-                  seed="maker-saved"
-                  role="status"
-                />
-              </div>
-            )}
-            {!onAvatar && (
-              <div
-                style={{ maxWidth: 360, marginBottom: 18, opacity: saved ? 0.6 : 1 }}
-                inert={saved}
-              >
-                <TextField
-                  label={t("maker.edge.nameLabel")}
-                  hint={t("maker.edge.nameHint")}
-                  value={name}
-                  maxLength={MAX_STICKER_NAME}
-                  seed="stname"
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-            )}
             <StickerEdgeStudio
               source={source}
               edge={edge}
               seed={seed}
               onChange={setEdge}
               locked={saved}
+              lead={
+                onAvatar ? undefined : (
+                  <>
+                    {saved && !onAvatar && (
+                      <div style={{ marginBottom: 16 }}>
+                        <ToastNote
+                          kind="success"
+                          title={t("maker.edge.saved")}
+                          body={t("maker.edge.savedBody")}
+                          seed="maker-saved"
+                          role="status"
+                        />
+                      </div>
+                    )}
+                    {!onAvatar && (
+                      <div
+                        style={{
+                          maxWidth: 360,
+                          marginBottom: 18,
+                          opacity: saved ? 0.6 : 1,
+                        }}
+                        inert={saved}
+                      >
+                        <TextField
+                          label={t("maker.edge.nameLabel")}
+                          hint={t("maker.edge.nameHint")}
+                          value={name}
+                          maxLength={MAX_STICKER_NAME}
+                          seed="stname"
+                          onChange={(e) => setName(e.target.value)}
+                        />
+                      </div>
+                    )}
+                  </>
+                )
+              }
             />
           </div>
         ) : (
