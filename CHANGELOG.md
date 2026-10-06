@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Pixel prints can be turned again.** The Turn slider was hidden for the pixel kind; it is back in the sticker edge and tape editors.
+
 ## v1.7.4 – 2026-10-06
 
 Follow-up to v1.7.3 after more use in production. **The Firestore rules change: they go out first with the release.**
