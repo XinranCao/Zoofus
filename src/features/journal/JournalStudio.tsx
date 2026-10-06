@@ -342,65 +342,67 @@ export function JournalStudio({
           )}
         </div>
         <div className="zf-jstudio__barbtns">
-          <Button
-            variant="quiet"
-            size="sm"
-            icon="undo"
-            seed="ju"
-            disabled={!canUndo}
-            onClick={() => store.getState().undo()}
-          >
-            {t("common.undo")}
-          </Button>
-          <Button
-            variant="quiet"
-            size="sm"
-            icon="redo"
-            seed="jr"
-            disabled={!canRedo}
-            onClick={() => store.getState().redo()}
-          >
-            {t("common.redo")}
-          </Button>
-          <Button
-            variant="quiet"
-            size="sm"
-            icon="zoomOut"
-            seed="jzo"
-            aria-label={t("journal.zoomOut")}
-            disabled={zoom <= ZOOMS[0]!}
-            onClick={() => setZoom(ZOOMS[Math.max(0, ZOOMS.indexOf(zoom) - 1)]!)}
-          />
-          <Button
-            variant="quiet"
-            size="sm"
-            seed="jzf"
-            aria-label={`${t("journal.zoomFit")}, ${Math.round(zoom * 100)}%`}
-            onClick={() => setZoom(1)}
-          >
-            {Math.round(zoom * 100)}%
-          </Button>
-          <Button
-            variant="quiet"
-            size="sm"
-            icon="zoomIn"
-            seed="jzi"
-            aria-label={t("journal.zoomIn")}
-            disabled={zoom >= ZOOMS[ZOOMS.length - 1]!}
-            onClick={() =>
-              setZoom(ZOOMS[Math.min(ZOOMS.length - 1, ZOOMS.indexOf(zoom) + 1)]!)
-            }
-          />
-          <Button
-            variant="secondary"
-            size="sm"
-            icon="journal"
-            seed="jpp"
-            onClick={() => setPaperOpen(true)}
-          >
-            {t("journal.paper")}
-          </Button>
-          {header}
+          <div className="zf-jstudio__edit">
+            <Button
+              variant="quiet"
+              size="sm"
+              icon="undo"
+              seed="ju"
+              disabled={!canUndo}
+              onClick={() => store.getState().undo()}
+            >
+              {t("common.undo")}
+            </Button>
+            <Button
+              variant="quiet"
+              size="sm"
+              icon="redo"
+              seed="jr"
+              disabled={!canRedo}
+              onClick={() => store.getState().redo()}
+            >
+              {t("common.redo")}
+            </Button>
+            <Button
+              variant="quiet"
+              size="sm"
+              icon="zoomOut"
+              seed="jzo"
+              aria-label={t("journal.zoomOut")}
+              disabled={zoom <= ZOOMS[0]!}
+              onClick={() => setZoom(ZOOMS[Math.max(0, ZOOMS.indexOf(zoom) - 1)]!)}
+            />
+            <Button
+              variant="quiet"
+              size="sm"
+              seed="jzf"
+              aria-label={`${t("journal.zoomFit")}, ${Math.round(zoom * 100)}%`}
+              onClick={() => setZoom(1)}
+            >
+              {Math.round(zoom * 100)}%
+            </Button>
+            <Button
+              variant="quiet"
+              size="sm"
+              icon="zoomIn"
+              seed="jzi"
+              aria-label={t("journal.zoomIn")}
+              disabled={zoom >= ZOOMS[ZOOMS.length - 1]!}
+              onClick={() =>
+                setZoom(ZOOMS[Math.min(ZOOMS.length - 1, ZOOMS.indexOf(zoom) + 1)]!)
+              }
+            />
+            <Button
+              variant="secondary"
+              size="sm"
+              icon="journal"
+              seed="jpp"
+              onClick={() => setPaperOpen(true)}
+            >
+              {t("journal.paper")}
+            </Button>
+          </div>
+          <div className="zf-jstudio__file">{header}</div>
         </div>
       </div>
 
