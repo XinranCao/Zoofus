@@ -167,9 +167,7 @@ test("the eraser rubs out only where it went; stickers move, stretch and pass cl
   expect(await inked(page, cx - 100, cy - 200 - 189 * k)).toBe(false);
 });
 
-test("the journal says whether it is saved, and leaving right after Save loses nothing", async ({
-  page,
-}) => {
+test("the journal says whether it is saved, and the list shows it", async ({ page }) => {
   const warnings: string[] = [];
   page.on("console", (m) => m.type() === "warning" && warnings.push(m.text()));
   await signUp(page, "Kept");
@@ -178,7 +176,9 @@ test("the journal says whether it is saved, and leaving right after Save loses n
   await dlg.getByLabel("Title").fill("Kept page");
   await dlg.getByRole("button", { name: "Start" }).click();
   await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
-  const status = page.getByRole("status").filter({ hasText: /changes saved|Saving/ });
+  const status = page
+    .getByRole("status")
+    .filter({ hasText: /changes saved|Saving|Not saved/ });
   await expect(status).toHaveText("All changes saved");
   // exactly one indicator, and Save is not a red primary button
   await expect(status).toHaveCount(1);
@@ -191,15 +191,152 @@ test("the journal says whether it is saved, and leaving right after Save loses n
   const box = (await page.locator(".zf-jstudio__page canvas").first().boundingBox())!;
   await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.3);
   await page.getByLabel("Text", { exact: true }).fill("Hello");
-  await expect(status).toHaveText("Saving in a moment");
+  await expect(status).toHaveText("Not saved yet");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(status).toHaveText("All changes saved");
 
-  // change again, press Save and leave straight away
-  await page.getByLabel("Text", { exact: true }).fill("Hello again");
-  await page.getByRole("button", { name: "Save", exact: true }).click();
+  // (leaving right after Save is tested on a slow connection below)
   await page.getByRole("link", { name: "← Journals" }).click();
   await expect(page.getByRole("link", { name: /Open Kept page/ })).toBeVisible();
   await page.waitForTimeout(500);
   expect(warnings.filter((w) => w.includes("Skipping journal"))).toEqual([]);
+});
+
+// PM-v1.7.2-001: a title is never lost, and the status says so truthfully
+async function newJournal(page: import("@playwright/test").Page, title: string) {
+  await page.goto("/journals?make=1");
+  const dlg = page.getByRole("dialog", { name: "New journal" });
+  await dlg.getByLabel("Title").fill(title);
+  await dlg.getByRole("button", { name: "Start" }).click();
+  await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
+}
+
+test("a new title settles to All changes saved, by itself and by Save", async ({
+  page,
+}) => {
+  await signUp(page, "Title");
+  await newJournal(page, "First name");
+  const status = page
+    .getByRole("status")
+    .filter({ hasText: /changes saved|Saving|Not saved/ });
+  await expect(status).toHaveText("All changes saved");
+  const title = page.getByLabel("Title", { exact: true });
+  await title.fill("Second name");
+  await expect(status).toHaveText("Not saved yet");
+  await expect(status).toHaveText("All changes saved"); // no reload, no Save
+  await title.fill("Third name");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("Journal saved.").first()).toBeVisible();
+  await expect(status).toHaveText("All changes saved"); // the toast and the line agree
+});
+
+test("a title typed and followed at once by Back, or by a reload, is kept", async ({
+  page,
+}) => {
+  await signUp(page, "Quick");
+  await newJournal(page, "Before");
+  const title = page.getByLabel("Title", { exact: true });
+  // Back at once
+  await title.fill("After back");
+  await page.getByRole("link", { name: "← Journals" }).click();
+  await expect(page.getByRole("link", { name: /Open After back/ })).toBeVisible({
+    timeout: 15_000,
+  });
+  // reload at once: the browser warns, and the new title is still there
+  await page.getByRole("link", { name: /Open After back/ }).click();
+  await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
+  const dialogs: string[] = [];
+  page.on("dialog", (d) => {
+    dialogs.push(d.type());
+    void d.accept();
+  });
+  await page.getByLabel("Title", { exact: true }).fill("After reload");
+  await page.reload();
+  expect(dialogs).toContain("beforeunload");
+  await expect(page.getByLabel("Title", { exact: true })).toHaveValue("After reload");
+  const status = page
+    .getByRole("status")
+    .filter({ hasText: /changes saved|Saving|Not saved/ });
+  await expect(status).toHaveText("All changes saved");
+});
+
+// PM-v1.7.2-002: what you place is written within seconds, not a minute
+test("a placed item is saved within seconds and is there after a reload", async ({
+  page,
+}) => {
+  await signUp(page, "Quick");
+  await newJournal(page, "Seconds");
+  const status = page
+    .getByRole("status")
+    .filter({ hasText: /changes saved|Saving|Not saved/ });
+  await expect(status).toHaveText("All changes saved");
+  await page.getByRole("button", { name: "Text", exact: true }).click();
+  const box = (await page.locator(".zf-jstudio__page canvas").first().boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.3);
+  await page.getByLabel("Text", { exact: true }).fill("Placed words");
+  await expect(status).toHaveText("Not saved yet");
+  await expect(status).toHaveText("All changes saved", { timeout: 6000 });
+  await page.reload();
+  await expect(page.locator("#journal-items")).toContainText("Placed words");
+});
+
+// PM-v1.7.2-011: a slow connection (600 ms latency, 50 kB/s), where "leave right after" is realistic
+async function slowNetwork(page: import("@playwright/test").Page) {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Network.enable");
+  await cdp.send("Network.emulateNetworkConditions", {
+    offline: false,
+    latency: 600,
+    downloadThroughput: 50 * 1024,
+    uploadThroughput: 50 * 1024,
+  });
+  return () =>
+    cdp.send("Network.emulateNetworkConditions", {
+      offline: false,
+      latency: 0,
+      downloadThroughput: -1,
+      uploadThroughput: -1,
+    });
+}
+
+async function placeText(page: import("@playwright/test").Page, words: string) {
+  await page.getByRole("button", { name: "Text", exact: true }).click();
+  const box = (await page.locator(".zf-jstudio__page canvas").first().boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.3);
+  await page.getByLabel("Text", { exact: true }).fill(words);
+}
+
+for (const how of ["after pressing Save", "without pressing Save"] as const) {
+  test(`on a slow connection, leaving ${how} keeps the content and the title`, async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    await signUp(page, "Slow");
+    await newJournal(page, "Slow page");
+    const restore = await slowNetwork(page);
+    await placeText(page, `Words ${how}`);
+    await page.getByLabel("Title", { exact: true }).fill(`Renamed ${how}`);
+    if (how === "after pressing Save")
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+    await page.getByRole("link", { name: "← Journals" }).click();
+    await expect(page).toHaveURL(/\/journals$/);
+    // let the writes that were still on their way finish, then look at what was kept
+    await restore();
+    await page.waitForTimeout(6000);
+    await page.reload();
+    await page.getByRole("link", { name: new RegExp(`Open Renamed ${how}`) }).click();
+    await expect(page.locator("#journal-items")).toContainText(`Words ${how}`, {
+      timeout: 15_000,
+    });
+  });
+}
+
+// a tape on a page can be made longer, but its width is the tape's own (no slider that did nothing)
+test("a tape on the page has a length control and no width control", async ({ page }) => {
+  await signUp(page, "Tape");
+  await newJournal(page, "Tapes");
+  await page.getByRole("button", { name: "Tape", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Pink dots" }).click();
+  await expect(page.getByLabel("Length")).toBeVisible();
+  await expect(page.getByLabel("Width")).toHaveCount(0);
 });

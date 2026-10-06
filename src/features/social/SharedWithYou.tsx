@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -6,12 +6,14 @@ import { Paper } from "@/components/ui/Paper";
 import { Sticker as Art } from "@/components/ui/Sticker";
 import { Tape } from "@/components/ui/Tape";
 import { useToast } from "@/components/ui/Toast";
+import { JournalCanvas, type StickerResolver } from "@/features/journal/JournalCanvas";
 import { PaperPreview } from "@/features/journal/PageSetup";
 import { useJournals } from "@/features/journal/useJournals";
 import { ensureFontsFor } from "@/lib/cjkFonts";
 import {
   friendName,
   journalPayloadSchema,
+  type JournalPayload,
   stickerPayloadSchema,
   tapePayloadSchema,
   type Share,
@@ -108,7 +110,33 @@ function Preview({ share, alt }: { share: Share; alt: string }) {
       style={{ maxWidth: "100%", maxHeight: 190, width: "auto", height: "auto" }}
     />
   ) : (
-    <PaperPreview page={p.data.page} width={120} />
+    <PayloadPagePreview payload={p.data} />
+  );
+}
+
+/**
+ * A shared journal that came without a page picture (its owner had not saved since the last
+ * edit): draw the page itself from what was sent, read-only, so the inbox never shows bare paper.
+ */
+function PayloadPagePreview({ payload }: { payload: JournalPayload }) {
+  const assets = payload.assets;
+  const resolve: StickerResolver = useMemo(
+    () => (ref: string) => {
+      const a = ref.startsWith("a:") ? assets?.[ref.slice(2)] : undefined;
+      return a ? { url: a.url, w: a.w, h: a.h, name: a.name } : null;
+    },
+    [assets],
+  );
+  if (payload.items.length === 0) return <PaperPreview page={payload.page} width={120} />;
+  return (
+    <span className="zf-payload-page" style={{ display: "block" }}>
+      <JournalCanvas
+        page={payload.page}
+        items={payload.items}
+        resolve={resolve}
+        width={150}
+      />
+    </span>
   );
 }
 

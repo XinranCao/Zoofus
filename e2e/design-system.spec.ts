@@ -55,6 +55,11 @@ for (const variant of VARIANTS) {
         locale: variant.lang === "zh" ? "zh-CN" : "en-US",
         reducedMotion: variant.reduced ? "reduce" : "no-preference",
       });
+      // (the language is the one chosen, remembered; the browser's own language is not consulted)
+      await context.addInitScript(
+        (lng) => localStorage.setItem("zoofus.lang", lng),
+        variant.lang === "zh" ? "zh-CN" : "en",
+      );
       const page = await context.newPage();
       const cdp = await context.newCDPSession(page);
       const fontFiles = watchFonts(page);
@@ -88,10 +93,7 @@ for (const variant of VARIANTS) {
       await page.getByRole("button", { name: t("auth.login.submit") }).click();
       await expect(page.getByText(t("auth.errors.login"))).toBeVisible();
       await shot("02-login-error");
-      await page
-        .locator("form")
-        .getByRole("button", { name: t("auth.login.forgot") })
-        .click();
+      await page.getByRole("button", { name: t("auth.login.forgot") }).click();
       await expect(
         page.getByRole("dialog", { name: t("auth.reset.title") }),
       ).toBeVisible();

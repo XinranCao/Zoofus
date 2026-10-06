@@ -14,6 +14,7 @@ import { TextField } from "@/components/ui/TextField";
 import { ToggleGroup } from "@/components/ui/ToggleGroup";
 import { useToast } from "@/components/ui/Toast";
 import { useAuth } from "@/features/auth/useAuth";
+import { useProfile } from "@/features/profile/useProfile";
 import { ensureFontsFor } from "@/lib/cjkFonts";
 import { useMakeParam } from "@/lib/useMakeParam";
 import { formatCode } from "./friendCode";
@@ -91,7 +92,11 @@ export default function FriendsPage() {
 function CodeCard() {
   const { t } = useTranslation();
   const toast = useToast();
+  const { currentUser } = useAuth();
   const { data: me, isError, refetch } = useMyPublicProfile();
+  const { data: profile, isPending: profilePending } = useProfile(currentUser?.uid);
+  // no nickname yet (the nickname dialog is up): the code comes with it, that is not a failure
+  const needsNickname = !profilePending && !profile;
   const code = me?.friendCode;
   const [slow, setSlow] = useState(false);
   useEffect(() => {
@@ -118,7 +123,12 @@ function CodeCard() {
       <div className="zf-code" aria-live="polite">
         {code ? formatCode(code) : "········"}
       </div>
-      {!code && (isError || slow) && (
+      {!code && needsNickname && (
+        <p role="status" style={{ margin: "0 0 10px" }}>
+          {t("friends.codeNeedsName")}
+        </p>
+      )}
+      {!code && !needsNickname && (isError || slow) && (
         <p role="status" style={{ margin: "0 0 10px" }}>
           {t("friends.codeFailed")}{" "}
           <Button

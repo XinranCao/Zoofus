@@ -35,7 +35,10 @@ export const tapeDocSchema = z.object({
   thickness: z.number().min(TAPE_LIMITS.thickness.min).max(TAPE_LIMITS.thickness.max),
   opacity: z.number().min(TAPE_LIMITS.opacity.min).max(TAPE_LIMITS.opacity.max),
   ends: z.enum(TAPE_ENDS),
-  createdAt: z.instanceof(Timestamp).transform((t) => t.toDate()),
+  createdAt: z
+    .instanceof(Timestamp)
+    .nullable()
+    .transform((t) => (t ? t.toDate() : new Date())),
 });
 
 /** Starter tapes, always shown after the user's own. */

@@ -32,7 +32,10 @@ export const stickerDocSchema = z.object({
   seed: z.string().optional(),
   width: z.number().int().positive(),
   height: z.number().int().positive(),
-  createdAt: z.instanceof(Timestamp).transform((t) => t.toDate()),
+  createdAt: z
+    .instanceof(Timestamp)
+    .nullable()
+    .transform((t) => (t ? t.toDate() : new Date())),
 });
 
 /**

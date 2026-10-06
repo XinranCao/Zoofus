@@ -6,8 +6,16 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "e2e",
   timeout: 60_000,
-  fullyParallel: false,
+  // One worker (the tests share the emulators), but in CI the tests are split one by one across
+  // several runners (PW_SHARD="2/6"), so each runner gets a fair share of the long ones.
+  fullyParallel: Boolean(process.env.PW_SHARD),
   workers: 1,
+  shard: process.env.PW_SHARD
+    ? {
+        current: Number(process.env.PW_SHARD.split("/")[0]),
+        total: Number(process.env.PW_SHARD.split("/")[1]),
+      }
+    : undefined,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL: "http://localhost:5174",

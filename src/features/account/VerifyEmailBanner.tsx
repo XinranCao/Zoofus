@@ -6,6 +6,7 @@ import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/features/auth/useAuth";
 import { usesPassword } from "./account.api";
 
+// kept per account (a second person on the same computer starts from the full note)
 const COLLAPSED = "zf-verify-collapsed";
 const VIEWS = "zf-verify-views";
 const EXPLAINED = "zf-verify-explained";
@@ -25,11 +26,11 @@ const write = (key: string, value: string) => {
     /* the note comes back in full next time; fine */
   }
 };
-const viewCount = () => Number(read(VIEWS)) || 0;
+const viewCountOf = (uid: string) => Number(read(`${VIEWS}-${uid}`)) || 0;
 
 /**
  * Asks password-based users to confirm their email. The first time it says in one sentence that
- * this is optional; after Hide, or after a few page views, it shrinks to a small icon that opens
+ * this is optional; after Hide, or after a few page views, it shrinks to a small chip ("Email not confirmed") that opens
  * it again (Resend stays one press away). It never blocks anything, and it checks again whenever the person comes back to
  * the tab (after clicking the link in the email), so there is no "I verified" button to press.
  */
@@ -38,10 +39,11 @@ export function VerifyEmailBanner() {
   const { currentUser, sendVerification, refreshUser } = useAuth();
   const { pathname } = useLocation();
   const [sent, setSent] = useState(false);
-  const [away, setAway] = useState(() => read(COLLAPSED) === "1");
+  const uid = currentUser?.uid ?? "";
+  const [away, setAway] = useState(() => read(`${COLLAPSED}-${uid}`) === "1");
   const [open, setOpen] = useState(false); // opened again from the icon
   // the "optional" sentence is for the first time the note is seen (this load; not the next)
-  const [explain] = useState(() => read(EXPLAINED) !== "1");
+  const [explain] = useState(() => read(`${EXPLAINED}-${uid}`) !== "1");
   const pending =
     !!currentUser && !currentUser.emailVerified && usesPassword(currentUser);
 
@@ -58,26 +60,28 @@ export function VerifyEmailBanner() {
 
   // count page views (the count is read on the next render: one view late is fine)
   useEffect(() => {
-    if (pending) write(VIEWS, String(viewCount() + 1));
-  }, [pending, pathname]);
+    if (pending) write(`${VIEWS}-${uid}`, String(viewCountOf(uid) + 1));
+  }, [pending, pathname, uid]);
 
   useEffect(() => {
-    if (pending) write(EXPLAINED, "1");
-  }, [pending]);
+    if (pending) write(`${EXPLAINED}-${uid}`, "1");
+  }, [pending, uid]);
 
-  const views = viewCount();
+  const views = viewCountOf(uid);
   if (!pending) return null;
   if ((away || views > FULL_VIEWS) && !open)
     return (
       <div className="zf-verify zf-verify--small">
         <button
           type="button"
-          className="zf-verify__hide"
-          aria-label={t("account.verify")}
+          className="zf-verify__chip"
+          aria-label={`${t("account.notConfirmed")}. ${t("account.verify")}`}
+          title={t("account.verifyWhy")}
           aria-expanded={false}
           onClick={() => setOpen(true)}
         >
           <Icon name="mail" />
+          {t("account.notConfirmed")}
         </button>
       </div>
     );
@@ -108,7 +112,7 @@ export function VerifyEmailBanner() {
         className="zf-verify__hide"
         aria-label={t("account.hideVerify")}
         onClick={() => {
-          write(COLLAPSED, "1");
+          write(`${COLLAPSED}-${uid}`, "1");
           setAway(true);
           setOpen(false);
         }}

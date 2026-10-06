@@ -28,6 +28,10 @@ export interface DialogProps {
   onInteractOutside?: (e: Event) => void;
   /** No close button (a step the person must finish). */
   hideClose?: boolean;
+  /** Read out with the title by a screen reader (not shown). */
+  description?: string;
+  /** Where focus goes when it closes, if not back to what opened it (null: use the opener). */
+  returnFocus?: () => HTMLElement | null;
 }
 
 /**
@@ -50,6 +54,8 @@ export function Dialog({
   onEscapeKeyDown,
   onInteractOutside,
   hideClose,
+  description,
+  returnFocus,
 }: DialogProps) {
   const { t } = useTranslation();
   const id = useSeed(seed);
@@ -73,7 +79,7 @@ export function Dialog({
         <div className={cn("zf-dialog-pos", sheet && "zf-sheet-pos")}>
           <RDialog.Content
             asChild
-            aria-describedby={undefined}
+            {...(description ? {} : { "aria-describedby": undefined })}
             onEscapeKeyDown={onEscapeKeyDown}
             onInteractOutside={onInteractOutside}
             onOpenAutoFocus={(e) => {
@@ -95,7 +101,7 @@ export function Dialog({
             }}
             onCloseAutoFocus={(e) => {
               e.preventDefault();
-              const el = opener.current;
+              const el = returnFocus?.() ?? opener.current;
               if (el?.isConnected && el !== document.body) el.focus();
               else document.getElementById("main")?.focus();
             }}
@@ -133,6 +139,11 @@ export function Dialog({
                 </div>
               )}
               <RDialog.Title className="zf-dialog__title">{title}</RDialog.Title>
+              {description && (
+                <RDialog.Description className="sr-only">
+                  {description}
+                </RDialog.Description>
+              )}
               {/* the one scrolling part: title and actions stay in view, the page behind stays put */}
               <div className="zf-dialog__scroll">{children}</div>
               {actions && <div className="zf-dialog__actions">{actions}</div>}

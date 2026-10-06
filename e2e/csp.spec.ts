@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
+import { solidPng } from "./png";
 import { makeSticker, signUp } from "./support/flows";
 
 // The Content-Security-Policy is judged on a production build served with the hosting headers from
@@ -141,4 +142,33 @@ test("sign up, a sticker, a tape, a journal, friends, together, sign in: no viol
   await expect(page).toHaveTitle("Zoofus · Make a sticker");
   seen.push(...(await violations(page)));
   expect(unexpected([...new Set(seen)])).toEqual([]);
+});
+
+// PM-v1.7.2-011: a profile photo chosen at sign-up is uploaded and shown with the policy enforcing
+test("a profile photo uploaded at sign-up works under the policy, with no violations", async ({
+  page,
+}) => {
+  await record(page);
+  await page.goto("/signup");
+  await page.getByLabel("Email").fill(`photo-${Date.now()}@example.com`);
+  await page.getByLabel("Password").fill("secret123");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByLabel("Nickname").fill("Photo");
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "me.png",
+    mimeType: "image/png",
+    buffer: solidPng(300, 300, [200, 120, 90]),
+  });
+  await page.getByRole("button", { name: "Start cutting" }).click();
+  await expect(page).toHaveTitle("Zoofus · Make a sticker");
+  await page.goto("/account");
+  const avatar = page.locator(".zf-profile__pic img").first();
+  await expect(avatar).toBeVisible();
+  await expect
+    .poll(() =>
+      avatar.evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0),
+    )
+    .toBe(true);
+  await page.waitForTimeout(500);
+  expect(unexpected(await violations(page))).toEqual([]);
 });

@@ -7,7 +7,7 @@ describe("SaveStatus", () => {
   it.each([
     ["saved", "All changes saved"],
     ["saving", "Saving…"],
-    ["pending", "Saving in a moment"],
+    ["pending", "Not saved yet"],
   ] as const)("says %s in a polite status", (state, text) => {
     render(<SaveStatus state={state} />);
     const status = screen.getByRole("status");

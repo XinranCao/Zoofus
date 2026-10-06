@@ -1,5 +1,28 @@
 # Changelog
 
+## v1.7.3 – 2026-10-05
+
+Fixes from using v1.7.2 in production, plus the interface now starts in Chinese.
+
+### Fixes
+
+- **Shared journals show their page.** A journal shared before its page picture was made used to reach a friend as bare paper until its owner edited and saved again. The picture is now made a few seconds after the last edit, and a share without one is drawn from what was sent.
+- **No more "This page isn't here" flash in Together** when you press Save. The page was being read as missing for a moment after the save. The same fix covers stickers, tapes, collections and shared items.
+- **The tape width slider on a journal page is gone** (it did nothing there); the length slider stays.
+- **The top bar stays at the top** on every screen size (except short, landscape ones), and the page no longer bounces at its ends, so the edge of the background pattern does not show.
+- **Opening a dialog is lighter:** it fades in over 120 ms instead of moving and bouncing for 320 ms, paper faces no longer use a blend mode, and the whole dialog no longer gets a focus outline while something inside it has focus.
+
+### Features
+
+- **The interface starts in Chinese** until someone picks a language; the choice is remembered, and the browser's own language is no longer consulted. Anyone who already chose English keeps it.
+- The Chinese text was reviewed: the tape page lead, the collections help (it named a button "选择" that is called "管理"), the half-sentence heading on sign-up step 2, the data download wording, starter tape names and stray punctuation.
+
+### Other
+
+- New checks: a shared journal's preview, the tape control, the Together save flash (it fails on the old code), the pinned top bar. The design-system checks now set the language the way a person does.
+- The end-to-end tests in CI now run on six runners at once (about 8 minutes instead of 23), with the browser and emulator downloads cached.
+- No rules change in this release.
+
 ## v1.7.2 – 2026-10-05
 
 Third release from the project-manager review (this one covers its v1.7.1 plan, 15 tasks). It fixes two regressions from v1.7.1 that the tests could not see.

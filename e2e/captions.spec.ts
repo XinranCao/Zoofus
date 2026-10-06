@@ -20,7 +20,7 @@ test("a sticker card has one caption, and the starter tapes are named in Chinese
 
   await page.evaluate(() => localStorage.setItem("zoofus.lang", "zh-CN"));
   await page.goto("/tapes");
-  for (const name of ["粉色圆点", "青柠条纹", "野餐格子", "纸胶带"])
+  for (const name of ["粉色圆点", "青柠条纹", "野餐格子", "美纹纸"])
     await expect(page.getByText(name, { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Pink dots")).toHaveCount(0);
   await expect(page.getByText("Masking")).toHaveCount(0);

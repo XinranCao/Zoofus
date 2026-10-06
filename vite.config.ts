@@ -88,7 +88,14 @@ function hostingHeaders(reportOnly: boolean): Record<string, string> {
 }
 
 export default defineConfig(({ mode }) => ({
-  define: { __APP_VERSION__: JSON.stringify(version) },
+  // The interface starts in Chinese. The end-to-end build and the unit tests ask for English, which
+  // is what their assertions read; whoever picks a language keeps it (it is remembered).
+  define: {
+    __APP_VERSION__: JSON.stringify(version),
+    ...(mode === "emulator"
+      ? { "import.meta.env.VITE_DEFAULT_LANG": JSON.stringify("en") }
+      : {}),
+  },
   plugins: [woff2Only(), react(), tailwindcss(), preloadFonts()],
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
@@ -123,9 +130,12 @@ export default defineConfig(({ mode }) => ({
     environment: "jsdom",
     setupFiles: "./src/setupTests.ts",
     globals: true,
-    // `npm run test:coverage`: a number to watch, no threshold yet
+    env: { VITE_DEFAULT_LANG: "en" },
+    // `npm run test:coverage`: fails if coverage falls below today's level (about 31%); raise the
+    // numbers as it grows, never lower them to make a change pass
     coverage: {
       provider: "v8",
+      thresholds: { statements: 30, branches: 27, functions: 20, lines: 30 },
       reporter: ["text-summary", "html"],
       include: ["src/**/*.{ts,tsx}"],
       exclude: ["src/**/*.test.*", "src/pages/dev/**", "src/setupTests.ts"],

@@ -10,7 +10,10 @@ import {
   pageSpecSchema,
 } from "@/features/journal/journal.schema";
 
-const date = z.instanceof(Timestamp).transform((t) => t.toDate());
+const date = z
+  .instanceof(Timestamp)
+  .nullable()
+  .transform((t) => (t ? t.toDate() : new Date()));
 
 export const MAX_NOTE = 200;
 export const MAX_FRIEND_NAME = 40;

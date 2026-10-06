@@ -96,6 +96,7 @@ export function StickerTile({
   onRename,
   onDelete,
   onShare,
+  onEditEdge,
   renaming,
   onRenameDone,
   selecting,
@@ -109,6 +110,8 @@ export function StickerTile({
   onRename?: () => void;
   onDelete?: () => void;
   onShare?: () => void;
+  /** Offered for a sticker whose edge can be redone. */
+  onEditEdge?: () => void;
   renaming?: boolean;
   onRenameDone?: (name: string | null) => void;
   /** Bulk-select mode: a tap picks the sticker instead of opening it. */
@@ -139,6 +142,7 @@ export function StickerTile({
 
   return (
     <figure
+      data-sticker-id={sticker.id}
       className={cn("zf-tile", selecting && "is-selecting", selected && "is-selected")}
     >
       {selecting ? (
@@ -172,7 +176,7 @@ export function StickerTile({
           {body}
         </div>
       )}
-      {(onRename || onDelete || onShare) && !renaming && !selecting && (
+      {(onRename || onDelete || onShare || onEditEdge) && !renaming && !selecting && (
         <div
           className="zf-tile__actions"
           role="group"
@@ -188,6 +192,18 @@ export function StickerTile({
               aria-label={`${t("bulk.share")}: ${sticker.name}`}
             >
               {t("bulk.share")}
+            </Button>
+          )}
+          {onEditEdge && sticker.kind === "editable" && (
+            <Button
+              variant="quiet"
+              size="sm"
+              icon="pen"
+              seed={"ee-b" + sticker.id}
+              onClick={onEditEdge}
+              aria-label={`${t("book.editEdge")}: ${sticker.name}`}
+            >
+              {t("book.editEdge")}
             </Button>
           )}
           {onRename && (

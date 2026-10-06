@@ -19,17 +19,22 @@ function syncHtmlLang(lng: string) {
   if (lng.startsWith("zh")) ensureCjkFonts(); // the Chinese interface needs them; English does not
 }
 
+/** What a visitor sees until they choose: Chinese (the end-to-end build and unit tests say English). */
+const DEFAULT_LANGUAGE: LanguageCode =
+  (import.meta.env.VITE_DEFAULT_LANG as string | undefined) === "en" ? "en" : "zh-CN";
+
 void i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources: { en: { translation: en }, "zh-CN": { translation: zh } },
-    fallbackLng: "en",
+    fallbackLng: DEFAULT_LANGUAGE,
     supportedLngs: ["en", "zh-CN", "zh"],
     nonExplicitSupportedLngs: true,
     interpolation: { escapeValue: false },
     detection: {
-      order: ["localStorage", "navigator"],
+      // only a language the person chose is remembered; the browser's own language is not asked
+      order: ["localStorage"],
       caches: ["localStorage"],
       lookupLocalStorage: "zoofus.lang",
     },

@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { patternPng } from "./png";
 import { dragOnPhoto } from "./support/draw";
+import { signUp } from "./support/flows";
 
 test.use({ viewport: { width: 1280, height: 800 } });
 
@@ -65,4 +66,42 @@ test("editing the edge of a saved sticker saves", async ({ page }) => {
       await expect(dlg.getByRole("img", { name: "Sticker preview" })).toBeVisible();
     }
   }
+});
+
+// PM-v1.7.2-010: S3 starts from the Library card, on a mouse and on a touch screen
+test("Edit edge is on the Library card, and the card's actions show without hover on touch", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+  });
+  const page = await context.newPage();
+  await signUp(page, "Card");
+  await page.goto("/stickers?make=1");
+  await page
+    .locator('input[type="file"]')
+    .first()
+    .setInputFiles({
+      name: "p.png",
+      mimeType: "image/png",
+      buffer: patternPng(480, 360, (x, y) => [(x * 3) % 256, (y * 5) % 256, 150]),
+    });
+  const maker = page.getByRole("dialog", { name: "Draw around it" });
+  await maker.getByRole("button", { name: "Use the whole photo" }).click();
+  await maker.getByRole("button", { name: "Cut it out" }).click();
+  const dlg = page.getByRole("dialog", { name: "Your sticker" });
+  await dlg.getByRole("button", { name: "Save to Library" }).click();
+  await expect(dlg.getByText("Saved to your Library.", { exact: true })).toBeVisible();
+  await dlg.getByRole("button", { name: "See it in Library" }).click();
+  // no hover on a touch screen: the actions are there anyway
+  const edit = page.getByRole("button", { name: /^Edit edge: / });
+  await expect(edit).toBeVisible();
+  expect(
+    await edit.evaluate((e) => getComputedStyle(e.closest(".zf-tile__actions")!).opacity),
+  ).toBe("1");
+  await edit.click();
+  await expect(page.getByRole("dialog", { name: "Edit the edge" })).toBeVisible();
+  await context.close();
 });

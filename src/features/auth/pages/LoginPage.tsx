@@ -75,6 +75,7 @@ export default function LoginPage() {
             body={t(error === "google" ? "auth.errors.google" : "auth.errors.login")}
             seed="login-error"
             role="alert"
+            className="zf-toast--stack"
             action={
               error === "login" ? (
                 <Button
@@ -134,9 +135,12 @@ export default function LoginPage() {
           <Button variant="primary" type="submit" seed="sub" loading={isSubmitting}>
             {isSubmitting ? t("auth.login.loading") : t("auth.login.submit")}
           </Button>
-          <Button variant="quiet" seed="fg" onClick={() => setResetOpen(true)}>
-            {t("auth.login.forgot")}
-          </Button>
+          {/* while the banner is up it carries the one "Forgot password?" */}
+          {error !== "login" && (
+            <Button variant="quiet" seed="fg" onClick={() => setResetOpen(true)}>
+              {t("auth.login.forgot")}
+            </Button>
+          )}
         </div>
       </form>
       <Divider seed="auth" />

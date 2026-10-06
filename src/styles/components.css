@@ -25,8 +25,13 @@
 @layer base {
   html {
     min-height: 100%;
+    /* a long page does not bounce at its ends (on a Mac the rubber band showed the edge of the
+       background pattern and moved the bar), and a jump to an anchor clears the pinned bar */
+    overscroll-behavior-y: none;
+    scroll-padding-top: 96px;
   }
   body {
+    overscroll-behavior-y: none;
     margin: 0;
     min-height: 100vh;
     background-color: var(--ground);
@@ -103,8 +108,9 @@
     pointer-events: none;
     background-image: var(--grain);
     background-size: 160px;
+    /* plain alpha, not mix-blend-mode: a blend on every face makes each one an offscreen group,
+       which made opening a dialog (dozens of faces) crawl on a retina MacBook */
     opacity: 0.4;
-    mix-blend-mode: multiply;
   }
   .zf-face > * {
     position: relative;
@@ -112,7 +118,7 @@
   }
   /* the focus ring is a zero-blur trace around the torn silhouette */
   .zf-torn:focus-visible,
-  .zf-torn:has(:focus-visible) {
+  .zf-torn:has(:focus-visible):not(.zf-dialog-box) {
     filter: var(--focus-trace);
   }
 
@@ -638,17 +644,13 @@
     outline: 2px solid var(--plum-900);
     outline-offset: 1px;
   }
+  /* a short fade: the heavy part of opening a dialog is drawing it, so it must not also be
+     moved, rotated and bounced for a third of a second */
   .zf-dialog-in {
-    animation: zf-dialog-in var(--dur-slow) var(--ease-flop) both;
-  }
-  @keyframes zf-dialog-in {
-    from {
-      opacity: 0;
-      transform: translateY(8px) rotate(calc(var(--rot, 0deg) + 1deg));
-    }
+    animation: zf-fade 120ms ease-out both;
   }
   .zf-scrim-in {
-    animation: zf-fade var(--dur-slow) var(--ease-paper) both;
+    animation: zf-fade 120ms ease-out both;
   }
   @keyframes zf-fade {
     from {
@@ -726,6 +728,33 @@
     font-size: 15px;
     color: var(--ink-deep);
     display: block;
+  }
+  /* a note in the page (the login banner): icon and title on one line, the message across the
+     full width beneath, the action on its own line */
+  .zf-toast--stack {
+    display: block;
+    width: 100%;
+    max-width: none;
+  }
+  .zf-toast--stack .zf-face {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 10px;
+    row-gap: 4px;
+    max-width: none;
+  }
+  .zf-toast--stack .zf-face > div {
+    display: contents;
+  }
+  .zf-toast--stack .zf-toast__body,
+  .zf-toast--stack .zf-face > :last-child:not(div):not(svg) {
+    grid-column: 1 / -1;
+    display: block;
+  }
+  .zf-toast--stack .zf-face > button,
+  .zf-toast--stack .zf-face > .zf-btn {
+    grid-column: 1 / -1;
+    justify-self: start;
   }
   .zf-toast-in {
     animation: zf-toast-in var(--dur-slow) var(--ease-paper) both;
@@ -944,8 +973,17 @@
 
   /* ---------- masthead and layout ---------- */
   .zf-masthead {
-    position: relative;
+    /* pinned to the top while the page scrolls (every screen size) */
+    position: sticky;
+    top: 0;
     z-index: 30;
+  }
+  /* ...except on a short screen (a phone on its side, 200% zoom), where its height is better
+     spent on the page */
+  @media (max-height: 480px) {
+    .zf-masthead {
+      position: relative;
+    }
   }
   .zf-masthead__row {
     display: flex;
@@ -1218,6 +1256,31 @@
       top: 0;
       z-index: 3;
       background: var(--scrap);
+    }
+  }
+  /* a short screen (a phone on its side, 200% zoom): the sticker studios sit side by side, the
+     preview pinned on the left while the options scroll on the right, and the dialog's step label
+     and title give back their height */
+  @media (max-height: 480px) {
+    .zf-studio--sticker {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 12px 20px;
+    }
+    .zf-studio--sticker .zf-studio__preview {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: var(--scrap);
+    }
+    .zf-studio--sticker .zf-studio__stage {
+      min-height: 0;
+    }
+    .zf-dialog-box .zf-kicker {
+      display: none;
+    }
+    .zf-dialog-box .zf-dialog__title {
+      font-size: 22px;
+      margin-bottom: 6px;
     }
   }
   .zf-pixels {
@@ -1859,6 +1922,11 @@
   align-items: center;
   gap: 12px 20px;
 }
+/* wide: the two groups sit in one row (the wrappers add nothing) */
+.zf-jstudio__edit,
+.zf-jstudio__file {
+  display: contents;
+}
 .zf-jstudio__barbtns {
   display: flex;
   flex-wrap: wrap;
@@ -1929,15 +1997,30 @@
     min-width: 0;
     max-width: 100%;
   }
-  /* stacked: the controls are single scrolling rows, so the page itself comes into the first screen */
+  /* stacked: what keeps the work (status, Save, Download) is always in view; Undo, Redo, zoom and
+     Paper are one scrolling row below it, with a faded edge as the cue */
   .zf-jstudio__barbtns {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    max-width: 100%;
+    display: grid;
+    gap: 2px;
     flex: 1 1 100%;
-    padding-bottom: 2px;
+    max-width: 100%;
   }
-  .zf-jstudio__barbtns > * {
+  .zf-jstudio__file {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 10px;
+    order: -1;
+  }
+  .zf-jstudio__edit {
+    display: flex;
+    align-items: center;
+    gap: 2px 6px;
+    overflow-x: auto;
+    padding: 0 28px 2px 0; /* the last control scrolls clear of the faded edge */
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  }
+  .zf-jstudio__edit > * {
     flex: none;
   }
   .zf-jstudio__body {
@@ -1964,6 +2047,40 @@
   }
   .zf-jstudio__panel {
     position: static;
+  }
+}
+/* short and narrow (a phone on its side, 200% zoom): fewer rows above the page, so it shows */
+@media (max-width: 1099px) and (max-height: 480px) {
+  .zf-jstudio__bar {
+    flex-wrap: wrap;
+    gap: 0 8px;
+  }
+  .zf-jstudio__bar > div:nth-child(2) {
+    flex: 1 1 96px !important;
+    min-width: 96px !important;
+    max-width: 96px !important;
+  }
+  .zf-jstudio__barbtns {
+    display: contents;
+  }
+  .zf-jstudio__file {
+    order: 0;
+    flex: none;
+  }
+  .zf-jstudio__edit {
+    flex: 1 1 100%;
+    order: 2;
+  }
+  /* the chip floats in the masthead's empty middle instead of taking a row of its own */
+  #app {
+    position: relative;
+  }
+  #app > .zf-verify--small {
+    position: absolute;
+    top: 10px;
+    right: 110px;
+    z-index: 5;
+    padding: 0;
   }
 }
 .zf-page--wide {
@@ -2086,6 +2203,11 @@
   .zf-auth__art {
     order: -1;
   }
+  /* the card sits at the top beside the tall sticker art, so the form (and an error above it) is
+     on the first screen of a 768 px laptop */
+  .zf-auth {
+    align-items: flex-start;
+  }
 }
 
 /* "Confirm your email": a one-line strip under the masthead. It follows the page in the DOM (so a
@@ -2121,10 +2243,32 @@
   flex: 1 1 auto;
   min-width: 0;
 }
-/* shrunk to its icon: no taller than the button itself */
+/* shrunk to a small chip with words: no strip, just the chip on the right (44 px to hit) */
 .zf-verify--small {
+  background: none;
   justify-content: flex-end;
   padding: 0 8px;
+  min-height: 0;
+}
+.zf-verify__chip {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  font-size: 13px;
+  color: var(--ink);
+}
+.zf-verify__chip svg {
+  width: 18px;
+  height: 18px;
+}
+.zf-verify__chip:focus-visible {
+  outline: 2px solid var(--plum-900);
+  outline-offset: -4px;
 }
 .zf-verify__hide {
   all: unset;

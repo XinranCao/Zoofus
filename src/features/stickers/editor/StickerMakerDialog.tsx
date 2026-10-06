@@ -134,9 +134,10 @@ function MakerBody({
   // step 2 opens at the top, where the whole preview is (step 1 may have scrolled)
   const resultRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    // (and after saving, so the "Saved" note is in view)
     if (view === "result")
       resultRef.current?.closest(".zf-dialog__scroll")?.scrollTo?.(0, 0);
-  }, [view]);
+  }, [view, saved]);
   const dirty = selections.length > 0 && !saved;
   const requestClose = () => (dirty ? setLeaving(true) : onClose());
 
@@ -317,8 +318,15 @@ function MakerBody({
         seed="maker"
         kicker={kicker}
         title={title}
+        description={
+          view === "result" && saved && !onAvatar ? t("maker.edge.savedHelp") : undefined
+        }
         actions={actions}
       >
+        {/* moving to step 2 is said out loud (the title alone does not change for a screen reader) */}
+        <div className="sr-only" role="status" aria-live="polite">
+          {view === "result" ? `${kicker}: ${title}` : ""}
+        </div>
         {status === "error" && imageError && (
           <div style={{ margin: "6px 0 14px" }}>
             <ToastNote
@@ -332,38 +340,49 @@ function MakerBody({
         )}
         {view === "result" ? (
           <div style={{ marginTop: 10, marginBottom: 22 }} ref={resultRef}>
-            {saved && !onAvatar && (
-              <div style={{ marginBottom: 16 }}>
-                <ToastNote
-                  kind="success"
-                  title={t("maker.edge.saved")}
-                  body={t("maker.edge.savedBody")}
-                  seed="maker-saved"
-                  role="status"
-                />
-              </div>
-            )}
-            {!onAvatar && (
-              <div
-                style={{ maxWidth: 360, marginBottom: 18, opacity: saved ? 0.6 : 1 }}
-                inert={saved}
-              >
-                <TextField
-                  label={t("maker.edge.nameLabel")}
-                  hint={t("maker.edge.nameHint")}
-                  value={name}
-                  maxLength={MAX_STICKER_NAME}
-                  seed="stname"
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-            )}
             <StickerEdgeStudio
               source={source}
               edge={edge}
               seed={seed}
               onChange={setEdge}
               locked={saved}
+              lead={
+                onAvatar ? undefined : (
+                  <>
+                    {saved && !onAvatar && (
+                      <div style={{ marginBottom: 16 }}>
+                        <ToastNote
+                          kind="success"
+                          title={t("maker.edge.saved")}
+                          body={t("maker.edge.savedHelp")}
+                          seed="maker-saved"
+                          role="status"
+                        />
+                      </div>
+                    )}
+                    {!onAvatar && (
+                      <div
+                        style={{
+                          maxWidth: 360,
+                          marginBottom: 18,
+                          opacity: saved ? 0.6 : 1,
+                        }}
+                        inert={saved}
+                      >
+                        <TextField
+                          label={t("maker.edge.nameLabel")}
+                          hint={t("maker.edge.nameHint")}
+                          value={name}
+                          maxLength={MAX_STICKER_NAME}
+                          disabled={saved}
+                          seed="stname"
+                          onChange={(e) => setName(e.target.value)}
+                        />
+                      </div>
+                    )}
+                  </>
+                )
+              }
             />
           </div>
         ) : (

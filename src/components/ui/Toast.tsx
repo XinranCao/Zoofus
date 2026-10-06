@@ -81,7 +81,7 @@ export function ToastNote({
       <Icon name={ICONS[kind]} style={{ color: iconColor, marginTop: 2 }} />
       <div>
         <b style={kind === "error" ? { color: "var(--danger)" } : undefined}>{title}</b>
-        {body}
+        {body && <span className="zf-toast__body">{body}</span>}
       </div>
       {action}
     </Paper>

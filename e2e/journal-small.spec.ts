@@ -15,6 +15,7 @@ async function openJournal(page: Page) {
 for (const [width, height] of [
   [375, 667],
   [640, 360],
+  [768, 1024],
   [1280, 720],
 ] as const) {
   test(`the journal page is in the first screen at ${width}x${height}`, async ({
@@ -23,12 +24,23 @@ for (const [width, height] of [
     await page.setViewportSize({ width, height });
     await signUp(page, "Small");
     await openJournal(page);
+    // the status, Save and Download PNG are fully inside the screen, no swiping needed
+    for (const target of [
+      page.getByRole("status").filter({ hasText: /changes saved|Saving|Not saved/ }),
+      page.getByRole("button", { name: "Save", exact: true }),
+      page.getByRole("button", { name: "Download PNG" }),
+    ]) {
+      const b = (await target.boundingBox())!;
+      expect(b.x).toBeGreaterThanOrEqual(0);
+      expect(b.x + b.width).toBeLessThanOrEqual(width);
+      expect(b.y + b.height).toBeLessThanOrEqual(height);
+    }
     const canvas = (await page
       .locator(".zf-jstudio__page canvas")
       .first()
       .boundingBox())!;
-    // part of the page is visible without scrolling (at least 40 px of it)
-    expect(canvas.y).toBeLessThan(height - 40);
+    // part of the page is visible without scrolling (at least 40 px of it (80 px when the screen is short))
+    expect(canvas.y).toBeLessThan(height - (height < 480 ? 80 : 40));
     if (width < 1100) {
       // the six tools sit in one row
       const ys = await page

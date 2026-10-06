@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Reel } from "@/components/ui/Loader";
 import { useToast } from "@/components/ui/Toast";
 import { downloadBlob } from "@/features/stickers/studio/export";
-import { AUTOSAVE_MS } from "./autosave";
+import { ITEMS_SAVE_MS, PICTURE_AFTER_MS, PICTURE_EVERY_MS } from "./autosave";
 import { JournalStudio, type JournalExport } from "./JournalStudio";
 import type { Journal } from "./journal.schema";
 import {
@@ -16,6 +16,7 @@ import {
 } from "./store/journalStore";
 import { SaveStatus } from "./SaveStatus";
 import { useStickerResolver } from "./stickerRegistry";
+import { useAuth } from "@/features/auth/useAuth";
 import { useJournal, useSaveJournal } from "./useJournals";
 
 /** `/journals/:id`: open one of your journals in the studio. */
@@ -55,6 +56,22 @@ export default function JournalPage() {
   );
 }
 
+const readDraft = (key: string): string | null => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+const writeDraft = (key: string, value: string | null) => {
+  try {
+    if (value === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, value);
+  } catch {
+    /* the draft is a convenience */
+  }
+};
+
 function Editor({ journal }: { journal: Journal }) {
   const { t } = useTranslation();
   const toast = useToast();
@@ -62,8 +79,18 @@ function Editor({ journal }: { journal: Journal }) {
   const save = useSaveJournal();
   const resolve = useStickerResolver(journal.assets);
   const dirty = useJournalState((s) => s.dirty);
-  const [title, setTitle] = useState(journal.title);
-  const titleDirty = title.trim() !== journal.title && title.trim() !== "";
+  // The title being typed, and the one the server has. A draft of the title is kept in the browser
+  // as it is typed, so a reload a moment later still shows it (and saves it).
+  const uid = useAuth().currentUser?.uid ?? "";
+  const draftKey = `zf-journal-title-${uid}-${journal.id}`;
+  const [savedTitle, setSavedTitle] = useState(journal.title);
+  const [title, setTitle] = useState(() => {
+    const draft = readDraft(draftKey);
+    return draft && draft !== journal.title ? draft : journal.title;
+  });
+  const titleDirty = title.trim() !== savedTitle && title.trim() !== "";
+  const titleRef = useRef(title);
+  const savedTitleRef = useRef(savedTitle);
   const exportRef = useRef<JournalExport>(null);
   const thumbPath = useRef(journal.thumbPath);
   const loaded = useRef(false);
@@ -74,19 +101,33 @@ function Editor({ journal }: { journal: Journal }) {
     store.getState().load(journal.page, journal.items);
   }, [store, journal]);
 
+  const changeTitle = (next: string) => {
+    titleRef.current = next;
+    writeDraft(draftKey, next);
+    setTitle(next);
+  };
+
   const persist = async (withThumb: boolean) => {
     const { page, items } = store.getState();
+    const sendTitle = titleRef.current.trim() || savedTitleRef.current;
     const thumb = withThumb ? await exportRef.current?.thumb().catch(() => null) : null;
     const result = await save.mutateAsync({
       journal: { id: journal.id, thumbPath: thumbPath.current },
-      changes: { title: title.trim() || journal.title, page, items, thumb },
+      changes: { title: sendTitle, page, items, thumb },
     });
     if (result) thumbPath.current = result;
-    store.getState().markSaved();
+    savedTitleRef.current = sendTitle;
+    setSavedTitle(sendTitle);
+    if (titleRef.current.trim() === sendTitle) writeDraft(draftKey, null);
+    // an edit made while this was being saved is still unsaved
+    const now = store.getState();
+    if (now.page === page && now.items === items) now.markSaved();
   };
 
   const saveNow = async () => {
     try {
+      thumbStale.current = false;
+      lastPicture.current = Date.now();
       await persist(true);
       toast.push({ kind: "success", title: t("journal.saved") });
     } catch (err) {
@@ -99,26 +140,50 @@ function Editor({ journal }: { journal: Journal }) {
     }
   };
 
-  // Autosave at most once a minute while there are changes (the timer is not pushed back by every
-  // edit, so a long session is still kept), and when leaving.
+  const unsavedTitle = () =>
+    titleRef.current.trim() !== "" && titleRef.current.trim() !== savedTitleRef.current;
+
+  // Edits are written a couple of seconds after the last one (items and page: cheap), so the
+  // status settles at once. The page picture (a thumbnail upload) is kept separately: at most once
+  // a minute while editing (the timer is not pushed back by every edit) and when leaving.
   const latest = useRef({ persist });
   useEffect(() => {
     latest.current = { persist };
   });
+  const thumbStale = useRef(false);
+  const lastPicture = useRef(0);
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null;
+    let data: ReturnType<typeof setTimeout> | null = null;
+    let picture: ReturnType<typeof setTimeout> | null = null;
     const unsub = store.subscribe((s, prev) => {
       if (!s.dirty || (s.items === prev.items && s.page === prev.page)) return;
-      if (timer) return;
-      timer = setTimeout(() => {
-        timer = null;
+      thumbStale.current = true;
+      if (data) clearTimeout(data);
+      data = setTimeout(() => {
+        data = null;
+        void latest.current.persist(false).catch(() => {});
+      }, ITEMS_SAVE_MS);
+      // the page picture follows a few seconds after the last edit (so what is shared or listed
+      // shows what the page looks like), but never more often than every 20 s
+      if (picture) clearTimeout(picture);
+      const wait = Math.max(
+        PICTURE_AFTER_MS,
+        lastPicture.current + PICTURE_EVERY_MS - Date.now(),
+      );
+      picture = setTimeout(() => {
+        picture = null;
+        thumbStale.current = false;
+        lastPicture.current = Date.now();
         void latest.current.persist(true).catch(() => {});
-      }, AUTOSAVE_MS);
+      }, wait);
     });
     return () => {
       unsub();
-      if (timer) clearTimeout(timer);
-      if (store.getState().dirty) void latest.current.persist(true).catch(() => {});
+      if (data) clearTimeout(data);
+      if (picture) clearTimeout(picture);
+      if (store.getState().dirty || thumbStale.current)
+        void latest.current.persist(true).catch(() => {});
+      else if (unsavedTitle()) void latest.current.persist(false).catch(() => {});
     };
   }, [store]);
 
@@ -127,14 +192,14 @@ function Editor({ journal }: { journal: Journal }) {
     if (!titleDirty) return;
     const timer = setTimeout(
       () => void latest.current.persist(false).catch(() => {}),
-      1500,
+      1000,
     );
     return () => clearTimeout(timer);
   }, [title, titleDirty]);
 
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => {
-      if (store.getState().dirty) e.preventDefault();
+      if (store.getState().dirty || unsavedTitle()) e.preventDefault();
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
@@ -144,7 +209,7 @@ function Editor({ journal }: { journal: Journal }) {
     <div className="zf-page zf-page--wide">
       <JournalStudio
         title={title}
-        onTitle={setTitle}
+        onTitle={changeTitle}
         resolve={resolve}
         backTo={{ to: "/journals", label: t("journal.backToJournals") }}
         exportRef={exportRef}
