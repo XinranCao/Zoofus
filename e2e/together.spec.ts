@@ -95,7 +95,7 @@ test("two friends make a journal page together and each keeps a copy", async ({
   });
   // one plain status says where the work stands (a friend's edit can make it say "Not saved yet" again)
   await expect(
-    b.getByRole("status").filter({ hasText: /All changes saved|Saving/ }),
+    b.getByRole("status").filter({ hasText: /All changes saved|Saving|Not saved/ }),
   ).toBeVisible();
 
   // Bobby saves a copy; it shows up in his journals
