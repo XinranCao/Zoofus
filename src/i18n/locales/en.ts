@@ -569,7 +569,6 @@ export const en = {
       rotation: "Turn",
       size: "Size",
       length: "Length",
-      width: "Width",
       text: "Text",
       textPlaceholder: "Type here",
       font: "Font",
