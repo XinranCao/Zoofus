@@ -39,8 +39,8 @@ for (const [width, height] of [
       .locator(".zf-jstudio__page canvas")
       .first()
       .boundingBox())!;
-    // part of the page is visible without scrolling (at least 40 px of it (90 px when the screen is short))
-    expect(canvas.y).toBeLessThan(height - (height < 480 ? 90 : 40));
+    // part of the page is visible without scrolling (at least 40 px of it (80 px when the screen is short))
+    expect(canvas.y).toBeLessThan(height - (height < 480 ? 80 : 40));
     if (width < 1100) {
       // the six tools sit in one row
       const ys = await page

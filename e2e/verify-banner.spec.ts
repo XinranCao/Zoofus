@@ -3,6 +3,14 @@ import { signUp } from "./support/flows";
 
 test.use({ viewport: { width: 375, height: 667 } });
 
+/** The note counts page views per account; set that count for whoever is signed in. */
+async function setViews(page: import("@playwright/test").Page, n: number) {
+  await page.evaluate((count) => {
+    for (const k of Object.keys(localStorage))
+      if (k.startsWith("zf-verify-views")) localStorage.setItem(k, String(count));
+  }, n);
+}
+
 test("the verify-email note says once that it is optional, comes after the page when tabbing, and shrinks to an icon once hidden", async ({
   page,
 }) => {
@@ -77,22 +85,28 @@ test("after a few page views the note shrinks by itself; no overflow at 640x360"
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
   ).toBe(false);
-  await page.evaluate(() => localStorage.setItem("zf-verify-views", "5"));
+  await setViews(page, 5);
   await page.goto("/friends");
   await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
   await expect(
     page.getByRole("status").filter({ hasText: "Confirm your email" }),
   ).toBeHidden();
-  // (on a short screen like this one the shrunk note gives its row to the page: it stays in the page)
-  await expect(page.locator(".zf-verify--small button")).toBeAttached();
+  // collapsed: a chip with words, not a strip, and it still shows on a short screen
+  const chip = page.getByRole("button", { name: "Confirm your email" });
+  await expect(chip).toBeVisible();
+  await expect(chip).toContainText("Email not confirmed");
+  expect((await chip.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  expect((await page.locator(".zf-verify--small").boundingBox())!.width).toBeLessThan(
+    300,
+  );
 });
 
 test("the note's text is not cut off in Chinese either", async ({ page }) => {
   await signUp(page, "Vera");
   await page.evaluate(() => {
     localStorage.setItem("zoofus.lang", "zh-CN");
-    localStorage.setItem("zf-verify-views", "0");
   });
+  await setViews(page, 0);
   await page.reload();
   const note = page.locator(".zf-verify");
   await expect(note).toBeVisible();
@@ -116,4 +130,20 @@ test("on a fresh page the first Tab reaches the skip link", async ({ page }) => 
   await page.waitForTimeout(800);
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
+});
+
+// PM-v1.7.2-006: what one account did to the note does not carry over to the next on this computer
+test("a second account in the same browser sees the explaining sentence once", async ({
+  page,
+}) => {
+  await signUp(page, "First");
+  await expect(page.locator(".zf-verify")).toContainText("Optional for now");
+  await page
+    .getByRole("button", { name: /Menu|Account menu for/ })
+    .first()
+    .click();
+  await page.getByRole("menuitem", { name: "Log out" }).click();
+  await expect(page).toHaveURL(/\/login/);
+  await signUp(page, "Second");
+  await expect(page.locator(".zf-verify")).toContainText("Optional for now");
 });
