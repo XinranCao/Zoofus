@@ -247,6 +247,7 @@ export default function StickerBookPage() {
               onRename={() => setRenamingId(s.id)}
               onDelete={() => setConfirmId(s.id)}
               onShare={() => setShareOne(s)}
+              onEditEdge={() => setEditEdgeId(s.id)}
               renaming={renamingId === s.id}
               onRenameDone={(name) => onRenameDone(s.id, name)}
               selecting={selection.active}
