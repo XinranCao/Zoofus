@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useNavigationType } from "react-router-dom";
 import { Masthead } from "@/components/ui/Masthead";
 import { useTitleDetail } from "@/lib/pageTitle";
+import { ThumbHealer } from "@/features/journal/ThumbHealer";
 import { focusPageHeading } from "./useRouteFocus";
 import { VerifyEmailBanner } from "@/features/account/VerifyEmailBanner";
 import { useAuth } from "@/features/auth/useAuth";
@@ -102,6 +103,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       />
       <ProfileSetupDialog />
       {currentUser && <MakeHost />}
+      {currentUser && <ThumbHealer />}
       {/* tells a screen reader which page it moved to */}
       <div className="sr-only" role="status" aria-live="polite">
         {pageTitle}

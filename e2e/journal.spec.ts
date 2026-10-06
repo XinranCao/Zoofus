@@ -340,3 +340,23 @@ test("a tape on the page has a length control and no width control", async ({ pa
   await expect(page.getByLabel("Length")).toBeVisible();
   await expect(page.getByLabel("Width")).toHaveCount(0);
 });
+
+// A journal that was left before its page picture was made gets one by itself, so lists and
+// collections show the page and not only its paper
+test("a journal without a page picture is given one, and lists show it", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await signUp(page, "Heal");
+  await newJournal(page, "No picture yet");
+  await placeText(page, "Words on the page");
+  const status = page
+    .getByRole("status")
+    .filter({ hasText: /changes saved|Saving|Not saved/ });
+  await expect(status).toHaveText("All changes saved", { timeout: 8000 });
+  await page.getByRole("link", { name: "← Journals" }).click();
+  const tile = page.locator(".zf-jtile").filter({ hasText: "No picture yet" });
+  await expect(tile).toBeVisible();
+  // ... and, within a moment, its picture (an image, not the paper swatch)
+  await expect(tile.locator("img")).toBeVisible({ timeout: 40_000 });
+});

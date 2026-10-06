@@ -115,9 +115,17 @@ service cloud.firestore {
         allow create: if isOwner(uid)
           && validJournal(request.resource.data)
           && request.resource.data.createdAt == request.time;
+        // Also allowed: only the page picture changes (a journal saved before its picture could be
+        // made gets one), which keeps its "updated" time so the list does not reorder.
+        function pictureOnly() {
+          return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['thumbUrl', 'thumbPath'])
+            && isString(request.resource.data.thumbUrl, 2048)
+            && isString(request.resource.data.thumbPath, 512)
+            && request.resource.data.thumbPath.matches('^' + uid + '/journals/.+');
+        }
         allow update: if isOwner(uid)
-          && validJournal(request.resource.data)
-          && request.resource.data.createdAt == resource.data.createdAt;
+          && request.resource.data.createdAt == resource.data.createdAt
+          && (validJournal(request.resource.data) || pictureOnly());
         allow delete: if isOwner(uid);
       }
 

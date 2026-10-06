@@ -120,6 +120,24 @@ export async function saveJournal(
   return newThumbPath; // the caller keeps it, so the next save knows what to replace
 }
 
+/**
+ * Keep a picture of the page without touching anything else (not even its "updated" time, so the
+ * list does not reorder): for a journal that was saved before its picture could be made.
+ */
+export async function setJournalThumb(
+  uid: string,
+  journal: Pick<Journal, "id" | "thumbPath">,
+  thumb: Blob,
+): Promise<void> {
+  const path = `${uid}/journals/${journal.id}/thumb_${Date.now()}.webp`;
+  const fileRef = ref(storage, path);
+  await uploadBytes(fileRef, thumb, { contentType: "image/webp" });
+  const url = await getDownloadURL(fileRef);
+  await updateDoc(doc(journalsRef(uid), journal.id), { thumbUrl: url, thumbPath: path });
+  if (journal.thumbPath && journal.thumbPath !== path)
+    await deleteFileIfExists(ref(storage, journal.thumbPath)).catch(() => {});
+}
+
 export async function renameJournal(uid: string, id: string, title: string) {
   await updateDoc(doc(journalsRef(uid), id), { title, updatedAt: serverTimestamp() });
 }

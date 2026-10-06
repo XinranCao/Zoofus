@@ -8,6 +8,7 @@ import {
   renderSticker,
   type EdgeSpec,
 } from "@/paper/renderSticker";
+import { renderScale } from "@/lib/lite";
 import { artUrl, type ArtName } from "./art";
 
 /**
@@ -46,38 +47,61 @@ export function Sticker({
   const edgeKey = JSON.stringify(edge);
   const url = src ?? (source ? null : artUrl(art ?? "pear"));
 
+  // Only the newest request is ever drawn: while one picture is being made (a slow machine, a
+  // slider being dragged), later requests replace each other instead of queueing up, so the work
+  // never falls behind the hand and nothing is drawn for a value that is already out of date.
+  const job = useRef<{ busy: boolean; next: (() => Promise<void>) | null }>({
+    busy: false,
+    next: null,
+  });
   useEffect(() => {
     let alive = true;
     const canvas = ref.current;
     if (!canvas) return;
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const raf = requestAnimationFrame(() => {
-      void (async () => {
-        const origin = source ?? (url ? await loadImage(url, crossOrigin) : null);
-        if (!origin || !alive) return;
-        const ow = "naturalWidth" in origin ? origin.naturalWidth || 100 : origin.width;
-        const oh =
-          "naturalHeight" in origin ? origin.naturalHeight || 100 : origin.height;
-        // the cut-out at the pixel size it will be shown at; the edge is added around it
-        const k = (size * dpr) / Math.max(ow, oh);
-        const w = Math.max(1, Math.round(ow * k));
-        const h = Math.max(1, Math.round(oh * k));
-        const scaled = document.createElement("canvas");
-        scaled.width = w;
-        scaled.height = h;
-        const sctx = scaled.getContext("2d");
-        if (!sctx) return;
-        sctx.imageSmoothingQuality = "high";
-        sctx.drawImage(origin, 0, 0, w, h);
-        const out = await renderSticker(scaled, JSON.parse(edgeKey) as EdgeSpec, id);
-        if (!alive) return;
-        canvas.width = out.width;
-        canvas.height = out.height;
-        canvas.style.width = out.width / dpr + "px";
-        canvas.style.height = out.height / dpr + "px";
-        canvas.getContext("2d")?.drawImage(out, 0, 0);
-      })().catch(() => {});
-    });
+    const dpr = renderScale();
+    const draw = async () => {
+      if (!alive) return;
+      const origin = source ?? (url ? await loadImage(url, crossOrigin) : null);
+      if (!origin || !alive) return;
+      const ow = "naturalWidth" in origin ? origin.naturalWidth || 100 : origin.width;
+      const oh = "naturalHeight" in origin ? origin.naturalHeight || 100 : origin.height;
+      // the cut-out at the pixel size it will be shown at; the edge is added around it
+      const k = (size * dpr) / Math.max(ow, oh);
+      const w = Math.max(1, Math.round(ow * k));
+      const h = Math.max(1, Math.round(oh * k));
+      const scaled = document.createElement("canvas");
+      scaled.width = w;
+      scaled.height = h;
+      const sctx = scaled.getContext("2d");
+      if (!sctx) return;
+      sctx.imageSmoothingQuality = "high";
+      sctx.drawImage(origin, 0, 0, w, h);
+      const out = await renderSticker(scaled, JSON.parse(edgeKey) as EdgeSpec, id);
+      if (!alive) return;
+      canvas.width = out.width;
+      canvas.height = out.height;
+      canvas.style.width = out.width / dpr + "px";
+      canvas.style.height = out.height / dpr + "px";
+      canvas.getContext("2d")?.drawImage(out, 0, 0);
+    };
+    const run = async () => {
+      const state = job.current;
+      if (state.busy) {
+        state.next = run; // replaces whatever was waiting
+        return;
+      }
+      state.busy = true;
+      try {
+        await draw();
+      } catch {
+        /* a picture that cannot be drawn leaves the last one in place */
+      }
+      state.busy = false;
+      const next = state.next;
+      state.next = null;
+      if (next) void next();
+    };
+    const raf = requestAnimationFrame(() => void run());
     return () => {
       alive = false;
       cancelAnimationFrame(raf);
@@ -86,8 +110,7 @@ export function Sticker({
 
   // Reserve the finished size before the first render, so nothing below it moves when it lands
   // (a bare canvas is 300 × 150): the cut-out's long side plus the edge's padding on both sides.
-  const dpr =
-    typeof window === "undefined" ? 1 : Math.min(2, window.devicePixelRatio || 1);
+  const dpr = typeof window === "undefined" ? 1 : renderScale();
   const pad = dieCutPad(edgeWidth(size * dpr, edge.scale)) / dpr;
   const aspect = source && source.width > 0 ? source.height / source.width : 1;
   const reserveW = (aspect > 1 ? size / aspect : size) + pad * 2;
