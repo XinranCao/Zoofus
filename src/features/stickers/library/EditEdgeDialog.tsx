@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
@@ -100,6 +100,8 @@ function EditEdgeBody({ sticker, onClose }: { sticker: Sticker; onClose: () => v
     };
   }, [sourceUrl]);
 
+  // after a saved edit, focus goes to that sticker's card (not back to a button that is gone)
+  const edited = useRef(false);
   const save = async () => {
     if (!source) return;
     try {
@@ -118,13 +120,8 @@ function EditEdgeBody({ sticker, onClose }: { sticker: Sticker; onClose: () => v
         title: t("book.editEdgeSaved"),
         body: t("book.editEdgeSavedFor", { name: sticker.name }),
       });
+      edited.current = true; // (the dialog hands focus to this sticker as it closes)
       onClose();
-      // focus goes to the sticker that was edited, not back to a button that is gone
-      setTimeout(() => {
-        document
-          .querySelector<HTMLElement>(`[data-sticker-id="${sticker.id}"] .zf-tile__open`)
-          ?.focus();
-      }, 150);
     } catch (err) {
       // the cause is shown (a short code) so a report says what actually went wrong
       const code = (err as { code?: string }).code ?? (err as Error).name ?? "error";
@@ -140,6 +137,13 @@ function EditEdgeBody({ sticker, onClose }: { sticker: Sticker; onClose: () => v
   return (
     <Dialog
       open
+      returnFocus={() =>
+        edited.current && sticker
+          ? document.querySelector<HTMLElement>(
+              `[data-sticker-id="${sticker.id}"] .zf-tile__open`,
+            )
+          : null
+      }
       onOpenChange={(o) => !o && onClose()}
       width={1040}
       seed="edit-edge"

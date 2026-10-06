@@ -30,6 +30,8 @@ export interface DialogProps {
   hideClose?: boolean;
   /** Read out with the title by a screen reader (not shown). */
   description?: string;
+  /** Where focus goes when it closes, if not back to what opened it (null: use the opener). */
+  returnFocus?: () => HTMLElement | null;
 }
 
 /**
@@ -53,6 +55,7 @@ export function Dialog({
   onInteractOutside,
   hideClose,
   description,
+  returnFocus,
 }: DialogProps) {
   const { t } = useTranslation();
   const id = useSeed(seed);
@@ -98,7 +101,7 @@ export function Dialog({
             }}
             onCloseAutoFocus={(e) => {
               e.preventDefault();
-              const el = opener.current;
+              const el = returnFocus?.() ?? opener.current;
               if (el?.isConnected && el !== document.body) el.focus();
               else document.getElementById("main")?.focus();
             }}
