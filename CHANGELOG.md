@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## v1.7.6 – 2026-10-06
+
+No rules change in this release.
 
 ### Fixes
 
