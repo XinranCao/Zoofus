@@ -509,7 +509,7 @@ export const en = {
     status: {
       saved: "All changes saved",
       saving: "Saving…",
-      pending: "Saving in a moment",
+      pending: "Not saved yet",
     },
     saveFailed: "We couldn’t save the journal. Your changes are still here. Try again.",
     backToJournals: "← Journals",

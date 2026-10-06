@@ -493,7 +493,7 @@ export const zh: Messages = {
     missingTitle: "找不到这本手账",
     missingBody: "可能已被删除,或者链接太旧了。",
     saved: "手账已保存。",
-    status: { saved: "所有改动都已保存", saving: "保存中…", pending: "马上保存" },
+    status: { saved: "所有改动都已保存", saving: "保存中…", pending: "还没保存" },
     saveFailed: "没能保存手账。你的改动还在,再试一次。",
     backToJournals: "← 手账",
     download: "下载 PNG",

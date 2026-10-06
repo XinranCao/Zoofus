@@ -93,7 +93,7 @@ test("two friends make a journal page together and each keeps a copy", async ({
   await expect(b.getByText(/Saved\. The page picture/).first()).toBeVisible({
     timeout: 20000,
   });
-  // one plain status says where the work stands (a friend's edit can make it say "Saving in a moment" again)
+  // one plain status says where the work stands (a friend's edit can make it say "Not saved yet" again)
   await expect(
     b.getByRole("status").filter({ hasText: /All changes saved|Saving/ }),
   ).toBeVisible();

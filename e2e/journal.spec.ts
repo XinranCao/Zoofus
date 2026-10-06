@@ -178,7 +178,9 @@ test("the journal says whether it is saved, and leaving right after Save loses n
   await dlg.getByLabel("Title").fill("Kept page");
   await dlg.getByRole("button", { name: "Start" }).click();
   await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
-  const status = page.getByRole("status").filter({ hasText: /changes saved|Saving/ });
+  const status = page
+    .getByRole("status")
+    .filter({ hasText: /changes saved|Saving|Not saved/ });
   await expect(status).toHaveText("All changes saved");
   // exactly one indicator, and Save is not a red primary button
   await expect(status).toHaveCount(1);
@@ -191,7 +193,7 @@ test("the journal says whether it is saved, and leaving right after Save loses n
   const box = (await page.locator(".zf-jstudio__page canvas").first().boundingBox())!;
   await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.3);
   await page.getByLabel("Text", { exact: true }).fill("Hello");
-  await expect(status).toHaveText("Saving in a moment");
+  await expect(status).toHaveText("Not saved yet");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(status).toHaveText("All changes saved");
 
@@ -202,4 +204,62 @@ test("the journal says whether it is saved, and leaving right after Save loses n
   await expect(page.getByRole("link", { name: /Open Kept page/ })).toBeVisible();
   await page.waitForTimeout(500);
   expect(warnings.filter((w) => w.includes("Skipping journal"))).toEqual([]);
+});
+
+// PM-v1.7.2-001: a title is never lost, and the status says so truthfully
+async function newJournal(page: import("@playwright/test").Page, title: string) {
+  await page.goto("/journals?make=1");
+  const dlg = page.getByRole("dialog", { name: "New journal" });
+  await dlg.getByLabel("Title").fill(title);
+  await dlg.getByRole("button", { name: "Start" }).click();
+  await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
+}
+
+test("a new title settles to All changes saved, by itself and by Save", async ({
+  page,
+}) => {
+  await signUp(page, "Title");
+  await newJournal(page, "First name");
+  const status = page
+    .getByRole("status")
+    .filter({ hasText: /changes saved|Saving|Not saved/ });
+  await expect(status).toHaveText("All changes saved");
+  const title = page.getByLabel("Title", { exact: true });
+  await title.fill("Second name");
+  await expect(status).toHaveText("Not saved yet");
+  await expect(status).toHaveText("All changes saved"); // no reload, no Save
+  await title.fill("Third name");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("Journal saved.").first()).toBeVisible();
+  await expect(status).toHaveText("All changes saved"); // the toast and the line agree
+});
+
+test("a title typed and followed at once by Back, or by a reload, is kept", async ({
+  page,
+}) => {
+  await signUp(page, "Quick");
+  await newJournal(page, "Before");
+  const title = page.getByLabel("Title", { exact: true });
+  // Back at once
+  await title.fill("After back");
+  await page.getByRole("link", { name: "← Journals" }).click();
+  await expect(page.getByRole("link", { name: /Open After back/ })).toBeVisible({
+    timeout: 15_000,
+  });
+  // reload at once: the browser warns, and the new title is still there
+  await page.getByRole("link", { name: /Open After back/ }).click();
+  await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
+  const dialogs: string[] = [];
+  page.on("dialog", (d) => {
+    dialogs.push(d.type());
+    void d.accept();
+  });
+  await page.getByLabel("Title", { exact: true }).fill("After reload");
+  await page.reload();
+  expect(dialogs).toContain("beforeunload");
+  await expect(page.getByLabel("Title", { exact: true })).toHaveValue("After reload");
+  const status = page
+    .getByRole("status")
+    .filter({ hasText: /changes saved|Saving|Not saved/ });
+  await expect(status).toHaveText("All changes saved");
 });
