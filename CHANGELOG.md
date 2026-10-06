@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Pixel prints can be turned again.** The Turn slider was hidden for the pixel kind; it is back in the sticker edge and tape editors.
+- **Pixel prints can be turned again.** The Turn slider was hidden for the pixel kind; it is back in the sticker edge and tape editors. The small print swatch next to the pixel grid now gets a new pattern id and a new `<svg>` for every change, so a browser that kept drawing the old print (same id) shows the new size and angle.
 
 ## v1.7.4 – 2026-10-06
 

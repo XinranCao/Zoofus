@@ -16,10 +16,19 @@ const PRESET_NAMES: TapePreset[] = [
 
 /** An inline SVG `<pattern>` fill (the same markup the canvas renderer uses). */
 export function PatternFill({ spec }: { spec: PatternSpec }) {
-  const id = "zp" + useId().replace(/[^a-zA-Z0-9]/g, "");
-  const html = useMemo(() => patternMarkup(spec, 1, id), [spec, id]);
+  const base = "zp" + useId().replace(/[^a-zA-Z0-9]/g, "");
+  // The id changes with the spec and the <svg> is keyed by it: some browsers keep drawing the old
+  // <pattern> when its replacement has the same id, so a new size or angle would not show.
+  const { id, html } = useMemo(() => {
+    const json = JSON.stringify(spec);
+    let h = 0;
+    for (let i = 0; i < json.length; i++) h = (h * 31 + json.charCodeAt(i)) >>> 0;
+    const id = base + h.toString(36);
+    return { id, html: patternMarkup(spec, 1, id) };
+  }, [spec, base]);
   return (
     <svg
+      key={id}
       className="zf-pattern"
       width="100%"
       height="100%"
