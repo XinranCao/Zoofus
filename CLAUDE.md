@@ -16,7 +16,7 @@ Local runs need a `.env` with `VITE_APP_*` Firebase keys. Never read, print or c
 - `npm run test:rules` – Firestore/Storage security rules tests against the local emulators (needs Java 17+; CI job `security-rules`)
 - `npm run test:e2e` – Playwright end-to-end flow (sign up, cut, save, delete) against the emulators; uses your Chrome locally, Chromium in CI (job `e2e`)
 - `npm run emulators` + `npm run dev:emulated` – local Firebase emulators (Auth, Firestore, Storage; they listen on 127.0.0.1 only) and an app wired to them (`.env.emulator`). Prefer this for anything that writes data. `npm run emulators:lan` (`firebase.lan.json`) opens them to the network, for testing from a second device by this machine's address.
-- `npm run test:coverage` – unit tests with a coverage summary (v8; no threshold yet).
+- `npm run test:coverage` – unit tests with a coverage summary (v8) and a floor (about 31% today, set in `vite.config.ts`): CI runs this instead of plain `npm test`, so coverage cannot fall; raise the floor as it grows.
 - `npm run check` – typecheck + lint + tests + build (run before every push)
 - `npm run deploy` – manual build + `firebase deploy` (normally releases deploy from CI on a tag)
 - CI (`.github/workflows/ci.yml`) runs typecheck, lint, format check, tests and build on pushes and PRs to `dev`/`main`.

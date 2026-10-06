@@ -123,9 +123,11 @@ export default defineConfig(({ mode }) => ({
     environment: "jsdom",
     setupFiles: "./src/setupTests.ts",
     globals: true,
-    // `npm run test:coverage`: a number to watch, no threshold yet
+    // `npm run test:coverage`: fails if coverage falls below today's level (about 31%); raise the
+    // numbers as it grows, never lower them to make a change pass
     coverage: {
       provider: "v8",
+      thresholds: { statements: 30, branches: 27, functions: 20, lines: 30 },
       reporter: ["text-summary", "html"],
       include: ["src/**/*.{ts,tsx}"],
       exclude: ["src/**/*.test.*", "src/pages/dev/**", "src/setupTests.ts"],

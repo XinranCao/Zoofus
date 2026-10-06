@@ -167,9 +167,7 @@ test("the eraser rubs out only where it went; stickers move, stretch and pass cl
   expect(await inked(page, cx - 100, cy - 200 - 189 * k)).toBe(false);
 });
 
-test("the journal says whether it is saved, and leaving right after Save loses nothing", async ({
-  page,
-}) => {
+test("the journal says whether it is saved, and the list shows it", async ({ page }) => {
   const warnings: string[] = [];
   page.on("console", (m) => m.type() === "warning" && warnings.push(m.text()));
   await signUp(page, "Kept");
@@ -197,9 +195,7 @@ test("the journal says whether it is saved, and leaving right after Save loses n
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(status).toHaveText("All changes saved");
 
-  // change again, press Save and leave straight away
-  await page.getByLabel("Text", { exact: true }).fill("Hello again");
-  await page.getByRole("button", { name: "Save", exact: true }).click();
+  // (leaving right after Save is tested on a slow connection below)
   await page.getByRole("link", { name: "← Journals" }).click();
   await expect(page.getByRole("link", { name: /Open Kept page/ })).toBeVisible();
   await page.waitForTimeout(500);
@@ -283,3 +279,54 @@ test("a placed item is saved within seconds and is there after a reload", async 
   await page.reload();
   await expect(page.locator("#journal-items")).toContainText("Placed words");
 });
+
+// PM-v1.7.2-011: a slow connection (600 ms latency, 50 kB/s), where "leave right after" is realistic
+async function slowNetwork(page: import("@playwright/test").Page) {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Network.enable");
+  await cdp.send("Network.emulateNetworkConditions", {
+    offline: false,
+    latency: 600,
+    downloadThroughput: 50 * 1024,
+    uploadThroughput: 50 * 1024,
+  });
+  return () =>
+    cdp.send("Network.emulateNetworkConditions", {
+      offline: false,
+      latency: 0,
+      downloadThroughput: -1,
+      uploadThroughput: -1,
+    });
+}
+
+async function placeText(page: import("@playwright/test").Page, words: string) {
+  await page.getByRole("button", { name: "Text", exact: true }).click();
+  const box = (await page.locator(".zf-jstudio__page canvas").first().boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.3);
+  await page.getByLabel("Text", { exact: true }).fill(words);
+}
+
+for (const how of ["after pressing Save", "without pressing Save"] as const) {
+  test(`on a slow connection, leaving ${how} keeps the content and the title`, async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    await signUp(page, "Slow");
+    await newJournal(page, "Slow page");
+    const restore = await slowNetwork(page);
+    await placeText(page, `Words ${how}`);
+    await page.getByLabel("Title", { exact: true }).fill(`Renamed ${how}`);
+    if (how === "after pressing Save")
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+    await page.getByRole("link", { name: "← Journals" }).click();
+    await expect(page).toHaveURL(/\/journals$/);
+    // let the writes that were still on their way finish, then look at what was kept
+    await restore();
+    await page.waitForTimeout(6000);
+    await page.reload();
+    await page.getByRole("link", { name: new RegExp(`Open Renamed ${how}`) }).click();
+    await expect(page.locator("#journal-items")).toContainText(`Words ${how}`, {
+      timeout: 15_000,
+    });
+  });
+}
