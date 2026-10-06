@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v1.7.4 – 2026-10-06
 
 Follow-up to v1.7.3 after more use in production. **The Firestore rules change: they go out first with the release.**
 
