@@ -20,6 +20,7 @@ Fixes from using v1.7.2 in production, plus the interface now starts in Chinese.
 ### Other
 
 - New checks: a shared journal's preview, the tape control, the Together save flash (it fails on the old code), the pinned top bar. The design-system checks now set the language the way a person does.
+- The end-to-end tests in CI now run on six runners at once (about 8 minutes instead of 23), with the browser and emulator downloads cached.
 - No rules change in this release.
 
 ## v1.7.2 – 2026-10-05
