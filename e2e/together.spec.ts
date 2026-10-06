@@ -89,10 +89,20 @@ test("two friends make a journal page together and each keeps a copy", async ({
     .boundingBox();
   expect(Math.abs(sticker!.y - tape!.y)).toBeLessThan(4);
   expect(tape!.x).toBeGreaterThan(sticker!.x + 40);
+  // (the page must never flash "This page isn't here" while a save is being made)
+  await b.evaluate(() => {
+    const w = window as unknown as { __gone?: boolean };
+    new MutationObserver(() => {
+      if (document.body.innerText.includes("This page isn't here")) w.__gone = true;
+    }).observe(document.body, { subtree: true, childList: true, characterData: true });
+  });
   await b.getByRole("button", { name: "Save", exact: true }).click();
   await expect(b.getByText(/Saved\. The page picture/).first()).toBeVisible({
     timeout: 20000,
   });
+  expect(
+    await b.evaluate(() => (window as unknown as { __gone?: boolean }).__gone),
+  ).toBeFalsy();
   // one plain status says where the work stands (a friend's edit can make it say "Not saved yet" again)
   await expect(
     b.getByRole("status").filter({ hasText: /All changes saved|Saving|Not saved/ }),

@@ -732,26 +732,15 @@ function ItemPanel({
         )}
 
         {item.t === "t" && (
-          <>
-            <Slider
-              label={t("journal.item.length")}
-              value={Math.round(item.len)}
-              min={40}
-              max={800}
-              unit=" px"
-              seed="jlen"
-              onChange={(len) => patch(item, { len })}
-            />
-            <Slider
-              label={t("journal.item.width")}
-              value={Math.round(item.tape.thickness)}
-              min={12}
-              max={36}
-              unit=" px"
-              seed="jthick"
-              onChange={(thickness) => patch(item, { tape: { ...item.tape, thickness } })}
-            />
-          </>
+          <Slider
+            label={t("journal.item.length")}
+            value={Math.round(item.len)}
+            min={40}
+            max={800}
+            unit=" px"
+            seed="jlen"
+            onChange={(len) => patch(item, { len })}
+          />
         )}
 
         {item.t === "x" && (

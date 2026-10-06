@@ -330,3 +330,13 @@ for (const how of ["after pressing Save", "without pressing Save"] as const) {
     });
   });
 }
+
+// a tape on a page can be made longer, but its width is the tape's own (no slider that did nothing)
+test("a tape on the page has a length control and no width control", async ({ page }) => {
+  await signUp(page, "Tape");
+  await newJournal(page, "Tapes");
+  await page.getByRole("button", { name: "Tape", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Pink dots" }).click();
+  await expect(page.getByLabel("Length")).toBeVisible();
+  await expect(page.getByLabel("Width")).toHaveCount(0);
+});

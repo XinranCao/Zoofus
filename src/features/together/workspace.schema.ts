@@ -7,7 +7,10 @@ import { itemSchema, pageSpecSchema, type Item } from "@/features/journal/journa
 export const MAX_MEMBERS = 8;
 export const MAX_INVITED = 12;
 
-const date = z.instanceof(Timestamp).transform((t) => t.toDate());
+const date = z
+  .instanceof(Timestamp)
+  .nullable()
+  .transform((t) => (t ? t.toDate() : new Date()));
 
 export const workspaceDocSchema = z.object({
   title: z.string().min(1).max(80),

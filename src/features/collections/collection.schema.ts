@@ -24,8 +24,14 @@ export const collectionDocSchema = z.object({
       return r.success ? [r.data] : [];
     }),
   ),
-  createdAt: z.instanceof(Timestamp).transform((t) => t.toDate()),
-  updatedAt: z.instanceof(Timestamp).transform((t) => t.toDate()),
+  createdAt: z
+    .instanceof(Timestamp)
+    .nullable()
+    .transform((t) => (t ? t.toDate() : new Date())),
+  updatedAt: z
+    .instanceof(Timestamp)
+    .nullable()
+    .transform((t) => (t ? t.toDate() : new Date())),
 });
 
 export type Collection = z.output<typeof collectionDocSchema> & { id: string };

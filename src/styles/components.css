@@ -25,8 +25,13 @@
 @layer base {
   html {
     min-height: 100%;
+    /* a long page does not bounce at its ends (on a Mac the rubber band showed the edge of the
+       background pattern and moved the bar), and a jump to an anchor clears the pinned bar */
+    overscroll-behavior-y: none;
+    scroll-padding-top: 96px;
   }
   body {
+    overscroll-behavior-y: none;
     margin: 0;
     min-height: 100vh;
     background-color: var(--ground);
@@ -103,8 +108,9 @@
     pointer-events: none;
     background-image: var(--grain);
     background-size: 160px;
+    /* plain alpha, not mix-blend-mode: a blend on every face makes each one an offscreen group,
+       which made opening a dialog (dozens of faces) crawl on a retina MacBook */
     opacity: 0.4;
-    mix-blend-mode: multiply;
   }
   .zf-face > * {
     position: relative;
@@ -112,7 +118,7 @@
   }
   /* the focus ring is a zero-blur trace around the torn silhouette */
   .zf-torn:focus-visible,
-  .zf-torn:has(:focus-visible) {
+  .zf-torn:has(:focus-visible):not(.zf-dialog-box) {
     filter: var(--focus-trace);
   }
 
@@ -638,17 +644,13 @@
     outline: 2px solid var(--plum-900);
     outline-offset: 1px;
   }
+  /* a short fade: the heavy part of opening a dialog is drawing it, so it must not also be
+     moved, rotated and bounced for a third of a second */
   .zf-dialog-in {
-    animation: zf-dialog-in var(--dur-slow) var(--ease-flop) both;
-  }
-  @keyframes zf-dialog-in {
-    from {
-      opacity: 0;
-      transform: translateY(8px) rotate(calc(var(--rot, 0deg) + 1deg));
-    }
+    animation: zf-fade 120ms ease-out both;
   }
   .zf-scrim-in {
-    animation: zf-fade var(--dur-slow) var(--ease-paper) both;
+    animation: zf-fade 120ms ease-out both;
   }
   @keyframes zf-fade {
     from {
@@ -971,8 +973,17 @@
 
   /* ---------- masthead and layout ---------- */
   .zf-masthead {
-    position: relative;
+    /* pinned to the top while the page scrolls (every screen size) */
+    position: sticky;
+    top: 0;
     z-index: 30;
+  }
+  /* ...except on a short screen (a phone on its side, 200% zoom), where its height is better
+     spent on the page */
+  @media (max-height: 480px) {
+    .zf-masthead {
+      position: relative;
+    }
   }
   .zf-masthead__row {
     display: flex;

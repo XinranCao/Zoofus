@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Reel } from "@/components/ui/Loader";
 import { useToast } from "@/components/ui/Toast";
 import { downloadBlob } from "@/features/stickers/studio/export";
-import { AUTOSAVE_MS, ITEMS_SAVE_MS } from "./autosave";
+import { ITEMS_SAVE_MS, PICTURE_AFTER_MS, PICTURE_EVERY_MS } from "./autosave";
 import { JournalStudio, type JournalExport } from "./JournalStudio";
 import type { Journal } from "./journal.schema";
 import {
@@ -127,6 +127,7 @@ function Editor({ journal }: { journal: Journal }) {
   const saveNow = async () => {
     try {
       thumbStale.current = false;
+      lastPicture.current = Date.now();
       await persist(true);
       toast.push({ kind: "success", title: t("journal.saved") });
     } catch (err) {
@@ -150,6 +151,7 @@ function Editor({ journal }: { journal: Journal }) {
     latest.current = { persist };
   });
   const thumbStale = useRef(false);
+  const lastPicture = useRef(0);
   useEffect(() => {
     let data: ReturnType<typeof setTimeout> | null = null;
     let picture: ReturnType<typeof setTimeout> | null = null;
@@ -161,12 +163,19 @@ function Editor({ journal }: { journal: Journal }) {
         data = null;
         void latest.current.persist(false).catch(() => {});
       }, ITEMS_SAVE_MS);
-      if (!picture)
-        picture = setTimeout(() => {
-          picture = null;
-          thumbStale.current = false;
-          void latest.current.persist(true).catch(() => {});
-        }, AUTOSAVE_MS);
+      // the page picture follows a few seconds after the last edit (so what is shared or listed
+      // shows what the page looks like), but never more often than every 20 s
+      if (picture) clearTimeout(picture);
+      const wait = Math.max(
+        PICTURE_AFTER_MS,
+        lastPicture.current + PICTURE_EVERY_MS - Date.now(),
+      );
+      picture = setTimeout(() => {
+        picture = null;
+        thumbStale.current = false;
+        lastPicture.current = Date.now();
+        void latest.current.persist(true).catch(() => {});
+      }, wait);
     });
     return () => {
       unsub();
@@ -176,7 +185,6 @@ function Editor({ journal }: { journal: Journal }) {
         void latest.current.persist(true).catch(() => {});
       else if (unsavedTitle()) void latest.current.persist(false).catch(() => {});
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- refs only
   }, [store]);
 
   // a new title is kept a moment after typing stops
@@ -195,7 +203,6 @@ function Editor({ journal }: { journal: Journal }) {
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- refs only
   }, [store]);
 
   return (
