@@ -43,6 +43,7 @@ import {
 } from "./journal.schema";
 import { exportStage } from "./exportStage";
 import { JournalCanvas, type StickerResolver } from "./JournalCanvas";
+import { copyOf, moveOps, pasteOps } from "./groupOps";
 import { reorder, topZ } from "./ops";
 import { PageSetup } from "./PageSetup";
 import { useJournalState, useJournalStore, type JournalTool } from "./store/journalStore";
@@ -113,6 +114,7 @@ export function JournalStudio({
   const page = useJournalState((s) => s.page);
   const items = useJournalState((s) => s.items);
   const selectedId = useJournalState((s) => s.selectedId);
+  const group = useJournalState((s) => s.group);
   const tool = useJournalState((s) => s.tool);
   const pen = useJournalState((s) => s.pen);
   const text = useJournalState((s) => s.text);
@@ -221,6 +223,40 @@ export function JournalStudio({
     store.getState().select(id);
   };
 
+  /** What is chosen, one thing or a group. */
+  const chosen = () => {
+    const st = store.getState();
+    return st.selectedId ? [st.selectedId] : st.group;
+  };
+  const copy = () => {
+    const ids = chosen();
+    if (ids.length === 0) return false;
+    store.getState().setClip(copyOf(store.getState().items, ids));
+    return true;
+  };
+  const paste = () => {
+    const st = store.getState();
+    if (!st.clip || st.clip.items.length === 0) return;
+    const r = pasteOps(st.items, st.clip.items, st.countPaste());
+    if (r.ops.length === 0) return;
+    st.apply(r.ops);
+    st.setTool("select");
+    store.getState().selectGroup(r.ids);
+  };
+  const duplicateChosen = () => {
+    const st = store.getState();
+    const ids = chosen();
+    if (ids.length === 0) return;
+    const r = pasteOps(st.items, copyOf(st.items, ids), 1);
+    if (r.ops.length === 0) return;
+    st.apply(r.ops);
+    store.getState().selectGroup(r.ids);
+  };
+  const removeChosen = () => {
+    const ids = chosen();
+    if (ids.length) apply(ids.map((id) => ({ k: "del" as const, id })));
+  };
+
   const onKeyDown = (e: KeyboardEvent) => {
     const el = e.target as HTMLElement;
     if (el.closest("input, textarea, select, [role=slider], [role=radio]")) return;
@@ -233,6 +269,53 @@ export function JournalStudio({
     if (mod && key === "y") {
       e.preventDefault();
       return store.getState().redo();
+    }
+    if (mod && key === "a") {
+      e.preventDefault();
+      store.getState().setTool("select");
+      return store.getState().selectGroup(store.getState().items.map((i) => i.id));
+    }
+    if (mod && key === "v") {
+      e.preventDefault();
+      return paste();
+    }
+    if (mod && (key === "c" || key === "x")) {
+      if (!copy()) return;
+      e.preventDefault();
+      return key === "x" ? removeChosen() : undefined;
+    }
+    if (group.length > 0) {
+      if (key === "delete" || key === "backspace") {
+        e.preventDefault();
+        return removeChosen();
+      }
+      if (key === "escape") return store.getState().select(null);
+      if (mod && key === "d") {
+        e.preventDefault();
+        return duplicateChosen();
+      }
+      const gs = e.shiftKey ? 10 : 1;
+      const gmove: Record<string, [number, number]> = {
+        arrowleft: [-gs, 0],
+        arrowright: [gs, 0],
+        arrowup: [0, -gs],
+        arrowdown: [0, gs],
+      };
+      const gd = gmove[key];
+      if (gd) {
+        e.preventDefault();
+        store.getState().apply(
+          moveOps(store.getState().items, group, {
+            cx: 0,
+            cy: 0,
+            dx: gd[0],
+            dy: gd[1],
+            deg: 0,
+          }),
+          { coalesce: `group:nudge` },
+        );
+      }
+      return;
     }
     if (!selected) return;
     if (key === "delete" || key === "backspace") {
@@ -281,12 +364,14 @@ export function JournalStudio({
     () => ({
       tool,
       selectedId,
+      group,
       pen,
       text,
       onSelect: (id: string | null) => store.getState().select(id),
+      onGroup: (ids: string[]) => store.getState().selectGroup(ids),
       onOps: (ops: Parameters<typeof apply>[0]) => store.getState().apply(ops),
     }),
-    [tool, selectedId, pen, text, store],
+    [tool, selectedId, group, pen, text, store],
   );
 
   return (
@@ -450,6 +535,14 @@ export function JournalStudio({
         <div className="zf-jstudio__panel">
           {tool === "draw" || tool === "erase" ? (
             <PenPanel />
+          ) : group.length > 0 ? (
+            <GroupPanel
+              count={group.length}
+              onCopy={copy}
+              onDuplicate={duplicateChosen}
+              onRemove={removeChosen}
+              full={full}
+            />
           ) : selected ? (
             <ItemPanel item={selected} patch={patch} duplicate={duplicate} full={full} />
           ) : tool === "text" ? (
@@ -580,6 +673,57 @@ function PenPanel() {
           seed="jps"
           onChange={(size) => store.getState().setPen({ size })}
         />
+      </div>
+    </Paper>
+  );
+}
+
+/** What to do with several things chosen together; moving and turning are on the page itself. */
+function GroupPanel({
+  count,
+  onCopy,
+  onDuplicate,
+  onRemove,
+  full,
+}: {
+  count: number;
+  onCopy: () => void;
+  onDuplicate: () => void;
+  onRemove: () => void;
+  full: boolean;
+}) {
+  const { t } = useTranslation();
+  return (
+    <Paper
+      seed="jgroup"
+      size="sm"
+      tone="scrap"
+      rotate={0.3}
+      faceStyle={{ padding: "18px 18px 20px" }}
+    >
+      <div style={{ display: "grid", gap: 12 }}>
+        <p style={{ margin: 0 }} role="status">
+          {t("journal.group.count", { count })}
+        </p>
+        <p style={{ margin: 0 }}>{t("journal.group.hint")}</p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+          <Button variant="quiet" size="sm" icon="copy" seed="jgcopy" onClick={onCopy}>
+            {t("journal.item.copy")}
+          </Button>
+          <Button
+            variant="quiet"
+            size="sm"
+            icon="copy"
+            seed="jgdup"
+            disabled={full}
+            onClick={onDuplicate}
+          >
+            {t("journal.item.duplicate")}
+          </Button>
+          <Button variant="quiet" size="sm" icon="trash" seed="jgdel" onClick={onRemove}>
+            {t("common.delete")}
+          </Button>
+        </div>
       </div>
     </Paper>
   );

@@ -525,10 +525,15 @@ export const en = {
     full: "This page is full. Remove something to add more.",
     pickSticker: "Pick a sticker",
     pickTape: "Pick a tape",
+    group: {
+      count_one: "{{count}} thing chosen",
+      count_other: "{{count}} things chosen",
+      hint: "Drag them to move them together, or drag the round handle above them to turn them. Ctrl or Cmd with C, X and V copies, cuts and pastes.",
+    },
     hint: {
       text: "Click on the page where the words should go, then type them in the panel.",
       select:
-        "Add stickers and tape, or choose Text or Draw. Click anything on the page to move, turn or resize it.",
+        "Add stickers and tape, or choose Text or Draw. Click anything on the page to move, turn or resize it, or drag an area on the page to choose several things at once.",
       erase: "Drag across a pen line to erase it.",
     },
     items: {
@@ -566,6 +571,7 @@ export const en = {
       front: "To front",
       back: "To back",
       duplicate: "Duplicate",
+      copy: "Copy",
       rotation: "Turn",
       size: "Size",
       length: "Length",

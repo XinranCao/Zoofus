@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Features
+
+- **Journals: choose several things at once.** In the Move tool, drag an area on the page: everything at least half inside it is chosen (pen lines too), shown by one dashed box. Drag inside the box to move them all together, drag the round handle above it to turn them together (Shift snaps to 15°), arrow keys nudge them, Delete removes them, Ctrl/Cmd+A chooses everything. A group moves and turns as one undo step. Pen lines carry their points, so moving a group rewrites those points (`groupOps.ts`); the stored items and rules are unchanged.
+- **Journals: copy, cut and paste by keyboard.** Ctrl/Cmd+C, X and V (and Ctrl/Cmd+D for a quick copy) work on one thing or a group. Each paste lands 28 units further down and right, on top, and is chosen. The clipboard lives in the open journal only (a sticker pointer means something only inside its own journal). Works in Together pages too.
+- **Pencil, marker and crayon look like their real tools.** The pen stays a crisp line. A pencil is soft graphite with threads of darker lead; a marker is one even translucent coat that pools darker at its edges and does not double where it crosses itself; a crayon is waxy with the paper showing through. Each is painted into a small canvas per stroke (`penTexture.ts`) with a grain fixed to the page (the same paper tooth under every stroke, no shimmer while drawing), kept sharp at 2× for small strokes and lighter for big ones. Stored strokes are unchanged, so old journals show the new look.
+
+### Fixes
+
 - **Pixel prints can be turned again.** The Turn slider was hidden for the pixel kind; it is back in the sticker edge and tape editors. The small print swatch next to the pixel grid now gets a new pattern id and a new `<svg>` for every change, so a browser that kept drawing the old print (same id) shows the new size and angle.
 
 ## v1.7.4 – 2026-10-06

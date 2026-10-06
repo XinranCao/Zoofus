@@ -360,3 +360,69 @@ test("a journal without a page picture is given one, and lists show it", async (
   // ... and, within a moment, its picture (an image, not the paper swatch)
   await expect(tile.locator("img")).toBeVisible({ timeout: 40_000 });
 });
+
+test("choose several things with an area, move them together, copy and paste by keyboard", async ({
+  page,
+}) => {
+  await signUp(page, "Gro");
+  await page.goto("/journals?make=1");
+  const dlg = page.getByRole("dialog", { name: "New journal" });
+  await dlg.getByLabel("Title").fill("Group page");
+  await dlg.getByRole("button", { name: "Start" }).click();
+  await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
+  const canvas = page.locator(".zf-jstudio__page canvas").first();
+  const box = (await canvas.boundingBox())!;
+  const at = (fx: number, fy: number) =>
+    [box.x + box.width * fx, box.y + box.height * fy] as const;
+
+  // two pen lines of different tools
+  for (const [tool, fy] of [
+    ["pencil", 0.2],
+    ["crayon", 0.3],
+  ] as const) {
+    await page.getByRole("button", { name: "Draw", exact: true }).click();
+    await page.getByRole("radio", { name: new RegExp(`^${tool}$`, "i") }).click();
+    const [x0, y0] = at(0.2, fy);
+    await page.mouse.move(x0, y0);
+    await page.mouse.down();
+    await page.mouse.move(...at(0.4, fy + 0.04), { steps: 8 });
+    await page.mouse.move(...at(0.6, fy), { steps: 8 });
+    await page.mouse.up();
+  }
+  const items = page.locator("#journal-items li");
+  await expect(items).toHaveCount(2);
+
+  // drag an area round both
+  await page.getByRole("button", { name: "Move", exact: true }).click();
+  await page.mouse.move(...at(0.1, 0.1));
+  await page.mouse.down();
+  await page.mouse.move(...at(0.8, 0.45), { steps: 8 });
+  await page.mouse.up();
+  await expect(
+    page.getByRole("status").filter({ hasText: "2 things chosen" }),
+  ).toBeVisible();
+
+  // move them together by dragging inside the box
+  await page.mouse.move(...at(0.4, 0.25));
+  await page.mouse.down();
+  await page.mouse.move(...at(0.4, 0.55), { steps: 8 });
+  await page.mouse.up();
+  await expect(
+    page.getByRole("status").filter({ hasText: "2 things chosen" }),
+  ).toBeVisible();
+  await expect(items).toHaveCount(2);
+
+  // copy and paste with the keyboard: the copies are chosen, so there are four
+  await page.locator(".zf-jstudio__page").focus();
+  await page.keyboard.press("ControlOrMeta+c");
+  await page.keyboard.press("ControlOrMeta+v");
+  await expect(items).toHaveCount(4);
+  await page.keyboard.press("ControlOrMeta+v");
+  await expect(items).toHaveCount(6);
+
+  // Delete removes what is chosen (the second pair of copies), undo brings it back
+  await page.keyboard.press("Delete");
+  await expect(items).toHaveCount(4);
+  await page.keyboard.press("ControlOrMeta+z");
+  await expect(items).toHaveCount(6);
+});
