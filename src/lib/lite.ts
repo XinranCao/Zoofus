@@ -81,3 +81,17 @@ export function initLite() {
   if ((navigator.hardwareConcurrency || 4) <= 2) return apply(true);
   watchFrames();
 }
+
+/** The graphics chip the browser reports, for a report about slowness ("" when it will not say). */
+export function graphicsName(): string {
+  try {
+    const gl = document.createElement("canvas").getContext("webgl");
+    if (!gl) return "no WebGL";
+    const info = gl.getExtension("WEBGL_debug_renderer_info");
+    return info
+      ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL))
+      : "hidden by the browser";
+  } catch {
+    return "unknown";
+  }
+}

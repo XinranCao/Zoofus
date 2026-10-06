@@ -2391,6 +2391,16 @@
   );
   background-size: 22px 22px;
 }
+/* big torn pieces become plain rectangles: a path clip over a large area is what some graphics
+   chips draw slowly (small buttons, chips and swatches keep their tear) */
+.zf-lite .zf-dialog-box > .zf-face,
+.zf-lite .zf-dialog-box::before,
+.zf-lite .zf-masthead > .zf-face,
+.zf-lite .zf-masthead::before,
+.zf-lite .zf-paper.is-block > .zf-face,
+.zf-lite .zf-paper.is-block::before {
+  clip-path: none;
+}
 .zf-lite .zf-torn:focus-visible,
 .zf-lite .zf-torn:has(:focus-visible) {
   filter: none;

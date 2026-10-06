@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+Follow-up to v1.7.3 after more use in production. **The Firestore rules change: they go out first with the release.**
+
+### Fixes
+
+- **A journal's picture in collections and lists.** A journal whose page picture was never made showed only its paper. Now such a journal is drawn once, out of sight (`features/journal/ThumbHealer.tsx`: up to 12 per visit, 3 on a slow computer, never the one being edited) and the picture is stored, so every list, collection and share shows the page. Backend: a new rule `pictureOnly()` lets the owner update only `thumbUrl` / `thumbPath` of a journal without changing its `updatedAt`, so lists do not reorder (rules test added).
+- **Dialogs and sliders lag on one older Mac (Chrome 150 on macOS 12).** Not reproducible on a fast machine, so these are the likely causes, addressed together:
+  - paper grain was an SVG noise filter drawn behind every piece; it is now a 63 KB PNG (`public/grain.png`);
+  - the sticker preview queued a full redraw for every slider tick and finished them all; it now draws only the newest request, and at 1× pixels in lite mode;
+  - `mix-blend-mode` is gone from tapes (faces lost theirs in v1.7.3), and the 8-shadow focus ring is no longer put on big cards, the masthead or dialogs;
+  - **lite drawing** (`src/lib/lite.ts`, class `zf-lite` on `<html>`): no grain, no fades, a plain focus ring, big torn clips as rectangles, 1× pictures. It turns on with `?lite=1`, on two cores or fewer, or when the page keeps dropping frames, and is remembered (`?lite=0` turns it off).
+- `/diagnostics` now reports the screen and pixel ratio, cores and memory, the graphics chip and whether drawing is full or lite, for reports about slowness.
+
+### Other
+
+- `docs/debugging.md` §3c (a slow computer) and `docs/data-model.md` (page pictures, server times, what is kept in the browser) describe all of the above.
+
 ## v1.7.3 – 2026-10-05
 
 Fixes from using v1.7.2 in production, plus the interface now starts in Chinese.

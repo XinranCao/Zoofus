@@ -62,6 +62,13 @@ gcloud storage buckets describe gs://zoofus-48264.firebasestorage.app --format="
 
 Add another origin to the list if the app is served from a new address. The emulators need none. `/diagnostics` → _Storage read_ shows this problem as "by link: failed; by SDK: failed".
 
+## 3c. The app is slow or stutters on one computer (dialogs open in slow motion, sliders lag)
+
+1. Open `/diagnostics`, press **Copy report**: it lists the browser, the screen and pixel ratio, the cores and memory, the **Graphics** chip the browser reports, and whether **Drawing** is `full` or `lite`.
+2. Try `?lite=1` on the address (for example `https://zoofus-48264.web.app/?lite=1`). Lite keeps the shapes and drops the costly extras (paper grain, fades, the traced focus ring, big torn clips, 2× pictures). If that is smooth, the cause is drawing cost on that computer's graphics, not the data. `?lite=0` turns it off again; the choice is remembered (`zf-lite`). It also turns itself on with two cores or fewer, or after the page misses 12 frames (over 50 ms) within 6 s.
+3. In Chrome: `chrome://gpu` (is "Graphics Feature Status" hardware accelerated?), and the Performance panel while dragging a slider (long **Raster** / **Layerize** / **GPU** tasks mean drawing; long **Scripting** means code).
+4. What the app already does about it (so do not undo it): paper grain is a PNG, not an SVG filter; pieces do not use `mix-blend-mode`; the sticker preview draws only the newest request; the focus ring's 8-shadow `filter` is not put on big cards or dialogs. Drawing cost cannot be seen in the headless tests, so a regression here only shows on a real, older computer.
+
 ## 4. App Check (the usual cause when "everything is slow or fails in production only")
 
 App Check is **enforced** for Firestore, Storage and Auth, so a request without a valid token is refused. In Firebase console → App Check → APIs, the metrics are:

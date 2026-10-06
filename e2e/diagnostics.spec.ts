@@ -18,5 +18,7 @@ test("the diagnostics page tells Firestore and Storage apart and gathers a repor
   const text = await page.evaluate(() => navigator.clipboard.readText());
   expect(text).toContain("Backend: local emulators");
   expect(text).toContain("OK   Firestore read");
+  expect(text).toContain("Drawing: full");
+  expect(text).toContain("Graphics:");
   expect(text).toContain("Recent errors:");
 });
