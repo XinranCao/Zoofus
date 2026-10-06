@@ -133,3 +133,52 @@ test("New tape from the Make menu returns focus to Make; headings are visible; l
   await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
   void email;
 });
+
+// PM-v1.7.2-009: keyboard-only leftovers
+test("keyboard: Save edge lands on the sticker, Log out on the login heading, Enter starts a journal", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await signUp(page, "Keys");
+  // a sticker to edit
+  await page.goto("/stickers?make=1");
+  await page
+    .locator('input[type="file"]')
+    .first()
+    .setInputFiles({
+      name: "p.png",
+      mimeType: "image/png",
+      buffer: solidPng(480, 360, [120, 140, 200]),
+    });
+  const maker = page.getByRole("dialog", { name: "Draw around it" });
+  await maker.getByRole("button", { name: "Use the whole photo" }).click();
+  await maker.getByRole("button", { name: "Cut it out" }).click();
+  const dlg = page.getByRole("dialog", { name: "Your sticker" });
+  await dlg.getByRole("button", { name: "Save to Library" }).click();
+  await dlg.getByRole("button", { name: "Edit edge" }).click();
+  const edit = page.getByRole("dialog", { name: "Edit the edge" });
+  await expect(edit).toBeVisible();
+  await edit.getByRole("radio", { name: "Torn" }).click();
+  await edit.getByRole("button", { name: "Save edge" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(edit).toBeHidden();
+  await expect(page.getByText("Edge saved.", { exact: true }).last()).toBeVisible();
+  await expect(page.locator(".zf-tile").first().locator(".zf-tile__open")).toBeFocused();
+
+  // New journal: Enter in the title starts it
+  await page.goto("/journals?make=1");
+  const nj = page.getByRole("dialog", { name: "New journal" });
+  await nj.getByLabel("Title").fill("By Enter");
+  await nj.getByLabel("Title").press("Enter");
+  await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
+
+  // Log out with the keyboard alone
+  const acct = page.getByRole("button", { name: /Account menu for/ });
+  await acct.focus();
+  await page.keyboard.press("Enter");
+  await page.getByRole("menuitem", { name: "Log out" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/login/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
+});

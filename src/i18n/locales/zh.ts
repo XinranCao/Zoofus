@@ -254,6 +254,7 @@ export const zh: Messages = {
     editEdgeSave: "保存边缘",
     editEdgeSaved: "边缘已保存。",
     editEdgeNoSource: "没能打开这张贴纸的原图,暂时不能改边缘。稍后再试。",
+    editEdgeSavedFor: "“{{name}}”的新边缘已保存。",
     editEdgeFailed: "贴纸没能更新。再试一次。",
     loadingSource: "正在打开贴纸",
     detailKicker: "{{date}} 剪的 · {{w}} × {{h}} 像素",

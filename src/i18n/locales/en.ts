@@ -260,6 +260,7 @@ export const en = {
     editEdgeSaved: "Edge saved.",
     editEdgeNoSource:
       "We couldn’t open the original photo of this sticker, so its edge can’t be changed right now. Try again in a moment.",
+    editEdgeSavedFor: "“{{name}}” has its new edge.",
     editEdgeFailed: "We couldn’t update that sticker. Try again.",
     loadingSource: "Opening sticker",
     detailKicker: "Cut {{date}} · {{w}} × {{h}} px",

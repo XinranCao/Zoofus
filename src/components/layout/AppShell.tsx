@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useNavigationType } from "react-router-dom";
 import { Masthead } from "@/components/ui/Masthead";
@@ -53,6 +53,16 @@ export function AppShell({ children }: { children: ReactNode }) {
     document.title = pageTitle;
   }, [pageTitle]);
   useRouteFocus(pathname, useNavigationType());
+  // after logging out, whichever way (mouse, keyboard), the login page's heading has focus: the
+  // menu that was used is gone, and without this focus would sit on the page body
+  const wasSignedIn = useRef(false);
+  useEffect(() => {
+    if (currentUser) wasSignedIn.current = true;
+    else if (wasSignedIn.current) {
+      wasSignedIn.current = false;
+      return focusPageHeading();
+    }
+  }, [currentUser]);
 
   const name =
     profile?.nickname ||
@@ -88,12 +98,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             : null
         }
         pathname={pathname}
-        onLogout={() =>
-          void logout().then(() => {
-            navigate("/login");
-            focusPageHeading(); // the login page's heading, not the top of the document
-          })
-        }
+        onLogout={() => void logout().then(() => navigate("/login"))}
       />
       <ProfileSetupDialog />
       {currentUser && <MakeHost />}

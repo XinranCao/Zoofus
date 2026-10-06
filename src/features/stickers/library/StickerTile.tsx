@@ -139,6 +139,7 @@ export function StickerTile({
 
   return (
     <figure
+      data-sticker-id={sticker.id}
       className={cn("zf-tile", selecting && "is-selecting", selected && "is-selected")}
     >
       {selecting ? (

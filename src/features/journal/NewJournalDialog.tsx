@@ -71,14 +71,23 @@ export function NewJournalDialog({
             icon="check"
             seed="njg"
             loading={create.isPending}
-            onClick={go}
+            type="submit"
+            form="new-journal-form"
           >
             {t("journal.start")}
           </Button>
         </>
       }
     >
-      <div className="zf-newjournal">
+      <form
+        id="new-journal-form"
+        className="zf-newjournal"
+        noValidate
+        onSubmit={(e) => {
+          e.preventDefault(); // Enter in the title starts the journal
+          if (!create.isPending) go();
+        }}
+      >
         <div style={{ display: "grid", gap: 22, minWidth: 0 }}>
           <TextField
             label={t("journal.title")}
@@ -91,7 +100,7 @@ export function NewJournalDialog({
           <PageSetup value={page} onChange={setPage} />
         </div>
         <PagePreviewPane page={page} />
-      </div>
+      </form>
     </Dialog>
   );
 }

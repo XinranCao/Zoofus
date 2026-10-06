@@ -113,8 +113,18 @@ function EditEdgeBody({ sticker, onClose }: { sticker: Sticker; onClose: () => v
           ? { cutSize: { w: outline.width, h: outline.height } }
           : {}),
       });
-      toast.push({ kind: "success", title: t("book.editEdgeSaved") });
+      toast.push({
+        kind: "success",
+        title: t("book.editEdgeSaved"),
+        body: t("book.editEdgeSavedFor", { name: sticker.name }),
+      });
       onClose();
+      // focus goes to the sticker that was edited, not back to a button that is gone
+      setTimeout(() => {
+        document
+          .querySelector<HTMLElement>(`[data-sticker-id="${sticker.id}"] .zf-tile__open`)
+          ?.focus();
+      }, 150);
     } catch (err) {
       // the cause is shown (a short code) so a report says what actually went wrong
       const code = (err as { code?: string }).code ?? (err as Error).name ?? "error";
