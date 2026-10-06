@@ -55,6 +55,11 @@ for (const variant of VARIANTS) {
         locale: variant.lang === "zh" ? "zh-CN" : "en-US",
         reducedMotion: variant.reduced ? "reduce" : "no-preference",
       });
+      // (the language is the one chosen, remembered; the browser's own language is not consulted)
+      await context.addInitScript(
+        (lng) => localStorage.setItem("zoofus.lang", lng),
+        variant.lang === "zh" ? "zh-CN" : "en",
+      );
       const page = await context.newPage();
       const cdp = await context.newCDPSession(page);
       const fontFiles = watchFonts(page);
