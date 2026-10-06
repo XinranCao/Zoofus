@@ -5,6 +5,7 @@ import {
   dieCutPad,
   edgeRadius,
   edgeWidth,
+  forgetMasks,
   type CanvasSource,
 } from "./dieCut";
 
@@ -117,6 +118,53 @@ describe("dieCut", () => {
     const create = vi.fn(factory().createCanvas);
     dieCut(src, { border: 4, createCanvas: create });
     expect(create).toHaveBeenCalled();
+  });
+});
+
+describe("dieCut with cacheMasks (the live preview)", () => {
+  it("grows the edge once; changing only the colour is two draws on a copy", () => {
+    const { createCanvas, canvases } = factory();
+    const same = { width: 100, height: 80 } as unknown as CanvasSource;
+    dieCut(same, {
+      border: 8,
+      shape: "wobbly",
+      color: "#111",
+      createCanvas,
+      cacheMasks: true,
+    });
+    const first = canvases.length;
+    const drawsFirst = canvases.reduce((n, c) => n + drawImageCalls(c), 0);
+    dieCut(same, {
+      border: 8,
+      shape: "wobbly",
+      color: "#222",
+      createCanvas,
+      cacheMasks: true,
+    });
+    const drawsSecond = canvases.reduce((n, c) => n + drawImageCalls(c), 0) - drawsFirst;
+    expect(canvases.length - first).toBe(2); // the output and one coloured copy
+    expect(drawsSecond).toBeLessThan(10); // not the hundreds of stamps
+    expect(drawsFirst).toBeGreaterThan(100);
+    // a different shape grows a new one
+    const before = canvases.length;
+    dieCut(same, {
+      border: 8,
+      shape: "smooth",
+      color: "#222",
+      createCanvas,
+      cacheMasks: true,
+    });
+    expect(canvases.length - before).toBeGreaterThan(2);
+    forgetMasks(same);
+  });
+
+  it("without cacheMasks nothing is kept: every call grows the edge again", () => {
+    const { createCanvas, canvases } = factory();
+    const same = { width: 100, height: 80 } as unknown as CanvasSource;
+    dieCut(same, { border: 8, shape: "wobbly", createCanvas });
+    const first = canvases.length;
+    dieCut(same, { border: 8, shape: "wobbly", createCanvas });
+    expect(canvases.length - first).toBe(first);
   });
 });
 

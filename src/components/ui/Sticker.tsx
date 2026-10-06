@@ -1,6 +1,6 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 import { cn } from "@/lib/cn";
-import { dieCutPad, edgeWidth } from "@/paper/dieCut";
+import { dieCutPad, edgeWidth, forgetMasks } from "@/paper/dieCut";
 import { seededRot } from "@/paper/random";
 import {
   DEFAULT_EDGE,
@@ -50,6 +50,23 @@ export function Sticker({
   // Only the newest request is ever drawn: while one picture is being made (a slow machine, a
   // slider being dragged), later requests replace each other instead of queueing up, so the work
   // never falls behind the hand and nothing is drawn for a value that is already out of date.
+  const shown = useRef<{
+    origin: CanvasImageSource;
+    w: number;
+    h: number;
+    canvas: HTMLCanvasElement;
+  } | null>(null);
+  useEffect(
+    () => () => {
+      if (shown.current) {
+        forgetMasks(shown.current.canvas);
+        shown.current.canvas.width = 0;
+        shown.current.canvas.height = 0;
+        shown.current = null;
+      }
+    },
+    [],
+  );
   const job = useRef<{ busy: boolean; next: (() => Promise<void>) | null }>({
     busy: false,
     next: null,
@@ -69,20 +86,44 @@ export function Sticker({
       const k = (size * dpr) / Math.max(ow, oh);
       const w = Math.max(1, Math.round(ow * k));
       const h = Math.max(1, Math.round(oh * k));
-      const scaled = document.createElement("canvas");
-      scaled.width = w;
-      scaled.height = h;
-      const sctx = scaled.getContext("2d");
-      if (!sctx) return;
-      sctx.imageSmoothingQuality = "high";
-      sctx.drawImage(origin, 0, 0, w, h);
-      const out = await renderSticker(scaled, JSON.parse(edgeKey) as EdgeSpec, id);
-      if (!alive) return;
+      // the cut-out at the shown size, kept while only the edge changes, so the grown edge shape
+      // can be kept with it (a colour or print change then costs two draws, not thousands)
+      let scaled = shown.current?.canvas;
+      if (
+        !shown.current ||
+        shown.current.origin !== origin ||
+        shown.current.w !== w ||
+        shown.current.h !== h
+      ) {
+        if (shown.current) {
+          forgetMasks(shown.current.canvas);
+          shown.current.canvas.width = 0; // gives its memory back
+          shown.current.canvas.height = 0;
+        }
+        scaled = document.createElement("canvas");
+        scaled.width = w;
+        scaled.height = h;
+        const sctx = scaled.getContext("2d");
+        if (!sctx) return;
+        sctx.imageSmoothingQuality = "high";
+        sctx.drawImage(origin, 0, 0, w, h);
+        shown.current = { origin, w, h, canvas: scaled };
+      }
+      const out = await renderSticker(scaled!, JSON.parse(edgeKey) as EdgeSpec, id, {
+        cacheMasks: true,
+      });
+      if (!alive) {
+        out.width = 0;
+        out.height = 0;
+        return;
+      }
       canvas.width = out.width;
       canvas.height = out.height;
       canvas.style.width = out.width / dpr + "px";
       canvas.style.height = out.height / dpr + "px";
       canvas.getContext("2d")?.drawImage(out, 0, 0);
+      out.width = 0; // (the shown copy is the only one kept)
+      out.height = 0;
     };
     const run = async () => {
       const state = job.current;
