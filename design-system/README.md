@@ -1,6 +1,6 @@
 Zoofus is a scrapbook you build out of your own photos. The interface is made of the same stuff as the stickers: paper scraps torn by hand out of old magazines, laid flat on a notebook page, held down with tape, typed on an old typewriter, in the faded warm colours of a 1970s–80s Popeye magazine. Users don't just consume that look: they make their own tape and their own sticker edges with the same tools.
 
-**Status: updated for v2.0.0.** The rules below are the ones the app follows today. Round 1 was the look (torn paper, tape, stickers); since then the app grew a landing page and a home that changes with the person, a Library with stickers, tapes and journals, the journal studio (desktop, tablet and phone), friends, Together and collections. What is new is listed under "Since round 1" at the end. The preview cards in `components/` and `gallery.html` are round 1's reference; the live gallery of every shipped component is `/dev/design-system` in a dev build, and `e2e/design-system.spec.ts` checks the hard rules on every screen.
+**Status: updated for v1.8.0.** The rules below are the ones the app follows today. Round 1 was the look (torn paper, tape, stickers); since then the app grew a landing page and a home that changes with the person, a Library with stickers, tapes and journals, the journal studio (desktop, tablet and phone), friends, Together and collections. What is new is listed under "Since round 1" at the end. The preview cards in `components/` and `gallery.html` are round 1's reference; the live gallery of every shipped component is `/dev/design-system` in a dev build, and `e2e/design-system.spec.ts` checks the hard rules on every screen.
 
 Everything below is a rule a builder can follow. Recipes with code are in **Signature elements**, Tailwind wiring is in **Tokens & Tailwind**, screen layouts are in **Screens**, and unresolved points are in **Open questions**.
 
@@ -80,7 +80,7 @@ Everything below is a rule a builder can follow. Recipes with code are in **Sign
 - **Iconography.** Use 24px line icons with a 1.7 stroke and round caps, slightly uneven (`Icon`), in `currentColor`. There is no icon font and no emoji.
 - **Imagery.** Only the user's photos and stickers.
 
-## Since round 1 (v2.0.0)
+## Since round 1 (v1.8.0)
 
 - **Landing and Home.** Signed out, `/` is a real landing page: a hero scrap with the one brick button, a three-step demo (photo with its lasso, the sticker, the journal page), four "what you can make" scraps, a share strip and a privacy line. Signed in, `/` is a desk: a greeting by time of day, then one of four layouts (a new account, a returning person with "Pick up where you left off", what is waiting for them, or someone away 14+ days). One brick button per view. See `03-screens.md`.
 - **Library.** Stickers, tapes and journals sit under one set of tabs, with the same tile (name above the picture, the same hover actions), bulk select, and "Show more" paging. Tiles use small pictures; the open view and the journal page use the full file.

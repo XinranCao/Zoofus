@@ -104,7 +104,7 @@ service cloud.firestore {
           return d.keys().hasOnly(['title', 'page', 'items', 'itemCount', 'assets', 'thumbUrl', 'thumbPath', 'origin', 'createdAt', 'updatedAt'])
             && isString(d.title, 80) && d.title.size() > 0
             && validPage(d.page)
-            // The items are in their own document (body/items) since v2.0.0, so a list of journals
+            // The items are in their own document (body/items) since v1.8.0, so a list of journals
             // stays light; a journal saved before still carries them here until it is next saved.
             && (!('items' in d) || (d.items is list && d.items.size() <= 400))
             && (!('itemCount' in d) || (d.itemCount is int && d.itemCount >= 0 && d.itemCount <= 400))

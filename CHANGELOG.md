@@ -1,8 +1,30 @@
 # Changelog
 
-## Unreleased
+## v1.8.0 – 2026-10-07
+
+### Features
+
+- **PM-v1.7.6-013: light journals and a light inbox.** A journal's items now live in their own document, `journals/{id}/body/items`, written in one batch with the journal; the journal itself keeps only `itemCount`, so a list of journals is about 1 kB each instead of up to 400 kB. The Journals screen reads 30 at a time ("Show more"), and opening one journal reads two small documents, not the list. Older journals still list and open as they are; their items are moved out quietly (one journal at a time, never one being edited, "updated" time kept) or at their next save. The inbox reads 30 at a time, and a shared journal's items travel in `inbox/{sid}/body/items` next to the share, read only when the page is drawn or kept (older shares still carry them inline). New rules (`body/items` for journals and inbox, `slimOnly()`) and rules tests; deleting a journal, a share or an account removes the new documents too. **Note:** v1.7.x skips a journal whose items have moved, so a rollback below v1.8.0 hides such journals until v1.8.0 is back (the data is intact); see `RELEASE_CHECKLIST.md`.
+
+- **PM-v1.7.6-014: small pictures for stickers.** Each sticker gets a 320 px WebP of at most 20 kB beside the full file (`{id}_t.webp`, fields `thumbUrl` / `thumbPath`); tiles, the picker, folders and share faces show it, and the open view and the journal page use the full file. A sticker saved before gets one the first time it is on screen (out of sight, one at a time, up to 24 a visit, a failure remembered for a day). Edge edits replace it and deleting a sticker removes it. Storage rules hold `*_t.webp` to WebP and 100 kB. A Library of 100 or more tiles skips drawing the far-off ones. With 200 synthetic photo-like stickers (273 kB each) scrolling the whole Library downloaded 58.2 MB before and 4.3 MB after.
+
+- **PM-v1.7.6-011: choosing several things on a journal page without a keyboard.** "Select several" (多选) lets taps add and remove things, Copy works for one thing too and a Paste button appears after Copy; copies land 16 units aside and are chosen. Ctrl/Cmd+A works after a press in the margin round the page, the Ctrl hint is hidden on touch devices.
 
 ### Fixes
+
+- **The sticker edge studio on a phone.** The preview is about a fifth of the screen and stays in view while the options scroll under it; the edge shape, the pattern and the two colours are drop-downs (the 16 colours open in a small four-wide scrap instead of a single tall column); the pixel grid and the doodle pad are smaller, so a finger that is only scrolling the page rarely lands on them.
+
+- **PM-v1.7.6-016: the emulator build can open in Chinese** with `VITE_DEFAULT_LANG=zh-CN npm run dev:emulated` (English stays the default for tests; documented in `docs/debugging.md`).
+
+- **PM-v1.7.6-015 (part): the polls are a safety net.** Friends, requests, shares and workspaces are refreshed by live listeners and polled only every 5 minutes. Not done: a single counter document for the badge, and moving the Together page thumbnail out of the workspace document.
+
+### Other
+
+- The design system documents (`design-system/`) are brought up to date with what ships, with a README for each component added since round 1. Branch coverage kept above its floor with unit tests for the new code.
+
+### Earlier in this release (PM-v1.7.6 plan)
+
+#### Fixes
 
 - **PM-v1.7.6-001: the login page loads 109 kB less JavaScript.** `ThumbHealer` (mounted for every signed-in page) imported the whole drawing stack; it now loads that part (`ThumbMaker.tsx`) only when a journal needs a page picture. Initial JavaScript (gzip): 538 kB → 416 kB (1024-byte kB; 424 kB in 1000s). Paper grain is now `src/styles/grain.webp` (18.7 kB, was a 63 kB PNG in `public/`), hashed into `/assets` and cached as immutable. `npm audit fix` cleared the one high finding (`source-map-js`); Tailwind and the Testing Library packages moved to `devDependencies`. CI runs `npm audit --omit=dev --audit-level=high` and `npm run check:bundle` (budget 440 kB, no Konva in the entry).
 

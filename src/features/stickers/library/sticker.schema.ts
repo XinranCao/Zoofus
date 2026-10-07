@@ -13,7 +13,7 @@ export const stickerDocSchema = z.object({
   thumbnailPath: z.string().optional(),
   /**
    * A small WebP of the sticker (320 px, at most 20 kB) for tiles, pickers and collections, next to
-   * the full file. Stickers saved before v2.0.0 get one the first time they are on screen.
+   * the full file. Stickers saved before v1.8.0 get one the first time they are on screen.
    */
   thumbUrl: z.string().optional().catch(undefined),
   thumbPath: z.string().optional().catch(undefined),

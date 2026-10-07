@@ -176,7 +176,7 @@ export const journalDocSchema = z
   .object({
     title: z.string().min(1).max(MAX_JOURNAL_TITLE),
     page: pageSpecSchema,
-    // Absent in a journal saved since v2: its items are one document of their own (`body/items`), so
+    // Absent in a journal saved since v1.8.0: its items are one document of their own (`body/items`), so
     // a list stays about a kilobyte per journal. Older journals still carry them here.
     items: itemsSchema.optional(),
     itemCount: z.number().int().min(0).max(MAX_JOURNAL_ITEMS).optional().catch(undefined),

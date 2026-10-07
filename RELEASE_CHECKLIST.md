@@ -26,7 +26,7 @@ The new app writes things the live rules do not allow (or, for the older fields,
 npx firebase-tools@14 deploy --only firestore:rules,storage --project zoofus-48264
 ```
 
-What changed since the last deploy (the state at tag `v1.7.6`: `git diff v1.7.6 -- firestore.rules storage.rules`), all for v2.0.0:
+What changed since the last deploy (the state at tag `v1.7.6`: `git diff v1.7.6 -- firestore.rules storage.rules`), all for v1.8.0:
 
 - `firestore.rules`, journals: `items` is optional and `itemCount` (0 to 400) is allowed; a journal's items live in `journals/{id}/body/items` (owner only, only that document name, at most 400 items, `updatedAt` must be the server time); a journal may also be updated by `slimOnly()` (its items move out, nothing else changes, so its updated time stays).
 - `firestore.rules`, inbox: `inbox/{sid}/body/items` (a friend can create it only in the same batch as a share they send, at most 400 items; the owner reads and deletes it; the sender can delete it to take a share back).
@@ -81,7 +81,7 @@ Then open the live site and watch the browser console on sign in (**including Go
 
 ## 4. Rollback
 
-- **App**: Firebase console → Hosting → Release history → roll back to the previous release (or `git revert` on `main`, tag a patch, and let the workflow redeploy). **From v2.0.0 a rollback below v2 is not harmless:** a journal whose items have moved to `body/items` has no `items` in its own document, and v1.7.x skips a journal like that (it reads as missing in the list) until v2 is back; shares sent from v2 show no page to a v1.7.x receiver. Nothing is lost (the data is all there). Prefer fixing forward with a patch; if you must roll back, roll forward again as soon as the cause is fixed.
+- **App**: Firebase console → Hosting → Release history → roll back to the previous release (or `git revert` on `main`, tag a patch, and let the workflow redeploy). **From v1.8.0 a rollback below v1.8 is not harmless:** a journal whose items have moved to `body/items` has no `items` in its own document, and v1.7.x skips a journal like that (it reads as missing in the list) until v1.8 is back; shares sent from v2 show no page to a v1.7.x receiver. Nothing is lost (the data is all there). Prefer fixing forward with a patch; if you must roll back, roll forward again as soon as the cause is fixed.
 - **Rules**: redeploy the previous rules from git, for example
 
   ```bash
@@ -91,4 +91,4 @@ Then open the live site and watch the browser console on sign in (**including Go
 
   copy them over `firestore.rules` and `storage.rules` in a throwaway checkout, and run the deploy command in step 1 there. Rolling the rules back does not delete any data.
 
-- **Data**: v2.0.0 moves data, one journal at a time, in the user's own browser (`useSlimming`: `items` into `body/items`, same content, `updatedAt` kept). It never deletes anything that is not also written elsewhere first (one batch). There is no switch to move it back; copying `body/items` into `items` on a journal restores the older shape by hand.
+- **Data**: v1.8.0 moves data, one journal at a time, in the user's own browser (`useSlimming`: `items` into `body/items`, same content, `updatedAt` kept). It never deletes anything that is not also written elsewhere first (one batch). There is no switch to move it back; copying `body/items` into `items` on a journal restores the older shape by hand.

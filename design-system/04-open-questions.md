@@ -40,7 +40,7 @@ The owner's answers, applied in the app. Everything below is **Decided**.
 | – | Language switch | **Decided.** Same placement. In the account menu a segmented "EN · 中文"; signed out, a quiet button reading "中文" or "English". | `src/components/ui/Masthead.tsx` |
 | – | Legacy stickers | **Decided.** Typed `kind: 'legacy'`; they display, download and rename; "Edit edge" is replaced by a note. No bulk migration. | `sticker.schema.ts`, `StickerDetailDialog.tsx` |
 
-## Decided (round 3, v2.0.0)
+## Decided (round 3, v1.8.0)
 
 | # | Question | Decision | In the app |
 | --- | --- | --- | --- |
