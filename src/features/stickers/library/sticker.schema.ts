@@ -11,6 +11,12 @@ export const stickerDocSchema = z.object({
   /** Legacy: stickers saved before v0.3.1 have a small thumbnail. It is no longer created or shown, only deleted with the sticker. */
   thumbnailUrl: z.string().optional(),
   thumbnailPath: z.string().optional(),
+  /**
+   * A small WebP of the sticker (320 px, at most 20 kB) for tiles, pickers and collections, next to
+   * the full file. Stickers saved before v2.0.0 get one the first time they are on screen.
+   */
+  thumbUrl: z.string().optional().catch(undefined),
+  thumbPath: z.string().optional().catch(undefined),
   /** The edge-less cut-out, kept so "Edit edge" can redo the edge. Older stickers don't have one. */
   sourcePath: z.string().optional(),
   sourceUrl: z.string().optional(),
@@ -60,6 +66,13 @@ export const stickerKind = (doc: {
   (doc.sourceUrl && doc.sourcePath) || (doc.outline && doc.cut) ? "editable" : "legacy";
 
 export const MAX_STICKER_NAME = 60;
+
+/**
+ * The picture for a small place (a tile, a picker, a folder, a face): the small one when the sticker
+ * has it, else the full file. The open view and the journal page always use `imageUrl`.
+ */
+export const smallPicture = (s: Pick<Sticker, "imageUrl" | "thumbUrl">): string =>
+  s.thumbUrl || s.imageUrl;
 
 /** Per-account limits. The size limit sits just under storage.rules (2 MB); the count is enforced by the client. */
 export const MAX_STICKERS = 200;

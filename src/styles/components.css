@@ -2751,3 +2751,10 @@
     display: none;
   }
 }
+
+/* A long Library: the browser does not lay out or paint tiles far off screen (the 40-at-a-time
+   pages keep it short; this is for when a person has loaded 100 or more). */
+.zf-grid-book.is-long > .zf-tile {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 310px;
+}

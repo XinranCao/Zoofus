@@ -145,6 +145,35 @@ describe("users/{uid}/stickers/{id}", () => {
     );
   });
 
+  it("keeps a small picture next to the sticker, in the owner's folder, and lets it be added later", async () => {
+    const db = env.authenticatedContext("alice").firestore();
+    await assertSucceeds(
+      setDoc(doc(db, "users/alice/stickers/m1"), {
+        ...sticker("alice"),
+        thumbUrl: "https://example.com/t.webp",
+        thumbPath: "alice/stickers/m1_t.webp",
+      }),
+    );
+    await assertFails(
+      setDoc(doc(db, "users/alice/stickers/m2"), {
+        ...sticker("alice"),
+        thumbUrl: "https://example.com/t.webp",
+        thumbPath: "bob/stickers/m2_t.webp",
+      }),
+    );
+    // a sticker saved before: the small picture is added (and nothing else changes with it)
+    const ref = doc(db, "users/alice/stickers/m3");
+    await assertSucceeds(setDoc(ref, sticker("alice")));
+    await assertSucceeds(
+      updateDoc(ref, {
+        thumbUrl: "https://example.com/t.webp",
+        thumbPath: "alice/stickers/m3_1_t.webp",
+      }),
+    );
+    await assertFails(updateDoc(ref, { thumbPath: "bob/stickers/x_t.webp" }));
+    await assertFails(updateDoc(ref, { thumbUrl: "x".repeat(2049) }));
+  });
+
   it("keeps a lasso outline and where the cut-out sits, instead of a source file", async () => {
     const db = env.authenticatedContext("alice").firestore();
     const ok = {

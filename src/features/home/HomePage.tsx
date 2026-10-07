@@ -24,7 +24,10 @@ import {
 } from "@/features/stickers/editor/LazyStickerMaker";
 import { StickerDetailDialog } from "@/features/stickers/library/StickerDetailDialog";
 import { StickerTile } from "@/features/stickers/library/StickerTile";
-import { useRecentStickers } from "@/features/stickers/library/useStickers";
+import {
+  useRecentStickers,
+  useStickerThumbHealing,
+} from "@/features/stickers/library/useStickers";
 import { TapeTile } from "@/features/tape/TapeTile";
 import { useRecentTapes } from "@/features/tape/useTapes";
 import {
@@ -73,6 +76,7 @@ export default function HomePage() {
   const now = useMemo(() => new Date(), []);
 
   const stickers = useRecentStickers(12);
+  useStickerThumbHealing(stickers.data);
   const journals = useRecentJournals(3);
   const tapes = useRecentTapes(3);
   const friends = useCount("friends");

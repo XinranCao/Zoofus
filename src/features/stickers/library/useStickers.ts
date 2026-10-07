@@ -4,7 +4,11 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/features/auth/useAuth";
+import { isLite } from "@/lib/lite";
+import { loadImage } from "@/paper/renderSticker";
+import { recentlyFailed, rememberFailure } from "@/features/journal/healMemory";
 import { COMPRESSION, encodeWithin } from "@/lib/image";
 import type { EdgeSpec } from "@/paper/renderSticker";
 import { cutRect, decodeOutline } from "../editor/domain/outline";
@@ -16,6 +20,7 @@ import {
   listStickers,
   renameSticker,
   saveSticker,
+  setStickerThumb,
   updateStickerEdge,
 } from "./stickers.api";
 import type { Sticker } from "./sticker.schema";
@@ -82,6 +87,20 @@ async function compress(canvas: HTMLCanvasElement) {
   return encodeWithin(canvas, COMPRESSION.sticker);
 }
 
+/**
+ * The small picture for tiles. Only WebP: where the browser cannot encode it (the full sticker
+ * falls back to PNG there), the tile simply shows the full file.
+ */
+export async function makeThumb(canvas: HTMLCanvasElement): Promise<Blob | undefined> {
+  try {
+    const { blob } = await encodeWithin(canvas, COMPRESSION.stickerThumb);
+    return blob.type === "image/webp" ? blob : undefined;
+  } catch (err) {
+    console.warn("Could not make a small picture for a sticker", err);
+    return undefined;
+  }
+}
+
 export interface SaveStickerInput {
   name: string;
   /** The finished sticker (edge baked in), as a canvas. */
@@ -99,10 +118,12 @@ export function useSaveSticker() {
     mutationFn: async ({ name, sticker, outline, edge, seed }: SaveStickerInput) => {
       if (!uid) throw new Error("Not signed in");
       const baked = await compress(sticker);
+      const thumb = await makeThumb(sticker);
       const o = decodeOutline(outline);
       return saveSticker(uid, {
         name,
         sticker: baked.blob,
+        ...(thumb ? { thumb } : {}),
         ...(o
           ? {
               outline,
@@ -151,7 +172,7 @@ export function useUpdateStickerEdge() {
       seed,
       cutSize,
     }: {
-      sticker: Pick<Sticker, "id" | "storagePath">;
+      sticker: Pick<Sticker, "id" | "storagePath" | "thumbPath">;
       canvas: HTMLCanvasElement;
       edge: EdgeSpec;
       seed: string;
@@ -160,8 +181,10 @@ export function useUpdateStickerEdge() {
     }) => {
       if (!uid) throw new Error("Not signed in");
       const baked = await compress(canvas);
+      const thumb = await makeThumb(canvas);
       return updateStickerEdge(uid, sticker, {
         sticker: baked.blob,
+        ...(thumb ? { thumb } : {}),
         width: baked.width,
         height: baked.height,
         edge,
@@ -194,7 +217,10 @@ export function useDeleteSticker() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (
-      sticker: Pick<Sticker, "id" | "storagePath" | "sourcePath" | "thumbnailPath">,
+      sticker: Pick<
+        Sticker,
+        "id" | "storagePath" | "sourcePath" | "thumbnailPath" | "thumbPath"
+      >,
     ) => {
       if (!uid) throw new Error("Not signed in");
       return deleteSticker(uid, sticker);
@@ -213,4 +239,79 @@ export function useRenameSticker() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.all(uid ?? "") }),
   });
+}
+
+// ---------------------------------------------------------------- small pictures for old stickers
+
+type Change = Partial<Sticker>;
+
+/** Put a change into every cached shape of the sticker lists (a list, the pages, one sticker). */
+function patchCaches(
+  qc: ReturnType<typeof useQueryClient>,
+  uid: string,
+  id: string,
+  change: Change,
+) {
+  const patchList = (l: Sticker[]) =>
+    l.map((s) => (s.id === id ? { ...s, ...change } : s));
+  qc.setQueriesData({ queryKey: keys.all(uid) }, (data: unknown) => {
+    if (Array.isArray(data)) return patchList(data as Sticker[]);
+    const d = data as { pages?: { stickers: Sticker[] }[] } | Sticker | null | undefined;
+    if (d && "pages" in d && Array.isArray(d.pages))
+      return {
+        ...d,
+        pages: d.pages.map((p) => ({ ...p, stickers: patchList(p.stickers) })),
+      };
+    if (d && "id" in d && d.id === id) return { ...d, ...change };
+    return data;
+  });
+}
+
+/** At most this many in one visit, one after the other (fewer on a slow computer). */
+const perVisit = () => (isLite() ? 4 : 24);
+const attempted = new Set<string>();
+
+/**
+ * A sticker saved before small pictures existed is shown from its full file. Once it is on
+ * screen, this draws its small picture out of sight (idle, one at a time), keeps it, and the tile
+ * switches to it. A sticker that cannot be drawn is remembered for a day and not tried again.
+ */
+export function useStickerThumbHealing(stickers: readonly Sticker[] | undefined) {
+  const uid = useUid();
+  const qc = useQueryClient();
+  const [tick, setTick] = useState(0);
+  const busy = useRef(false);
+
+  useEffect(() => {
+    if (!uid || !stickers || busy.current || attempted.size >= perVisit()) return;
+    const next = stickers.find(
+      (s) => !s.thumbUrl && !attempted.has(s.id) && !recentlyFailed(s.id),
+    );
+    if (!next) return;
+    // after the page has settled, so it never competes with what the person is doing
+    const timer = setTimeout(() => {
+      attempted.add(next.id);
+      busy.current = true;
+      void (async () => {
+        try {
+          const img = await loadImage(next.imageUrl, "anonymous");
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          canvas.getContext("2d")!.drawImage(img, 0, 0);
+          const blob = await makeThumb(canvas);
+          if (!blob) throw new Error("no small picture");
+          const saved = await setStickerThumb(uid, next, blob);
+          patchCaches(qc, uid, next.id, saved);
+        } catch (err) {
+          console.warn("Could not make a small picture for a sticker", err);
+          rememberFailure(next.id);
+        } finally {
+          busy.current = false;
+          setTick((n) => n + 1);
+        }
+      })();
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [uid, stickers, qc, tick]);
 }

@@ -1,3 +1,4 @@
+import { cn } from "@/lib/cn";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
@@ -26,9 +27,12 @@ import {
   useRenameSticker,
   useStickerById,
   useStickerPages,
+  useStickerThumbHealing,
 } from "./useStickers";
 
 const UNDO_MS = 6000;
+/** Past this many tiles the browser skips drawing the ones far off screen (`.is-long`). */
+const LONG_GRID = 100;
 
 export default function StickerBookPage() {
   const { t, i18n } = useTranslation();
@@ -39,6 +43,7 @@ export default function StickerBookPage() {
     () => pages.data?.pages.flatMap((p) => p.stickers),
     [pages.data],
   );
+  useStickerThumbHealing(loaded);
   const remove = useDeleteSticker();
   const rename = useRenameSticker();
 
@@ -256,7 +261,7 @@ export default function StickerBookPage() {
         </div>
       )}
       {stickers.length > 0 && (
-        <div className="zf-grid-book">
+        <div className={cn("zf-grid-book", stickers.length > LONG_GRID && "is-long")}>
           {stickers.map((s) => (
             <StickerTile
               key={s.id}

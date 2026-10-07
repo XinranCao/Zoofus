@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/Loader";
 import { cn } from "@/lib/cn";
 import { StickerImage } from "./StickerTile";
 import type { Sticker } from "./sticker.schema";
-import { useStickers } from "./useStickers";
+import { useStickers, useStickerThumbHealing } from "./useStickers";
 
 /**
  * A dialog that lists your stickers to choose from (one tap picks). Used wherever a sticker is
@@ -28,6 +28,7 @@ export function StickerPickerDialog({
   const { t } = useTranslation();
   const { data, isPending } = useStickers();
   const list = given ?? data ?? [];
+  useStickerThumbHealing(open ? list : undefined);
   return (
     <Dialog
       open={open}

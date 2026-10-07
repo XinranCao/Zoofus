@@ -317,7 +317,7 @@ service cloud.firestore {
         }
         // Fields shared by create and update. Older stickers have no source, edge or seed.
         function validSticker(d) {
-          return d.keys().hasOnly(['name', 'storagePath', 'imageUrl', 'sourcePath', 'sourceUrl', 'outline', 'cut', 'edge', 'seed', 'thumbnailUrl', 'thumbnailPath', 'width', 'height', 'createdAt'])
+          return d.keys().hasOnly(['name', 'storagePath', 'imageUrl', 'sourcePath', 'sourceUrl', 'outline', 'cut', 'edge', 'seed', 'thumbUrl', 'thumbPath', 'thumbnailUrl', 'thumbnailPath', 'width', 'height', 'createdAt'])
             && isString(d.name, 60) && d.name.size() > 0
             && ownFile(d.storagePath)
             && isString(d.imageUrl, 2048)
@@ -327,6 +327,8 @@ service cloud.firestore {
             && (!('cut' in d) || validCut(d.cut))
             && (!('edge' in d) || validEdge(d.edge))
             && (!('seed' in d) || isString(d.seed, 64))
+            && (!('thumbUrl' in d) || isString(d.thumbUrl, 2048))
+            && (!('thumbPath' in d) || ownFile(d.thumbPath))
             && (!('thumbnailUrl' in d) || isString(d.thumbnailUrl, 2048))
             && (!('thumbnailPath' in d) || ownFile(d.thumbnailPath))
             && d.width is int && d.width > 0
@@ -343,10 +345,12 @@ service cloud.firestore {
           return d.diff(resource.data).affectedKeys().hasAny([key]);
         }
         allow update: if isOwner(uid)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'storagePath', 'imageUrl', 'edge', 'seed', 'width', 'height', 'cut'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'storagePath', 'imageUrl', 'thumbUrl', 'thumbPath', 'edge', 'seed', 'width', 'height', 'cut'])
           && (!touched(request.resource.data, 'name') || (isString(request.resource.data.name, 60) && request.resource.data.name.size() > 0))
           && (!touched(request.resource.data, 'storagePath') || ownFile(request.resource.data.storagePath))
           && (!touched(request.resource.data, 'imageUrl') || isString(request.resource.data.imageUrl, 2048))
+          && (!touched(request.resource.data, 'thumbUrl') || isString(request.resource.data.thumbUrl, 2048))
+          && (!touched(request.resource.data, 'thumbPath') || ownFile(request.resource.data.thumbPath))
           && (!touched(request.resource.data, 'cut') || validCut(request.resource.data.cut))
           && (!touched(request.resource.data, 'edge') || validEdge(request.resource.data.edge))
           && (!touched(request.resource.data, 'seed') || isString(request.resource.data.seed, 64))

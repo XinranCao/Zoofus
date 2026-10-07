@@ -6,7 +6,7 @@ import { SelectMark } from "@/components/ui/SelectMark";
 import { TextField } from "@/components/ui/TextField";
 import { cn } from "@/lib/cn";
 import { seededRot } from "@/paper/random";
-import { MAX_STICKER_NAME, type Sticker } from "./sticker.schema";
+import { MAX_STICKER_NAME, smallPicture, type Sticker } from "./sticker.schema";
 
 /** The finished sticker as saved: the cut-out with its edge baked in, shown as an image. */
 /** Height of a tile with its name, date and actions: the loading skeleton reserves the same room, so nothing shifts when stickers arrive. */
@@ -35,7 +35,8 @@ export function StickerImage({
     >
       <img
         className="zf-sticker-img"
-        src={sticker.imageUrl}
+        // small places use the small picture; a big one (a preview) the full file
+        src={size <= 200 ? smallPicture(sticker) : sticker.imageUrl}
         alt={sticker.name}
         width={Math.round(sticker.width * k)}
         height={Math.round(sticker.height * k)}
