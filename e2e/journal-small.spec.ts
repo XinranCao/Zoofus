@@ -139,7 +139,9 @@ for (const [width, height] of [
     expect(await page.evaluate(() => scrollY)).toBe(before);
     // the page did not scroll away: the words are still on it, in view
     const after = (await canvas.boundingBox())!;
-    expect(Math.abs(after.y - box.y)).toBeLessThan(40);
+    expect(Math.abs(after.y - box.y), `moved from ${box.y} to ${after.y}`).toBeLessThan(
+      4,
+    );
   });
 }
 

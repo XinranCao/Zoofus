@@ -2611,27 +2611,45 @@
     flex-wrap: wrap;
   }
   .zf-jstudio__bar > div:nth-child(2) {
-    flex: 1 1 110px !important;
-    min-width: 110px !important;
+    flex: 1 1 90px !important;
+    min-width: 90px !important;
     max-width: none !important;
+  }
+  /* the back link is just its arrow (its name is still read out): the row never wraps when Save
+     appears beside the status, so the page does not jump down */
+  .zf-jstudio__bar .zf-backlink {
+    font-size: 0;
+    min-width: 36px;
+    justify-content: center;
+  }
+  .zf-jstudio__bar .zf-backlink::before {
+    content: "\2190";
+    font-size: 20px;
   }
   .zf-jstudio__file {
     order: 0;
     flex: none;
-    gap: 0 6px;
+    gap: 0 4px;
   }
   .zf-jstudio__morebtn {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     min-height: 44px;
-    padding: 0 8px;
-    font: inherit;
+    min-width: 44px;
+    justify-content: center;
+    padding: 0 6px;
+    /* just the dots on a phone (the name is still read out): the row must not wrap */
+    font-size: 0;
     font-family: var(--font-display);
     color: var(--ink);
     background: none;
     border: 0;
     cursor: pointer;
+  }
+  .zf-jstudio__morebtn .zf-icon {
+    width: 24px;
+    height: 24px;
   }
   .zf-jstudio__barbtns {
     display: none;
