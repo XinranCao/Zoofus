@@ -658,7 +658,9 @@ export const zh: Messages = {
     group: {
       count_one: "已选 {{count}} 个",
       count_other: "已选 {{count}} 个",
-      hint: "拖动即可一起移动，拖动上方的圆点可以一起旋转。按 Ctrl 或 Cmd 加 C、X、V 可以复制、剪切和粘贴。",
+      hint: "拖动即可一起移动，拖动上方的圆点可以一起旋转。",
+      keys: "按 Ctrl 或 Cmd 加 C、X、V 可以复制、剪切和粘贴。",
+      selectMode: "多选",
     },
     hint: {
       text: "点一下页面上想写字的位置，然后在右边面板里输入。",
@@ -702,6 +704,7 @@ export const zh: Messages = {
       back: "移到最下层",
       duplicate: "再做一份",
       copy: "复制",
+      paste: "粘贴",
       rotation: "旋转",
       size: "大小",
       length: "长度",

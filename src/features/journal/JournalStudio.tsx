@@ -120,6 +120,8 @@ export function JournalStudio({
   const items = useJournalState((s) => s.items);
   const selectedId = useJournalState((s) => s.selectedId);
   const group = useJournalState((s) => s.group);
+  const multi = useJournalState((s) => s.multi);
+  const hasClip = useJournalState((s) => s.clip !== null);
   const tool = useJournalState((s) => s.tool);
   const pen = useJournalState((s) => s.pen);
   const text = useJournalState((s) => s.text);
@@ -132,6 +134,16 @@ export function JournalStudio({
   const [paperOpen, setPaperOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [moreOpen, setMoreOpen] = useState(false);
+  const pageEl = useRef<HTMLDivElement>(null);
+  // a press anywhere on the work area (the margin round the page too) puts the keys (Ctrl+A, copy
+  // and paste, Delete) on the page
+  const focusPage = (e: React.PointerEvent) => {
+    if (
+      (e.target as HTMLElement).closest("button, input, textarea, select, [role=slider]")
+    )
+      return;
+    pageEl.current?.focus({ preventScroll: true });
+  };
   const toast = useToast();
   const [areaRef, areaWidth] = useElementWidth<HTMLDivElement>();
   const stage = useRef<Konva.Stage>(null);
@@ -213,22 +225,13 @@ export function JournalStudio({
     toast.push({ kind: "success", title: t("journal.tapeAdded") });
   };
 
+  /** One thing, copied a little aside and chosen (the same as Duplicate on a group). */
   const duplicate = (item: Item) => {
-    if (full) return;
-    const id = newId();
-    apply([
-      {
-        k: "put",
-        item: {
-          ...item,
-          id,
-          x: item.x + 28,
-          y: item.y + 28,
-          z: topZ(store.getState().items),
-        },
-      },
-    ]);
-    store.getState().select(id);
+    const st = store.getState();
+    const r = pasteOps(st.items, [item], 1);
+    if (r.ops.length === 0) return;
+    st.apply(r.ops);
+    store.getState().selectGroup(r.ids);
   };
 
   /** What is chosen, one thing or a group. */
@@ -377,9 +380,16 @@ export function JournalStudio({
       text,
       onSelect: (id: string | null) => store.getState().select(id),
       onGroup: (ids: string[]) => store.getState().selectGroup(ids),
+      multi,
+      onToggle: (id: string) => {
+        const st = store.getState();
+        const now = st.selectedId ? [st.selectedId] : st.group;
+        const next = now.includes(id) ? now.filter((x) => x !== id) : [...now, id];
+        store.getState().selectGroup(next);
+      },
       onOps: (ops: Parameters<typeof apply>[0]) => store.getState().apply(ops),
     }),
-    [tool, selectedId, group, pen, text, store],
+    [tool, selectedId, group, multi, pen, text, store],
   );
 
   return (
@@ -526,25 +536,53 @@ export function JournalStudio({
           {aside && <div className="zf-jstudio__aside">{aside}</div>}
         </div>
 
-        <div className="zf-jstudio__area" ref={areaRef}>
-          {/* the page is a custom widget: it takes focus so its keyboard shortcuts work */}
-          <div
-            className="zf-jstudio__page"
-            tabIndex={0}
-            role="application"
-            aria-label={t("journal.pageLabel")}
-            aria-describedby="journal-items"
-          >
-            {areaWidth > 0 && (
-              <JournalCanvas
-                page={page}
-                items={items}
-                resolve={resolve}
-                width={width}
-                editor={editor}
-                stageRef={stage}
-              />
-            )}
+        <div className="zf-jstudio__areawrap">
+          {tool === "select" && (
+            <div className="zf-jstudio__multi">
+              <Button
+                variant="secondary"
+                size="sm"
+                icon="select"
+                seed="jmulti"
+                aria-pressed={multi}
+                onClick={() => store.getState().setMulti(!multi)}
+              >
+                {t("journal.group.selectMode")}
+              </Button>
+              {hasClip && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon="copy"
+                  seed="jpaste"
+                  onClick={paste}
+                >
+                  {t("journal.item.paste")}
+                </Button>
+              )}
+            </div>
+          )}
+          <div className="zf-jstudio__area" ref={areaRef} onPointerDown={focusPage}>
+            {/* the page is a custom widget: it takes focus so its keyboard shortcuts work */}
+            <div
+              className="zf-jstudio__page"
+              ref={pageEl}
+              tabIndex={0}
+              role="application"
+              aria-label={t("journal.pageLabel")}
+              aria-describedby="journal-items"
+            >
+              {areaWidth > 0 && (
+                <JournalCanvas
+                  page={page}
+                  items={items}
+                  resolve={resolve}
+                  width={width}
+                  editor={editor}
+                  stageRef={stage}
+                />
+              )}
+            </div>
           </div>
         </div>
 
@@ -563,12 +601,21 @@ export function JournalStudio({
             <GroupPanel
               count={group.length}
               onCopy={copy}
+              onPaste={paste}
+              hasClip={hasClip}
               onDuplicate={duplicateChosen}
               onRemove={removeChosen}
               full={full}
             />
           ) : selected ? (
-            <ItemPanel item={selected} patch={patch} duplicate={duplicate} full={full} />
+            <ItemPanel
+              item={selected}
+              patch={patch}
+              duplicate={duplicate}
+              onCopy={copy}
+              onPaste={paste}
+              full={full}
+            />
           ) : tool === "text" ? (
             <Paper
               seed="jhint"
@@ -708,12 +755,16 @@ function PenPanel() {
 function GroupPanel({
   count,
   onCopy,
+  onPaste,
+  hasClip,
   onDuplicate,
   onRemove,
   full,
 }: {
   count: number;
   onCopy: () => void;
+  onPaste: () => void;
+  hasClip: boolean;
   onDuplicate: () => void;
   onRemove: () => void;
   full: boolean;
@@ -732,10 +783,24 @@ function GroupPanel({
           {t("journal.group.count", { count })}
         </p>
         <p style={{ margin: 0 }}>{t("journal.group.hint")}</p>
+        <p className="zf-jstudio__keys" style={{ margin: 0 }}>
+          {t("journal.group.keys")}
+        </p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
           <Button variant="quiet" size="sm" icon="copy" seed="jgcopy" onClick={onCopy}>
             {t("journal.item.copy")}
           </Button>
+          {hasClip && (
+            <Button
+              variant="quiet"
+              size="sm"
+              icon="copy"
+              seed="jgpaste"
+              onClick={onPaste}
+            >
+              {t("journal.item.paste")}
+            </Button>
+          )}
           <Button
             variant="quiet"
             size="sm"
@@ -759,16 +824,21 @@ function ItemPanel({
   item,
   patch,
   duplicate,
+  onCopy,
+  onPaste,
   full,
 }: {
   item: Item;
   patch: (item: Item, change: Partial<Item>, coalesce?: string) => void;
   duplicate: (item: Item) => void;
+  onCopy: () => void;
+  onPaste: () => void;
   full: boolean;
 }) {
   const { t } = useTranslation();
   const store = useJournalStore();
   const items = useJournalState((s) => s.items);
+  const hasClip = useJournalState((s) => s.clip !== null);
   return (
     <Paper
       seed={"jitem" + item.t}
@@ -825,6 +895,22 @@ function ItemPanel({
               onClick={() => duplicate(item)}
             >
               {t("journal.item.duplicate")}
+            </Button>
+          )}
+          {item.t !== "p" && (
+            <Button variant="quiet" size="sm" icon="copy" seed="jcopy" onClick={onCopy}>
+              {t("journal.item.copy")}
+            </Button>
+          )}
+          {item.t !== "p" && hasClip && (
+            <Button
+              variant="quiet"
+              size="sm"
+              icon="copy"
+              seed="jpastei"
+              onClick={onPaste}
+            >
+              {t("journal.item.paste")}
             </Button>
           )}
           <Button

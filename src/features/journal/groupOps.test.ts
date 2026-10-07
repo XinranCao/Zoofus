@@ -109,15 +109,15 @@ describe("copy and paste", () => {
     expect(first.ids).toHaveLength(1);
     expect(first.ids[0]).not.toBe("a");
     const put = (r: typeof first) => (r.ops[0]!.k === "put" ? r.ops[0]!.item : null)!;
-    expect(put(first)).toMatchObject({ x: 128, y: 128, z: 5 });
-    expect(put(second)).toMatchObject({ x: 156, y: 156 });
+    expect(put(first)).toMatchObject({ x: 116, y: 116, z: 5 });
+    expect(put(second)).toMatchObject({ x: 132, y: 132 });
   });
 
   it("pastes a stroke by moving its points", () => {
     const p = stroke("p");
     const r = pasteOps([p], [p], 1);
     const it = r.ops[0]!.k === "put" ? r.ops[0]!.item : null;
-    expect(it && it.t === "p" && decodeStroke(it.pts)).toEqual([38, 38, 58, 38]);
+    expect(it && it.t === "p" && decodeStroke(it.pts)).toEqual([26, 26, 46, 26]);
   });
 
   it("does nothing when the copies would not fit", () => {

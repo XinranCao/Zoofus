@@ -2592,7 +2592,7 @@
     grid-column: 2;
     grid-row: 2;
   }
-  .zf-jstudio__area {
+  .zf-jstudio__areawrap {
     grid-column: 1;
     grid-row: 2;
   }
@@ -2699,6 +2699,30 @@
   }
   /* the editor needs the room: the confirm-email note waits until the person leaves it */
   body:has(.zf-jstudio) .zf-verify {
+    display: none;
+  }
+}
+
+/* the page area's frame, with "Select several" and Paste floating at its corner */
+.zf-jstudio__areawrap {
+  position: relative;
+  min-width: 0;
+}
+.zf-jstudio__multi {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 3;
+  display: flex;
+  gap: 6px;
+}
+.zf-jstudio__multi .zf-btn[aria-pressed="true"] .zf-face {
+  text-decoration: underline 2px;
+  text-underline-offset: 4px;
+}
+/* a touch screen has no Ctrl key: the shortcut sentence is for people with a keyboard */
+@media (pointer: coarse) {
+  .zf-jstudio__keys {
     display: none;
   }
 }

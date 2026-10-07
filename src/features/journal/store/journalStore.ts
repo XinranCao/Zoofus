@@ -46,6 +46,8 @@ export interface JournalState {
   group: string[];
   /** What Copy or Cut last took, and how many times it has been pasted (each copy lands further along). */
   clip: { items: Item[]; pastes: number } | null;
+  /** "Select several": a tap adds a thing to the choice or takes it out (for touch, and for a mouse). */
+  multi: boolean;
   tool: JournalTool;
   pen: PenState;
   text: TextStyle;
@@ -69,6 +71,7 @@ export interface JournalState {
   /** Choose these things together. One thing that can take handles is chosen as a single object. */
   selectGroup: (ids: string[]) => void;
   setClip: (items: Item[]) => void;
+  setMulti: (on: boolean) => void;
   /** Counts a paste and returns how many have been made, this one included. */
   countPaste: () => number;
   setTool: (tool: JournalTool) => void;
@@ -90,6 +93,7 @@ export function createJournalStore(): JournalStore {
     selectedId: null,
     group: [],
     clip: null,
+    multi: false,
     tool: "select",
     pen: { tool: "pen", color: "cocoa-800", size: 4 },
     text: {
@@ -191,6 +195,7 @@ export function createJournalStore(): JournalStore {
       else set({ selectedId: null, group: live });
     },
     setClip: (items) => set({ clip: { items, pastes: 0 } }),
+    setMulti: (multi) => set({ multi }),
     countPaste: () => {
       const clip = get().clip;
       if (!clip) return 0;
@@ -203,6 +208,7 @@ export function createJournalStore(): JournalStore {
         tool,
         selectedId: tool === "select" ? get().selectedId : null,
         group: tool === "select" ? get().group : [],
+        multi: tool === "select" ? get().multi : false,
       }),
     setPen: (patch) => set({ pen: { ...get().pen, ...patch } }),
     setText: (patch) => set({ text: { ...get().text, ...patch } }),

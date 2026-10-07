@@ -445,6 +445,9 @@ export interface EditorBinding {
   /** Several things chosen together (dragged out on the page), and the way to choose them. */
   group: string[];
   onGroup: (ids: string[]) => void;
+  /** Select several: a tap on a thing adds it to the choice or takes it out. */
+  multi: boolean;
+  onToggle: (id: string) => void;
   /** Local changes, as operations; `group` joins a gesture into one undo step. */
   onOps: (ops: Op[]) => void;
 }
@@ -524,10 +527,12 @@ export const JournalCanvas = memo(function JournalCanvas({
 
   // The handles follow the selected object.
   useEffect(() => {
-    const n = selectedId && editing ? nodes.current.get(selectedId) : undefined;
+    // (no handles while choosing several: a tap must reach what lies under them)
+    const n =
+      selectedId && editing && !editor?.multi ? nodes.current.get(selectedId) : undefined;
     transformer.current?.nodes(n ? [n] : []);
     transformer.current?.getLayer()?.batchDraw();
-  }, [selectedId, editing, items, nodeVersion]);
+  }, [selectedId, editing, editor?.multi, items, nodeVersion]);
 
   const register = (id: string, node: Konva.Node | null) => {
     if (node) {
@@ -615,7 +620,7 @@ export const JournalCanvas = memo(function JournalCanvas({
       // the handles take their own presses
       if (e.target.getParent()?.className === "Transformer") return;
       // a chosen group: its turning handle, or anywhere inside its box, takes the press
-      if (groupBox && group.length > 0) {
+      if (!editor.multi && groupBox && group.length > 0) {
         const cx = groupBox.x + groupBox.w / 2;
         const cy = groupBox.y + groupBox.h / 2;
         const onHandle =
@@ -649,6 +654,11 @@ export const JournalCanvas = memo(function JournalCanvas({
       const stage = e.target.getStage();
       const hits = stage ? hitsAt(stage) : [];
       const current = editor.selectedId;
+      if (editor.multi) {
+        // a tap adds or removes the thing under it; nothing moves, so a finger can pick several
+        if (hits[0]) editor.onToggle(hits[0]);
+        return;
+      }
       if (hits.length === 0) {
         // nothing there: a click clears the choice, a drag chooses what it encloses
         press.current = null;

@@ -683,7 +683,9 @@ export const en = {
     group: {
       count_one: "{{count}} selected",
       count_other: "{{count}} selected",
-      hint: "Drag them to move them together, or drag the round handle above them to turn them. Ctrl or Cmd with C, X and V copies, cuts and pastes.",
+      hint: "Drag them to move them together, or drag the round handle above them to turn them.",
+      keys: "Ctrl or Cmd with C, X and V copies, cuts and pastes.",
+      selectMode: "Select several",
     },
     hint: {
       text: "Click on the page where the words should go, then type them in the panel.",
@@ -727,6 +729,7 @@ export const en = {
       back: "To back",
       duplicate: "Duplicate",
       copy: "Copy",
+      paste: "Paste",
       rotation: "Turn",
       size: "Size",
       length: "Length",

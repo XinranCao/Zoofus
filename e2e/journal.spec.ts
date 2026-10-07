@@ -504,3 +504,70 @@ test("back from the editor, the journal's tile shows the page at once", async ({
     timeout: 5000,
   });
 });
+
+// PM-v1.7.6-011: choosing several things, and copying and pasting them, needs no keyboard
+test.describe("touch", () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+
+  test("select two things by tapping, copy and paste them: the copies are aside and chosen", async ({
+    page,
+  }) => {
+    await signUp(page, "Tap");
+    await page.goto("/journals?make=1");
+    await page
+      .getByRole("dialog", { name: "New journal" })
+      .getByRole("button", { name: "Start" })
+      .click();
+    await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
+    const canvas = page.locator(".zf-jstudio__page canvas").first();
+    const place = async (fy: number, text: string) => {
+      await page.getByRole("button", { name: "Text", exact: true }).click();
+      const b = (await canvas.boundingBox())!;
+      await page.mouse.click(b.x + b.width * 0.35, b.y + b.height * fy);
+      await page.getByLabel("Text", { exact: true }).fill(text);
+      await page.waitForTimeout(900); // the handwriting font arrives, and the box takes its width
+    };
+    await place(0.15, "One");
+    await place(0.3, "Two");
+    await page.getByRole("button", { name: "Move", exact: true }).click();
+    await page.getByRole("button", { name: "Select several" }).click();
+    const b = (await canvas.boundingBox())!;
+    // "Two" is still the chosen one from placing it: tapping "One" adds it, tapping again removes it
+    await page.touchscreen.tap(b.x + b.width * 0.35, b.y + b.height * 0.15);
+    const count = page.getByRole("status").filter({ hasText: /\d selected/ });
+    await expect(count).toHaveText("2 selected");
+    // a Ctrl hint is for keyboards
+    await expect(page.locator(".zf-jstudio__keys")).toBeHidden();
+    await page.getByRole("button", { name: "Copy", exact: true }).click();
+    await page.getByRole("button", { name: "Paste", exact: true }).first().click();
+    await expect(page.locator("#journal-items li")).toHaveCount(4);
+    await expect(count).toHaveText("2 selected");
+  });
+});
+
+test("Ctrl+A works from the margin round the page, and Paste is a button after Copy", async ({
+  page,
+}) => {
+  await signUp(page, "Margin");
+  await page.goto("/journals?make=1");
+  await page
+    .getByRole("dialog", { name: "New journal" })
+    .getByRole("button", { name: "Start" })
+    .click();
+  const canvas = page.locator(".zf-jstudio__page canvas").first();
+  await page.getByRole("button", { name: "Text", exact: true }).click();
+  const b = (await canvas.boundingBox())!;
+  await page.mouse.click(b.x + b.width * 0.3, b.y + b.height * 0.2);
+  await page.getByLabel("Text", { exact: true }).fill("Only");
+  await page.getByRole("button", { name: "Move", exact: true }).click();
+  // a press in the margin of the work area (outside the page) puts the keys on the page
+  const area = (await page.locator(".zf-jstudio__area").boundingBox())!;
+  await page.mouse.click(area.x + 4, area.y + 4);
+  await page.keyboard.press("ControlOrMeta+a");
+  // (one thing is simply chosen: its panel has Copy)
+  await expect(page.getByRole("button", { name: "Copy", exact: true })).toBeVisible();
+  expect(await page.getByRole("button", { name: "Paste" }).count()).toBe(0);
+  await page.getByRole("button", { name: "Copy", exact: true }).click();
+  await page.getByRole("button", { name: "Paste", exact: true }).first().click();
+  await expect(page.locator("#journal-items li")).toHaveCount(2);
+});
