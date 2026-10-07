@@ -1942,13 +1942,22 @@
   gap: 22px;
   align-items: start;
 }
+.zf-jstudio__toolswrap {
+  position: sticky;
+  top: 90px;
+  display: grid;
+  gap: 10px;
+  align-items: start;
+  min-width: 0;
+}
 .zf-jstudio__tools {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
   gap: 10px;
-  position: sticky;
-  top: 90px;
+}
+.zf-jstudio__morebtn {
+  display: none;
 }
 .zf-jstudio__tools .zf-chip {
   width: 100%;
@@ -1960,8 +1969,8 @@
   width: 100%;
   box-sizing: border-box;
 }
-.zf-jstudio__tools > :not(.zf-chip, button) {
-  grid-column: 1 / -1;
+.zf-jstudio__aside {
+  min-width: 0;
 }
 .zf-jstudio__area {
   min-width: 0;
@@ -2030,8 +2039,10 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 10px;
   }
-  .zf-jstudio__tools {
+  .zf-jstudio__toolswrap {
     position: static;
+  }
+  .zf-jstudio__tools {
     display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -2563,5 +2574,131 @@
     .zf-home-arrow {
       width: 22px;
     }
+  }
+}
+
+/* tablet: the panel for what is chosen sits beside the page, the tools stay above it */
+@media (min-width: 500px) and (max-width: 1099px) {
+  .zf-jstudio__body {
+    grid-template-columns: minmax(0, 1fr) 280px;
+    align-items: start;
+  }
+  .zf-jstudio__toolswrap {
+    grid-column: 1 / -1;
+  }
+  .zf-jstudio__panel {
+    position: sticky;
+    top: 90px;
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .zf-jstudio__area {
+    grid-column: 1;
+    grid-row: 2;
+  }
+}
+
+/* phone: the page first. One row for back, title and status; Undo, zoom, Paper and Download are
+   behind "More"; the tools are a bar at the bottom where the thumb is; the text panel is a sheet
+   above that bar, so the page never scrolls away to reach it */
+@media (max-width: 499px) {
+  .zf-jstudio {
+    padding-bottom: 76px;
+    gap: 8px;
+  }
+  .zf-jstudio__bar {
+    gap: 0 8px;
+    flex-wrap: wrap;
+  }
+  .zf-jstudio__bar > div:nth-child(2) {
+    flex: 1 1 110px !important;
+    min-width: 110px !important;
+    max-width: none !important;
+  }
+  .zf-jstudio__file {
+    order: 0;
+    flex: none;
+    gap: 0 6px;
+  }
+  .zf-jstudio__morebtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 44px;
+    padding: 0 8px;
+    font: inherit;
+    font-family: var(--font-display);
+    color: var(--ink);
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+  .zf-jstudio__barbtns {
+    display: none;
+    flex: 1 1 100%;
+  }
+  .zf-jstudio__barbtns.is-open {
+    display: block;
+    order: 5;
+  }
+  .zf-jstudio__edit {
+    flex-wrap: wrap;
+    overflow: visible;
+    mask-image: none;
+    padding: 0;
+  }
+  .zf-jstudio__tools {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 2px;
+    overflow: visible;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+    background: var(--sheet-50, #fbf6ee);
+    border-top: 2px dashed var(--ink-muted);
+  }
+  .zf-jstudio__tools > * {
+    flex: none;
+  }
+  .zf-jstudio__tools .zf-chip {
+    width: 100%;
+    min-width: 0;
+  }
+  .zf-jstudio__tools .zf-chip .zf-face {
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 2px;
+    font-size: 12px;
+    text-align: center;
+  }
+  .zf-jstudio__area {
+    padding: 6px;
+  }
+  .zf-jstudio__aside {
+    order: 4;
+  }
+  .zf-jstudio__hint {
+    display: none;
+  }
+  .zf-jstudio__panel {
+    position: fixed;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 64px;
+    z-index: 25;
+    max-height: 42vh;
+    max-height: 42dvh;
+    overflow: auto;
+    padding: 0 8px;
+  }
+  /* the editor needs the room: the confirm-email note waits until the person leaves it */
+  body:has(.zf-jstudio) .zf-verify {
+    display: none;
   }
 }

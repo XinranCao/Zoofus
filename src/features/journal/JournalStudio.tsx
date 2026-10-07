@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { ColorPicker } from "@/components/ui/ColorPicker";
 import { Dialog } from "@/components/ui/Dialog";
+import { Icon } from "@/components/ui/Icon";
+import { useToast } from "@/components/ui/Toast";
 import { Paper } from "@/components/ui/Paper";
 import { Select } from "@/components/ui/Select";
 import { Slider } from "@/components/ui/Slider";
@@ -80,6 +82,7 @@ export function JournalStudio({
   stickerPicker,
   tapePicker,
   header,
+  more,
   aside,
   exportRef,
   backTo,
@@ -101,8 +104,10 @@ export function JournalStudio({
     onClose: () => void;
     onPick: (tape: TapeSpec) => void;
   }) => ReactNode;
-  /** Buttons for the top bar (Save, Download, ...). */
+  /** The status and Save, always in the top bar. */
   header?: ReactNode;
+  /** Further actions (Download, Save a copy): with Undo and zoom, behind "More" on a phone. */
+  more?: ReactNode;
   /** Extra content under the tools (who is here, who can edit). */
   aside?: ReactNode;
   exportRef?: Ref<JournalExport>;
@@ -126,6 +131,8 @@ export function JournalStudio({
   const [tapeOpen, setTapeOpen] = useState(false);
   const [paperOpen, setPaperOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const toast = useToast();
   const [areaRef, areaWidth] = useElementWidth<HTMLDivElement>();
   const stage = useRef<Konva.Stage>(null);
   const full = items.length >= MAX_JOURNAL_ITEMS;
@@ -203,6 +210,7 @@ export function JournalStudio({
     ]);
     store.getState().setTool("select");
     store.getState().select(id);
+    toast.push({ kind: "success", title: t("journal.tapeAdded") });
   };
 
   const duplicate = (item: Item) => {
@@ -400,7 +408,21 @@ export function JournalStudio({
             </h1>
           )}
         </div>
-        <div className="zf-jstudio__barbtns">
+        <div className="zf-jstudio__file">{header}</div>
+        <button
+          type="button"
+          className="zf-jstudio__morebtn"
+          aria-expanded={moreOpen}
+          aria-controls="journal-more"
+          onClick={() => setMoreOpen((o) => !o)}
+        >
+          <Icon name="more" />
+          {t("journal.more")}
+        </button>
+        <div
+          className={"zf-jstudio__barbtns" + (moreOpen ? " is-open" : "")}
+          id="journal-more"
+        >
           <div className="zf-jstudio__edit">
             <Button
               variant="quiet"
@@ -460,46 +482,48 @@ export function JournalStudio({
             >
               {t("journal.paper")}
             </Button>
+            {more}
           </div>
-          <div className="zf-jstudio__file">{header}</div>
         </div>
       </div>
 
       <div className="zf-jstudio__body">
-        <div
-          className="zf-jstudio__tools"
-          role="toolbar"
-          aria-label={t("journal.toolbar")}
-          aria-orientation="vertical"
-        >
-          <Chip
-            seed="jtsticker"
-            icon="image"
-            onClick={() => setStickerOpen(true)}
-            disabled={full}
+        <div className="zf-jstudio__toolswrap">
+          <div
+            className="zf-jstudio__tools"
+            role="toolbar"
+            aria-label={t("journal.toolbar")}
+            aria-orientation="vertical"
           >
-            {t("journal.tools.sticker")}
-          </Chip>
-          <Chip
-            seed="jttape"
-            icon="tape"
-            onClick={() => setTapeOpen(true)}
-            disabled={full}
-          >
-            {t("journal.tools.tape")}
-          </Chip>
-          {TOOLS.map((x) => (
             <Chip
-              key={x.tool}
-              seed={"jt" + x.tool}
-              icon={x.icon}
-              selected={tool === x.tool}
-              onClick={() => store.getState().setTool(x.tool)}
+              seed="jtsticker"
+              icon="image"
+              onClick={() => setStickerOpen(true)}
+              disabled={full}
             >
-              {t(`journal.tools.${x.key}`)}
+              {t("journal.tools.sticker")}
             </Chip>
-          ))}
-          {aside}
+            <Chip
+              seed="jttape"
+              icon="tape"
+              onClick={() => setTapeOpen(true)}
+              disabled={full}
+            >
+              {t("journal.tools.tape")}
+            </Chip>
+            {TOOLS.map((x) => (
+              <Chip
+                key={x.tool}
+                seed={"jt" + x.tool}
+                icon={x.icon}
+                selected={tool === x.tool}
+                onClick={() => store.getState().setTool(x.tool)}
+              >
+                {t(`journal.tools.${x.key}`)}
+              </Chip>
+            ))}
+          </div>
+          {aside && <div className="zf-jstudio__aside">{aside}</div>}
         </div>
 
         <div className="zf-jstudio__area" ref={areaRef}>
@@ -548,6 +572,7 @@ export function JournalStudio({
           ) : tool === "text" ? (
             <Paper
               seed="jhint"
+              className="zf-jstudio__hint"
               size="sm"
               tone="scrap-warm"
               rotate={0.4}
@@ -558,6 +583,7 @@ export function JournalStudio({
           ) : (
             <Paper
               seed="jhint2"
+              className="zf-jstudio__hint"
               size="sm"
               tone="scrap-warm"
               rotate={0.4}

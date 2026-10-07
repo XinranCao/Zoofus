@@ -262,6 +262,10 @@ function Editor({ journal }: { journal: Journal }) {
                 {t("common.save")}
               </Button>
             )}
+          </>
+        }
+        more={
+          <>
             <Button
               variant="secondary"
               size="sm"

@@ -645,6 +645,8 @@ export const zh: Messages = {
     backToJournals: "← 手账",
     download: "下载图片",
     zoomIn: "放大",
+    more: "更多",
+    tapeAdded: "胶带已贴上",
     zoomOut: "缩小",
     zoomFit: "适应页面",
     paper: "纸张",

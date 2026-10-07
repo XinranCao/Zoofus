@@ -670,6 +670,8 @@ export const en = {
     backToJournals: "← Journals",
     download: "Download image",
     zoomIn: "Zoom in",
+    more: "More",
+    tapeAdded: "Tape added",
     zoomOut: "Zoom out",
     zoomFit: "Fit the page",
     paper: "Paper",

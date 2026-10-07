@@ -373,6 +373,10 @@ function Collab({ workspace, me }: { workspace: Workspace; me: string }) {
             >
               {t("common.save")}
             </Button>
+          </>
+        }
+        more={
+          <>
             <Button
               variant="secondary"
               size="sm"
