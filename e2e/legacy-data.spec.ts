@@ -105,7 +105,7 @@ test("the book and the tape roll still load stickers and tapes saved by an earli
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("secret123");
   await page.getByRole("button", { name: "Log in" }).click();
-  await expect(page.getByRole("heading", { name: "Make a sticker" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
   await page.goto("/stickers");
   await expect(page.getByRole("button", { name: "Open With old edge" })).toBeVisible();

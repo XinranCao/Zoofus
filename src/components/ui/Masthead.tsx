@@ -266,6 +266,8 @@ export function Masthead({
   ensureFontsFor(user?.name);
   // the auth card already carries the page's one primary button
   const onAuth = pathname === "/login" || pathname === "/signup";
+  // the landing has its own brick button and its own "I already have an account"
+  const onLanding = pathname === "/";
   const inLibrary = ["/stickers", "/tapes", "/journals", "/collections"].some((p) =>
     pathname.startsWith(p),
   );
@@ -419,16 +421,11 @@ export function Masthead({
                 variant="quiet"
                 to="/login"
                 seed="li"
-                className={onAuth ? "zf-hide-m-auth" : undefined}
+                className={onAuth || onLanding ? "zf-hide-m-auth" : undefined}
               >
                 {t("nav.logIn")}
               </ButtonLink>
-              <ButtonLink
-                variant={onAuth ? "secondary" : "primary"}
-                size="sm"
-                to="/signup"
-                seed="su"
-              >
+              <ButtonLink variant="secondary" size="sm" to="/signup" seed="su">
                 {t("nav.signUp")}
               </ButtonLink>
             </div>

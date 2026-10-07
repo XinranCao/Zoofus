@@ -11,7 +11,7 @@ export async function signUp(page: Page, nickname = "Tester", tag = "e2e") {
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Nickname").fill(nickname);
   await page.getByRole("button", { name: "Start cutting" }).click();
-  await expect(page).toHaveTitle("Zoofus · Make a sticker");
+  await expect(page).toHaveTitle("Zoofus · Home");
   return { email, password: "secret123" };
 }
 

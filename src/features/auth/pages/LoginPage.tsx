@@ -63,6 +63,17 @@ export default function LoginPage() {
 
   return (
     <AuthLayout seed="login">
+      {/* one sentence about the product, for someone who landed here without knowing it */}
+      <p className="zf-muted zf-pitch" style={{ margin: "0 0 18px" }}>
+        <b>{t("auth.login.pitch.kicker")}</b>{" "}
+        <span className="zf-pitch-text">{t("auth.login.pitch.text")} </span>
+        <Link
+          to="/"
+          style={{ color: "var(--ink-deep)", fontFamily: "var(--font-display)" }}
+        >
+          {t("auth.login.pitch.link")}
+        </Link>
+      </p>
       <div className="zf-kicker">{t("auth.login.kicker")}</div>
       <h1 className="zf-h1" style={{ margin: "6px 0 18px" }}>
         {t("auth.login.title")}

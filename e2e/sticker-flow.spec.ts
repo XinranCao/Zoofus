@@ -14,8 +14,8 @@ test("sign up, cut and save a sticker, then delete the account", async ({ page }
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Nickname").fill("E2E Tester");
   await page.getByRole("button", { name: "Start cutting" }).click();
-  await expect(page.getByRole("heading", { name: "Make a sticker" })).toBeVisible();
-  await expect(page).toHaveTitle("Zoofus · Make a sticker");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page).toHaveTitle("Zoofus · Home");
 
   // Upload from Home: the maker opens straight into the lasso step
   await page
@@ -104,7 +104,7 @@ test("sign up, cut and save a sticker, then delete the account", async ({ page }
 });
 
 test("signed-out visitors are sent to the login page", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/stickers");
   await expect(page).toHaveURL(/\/login/);
   await expect(page).toHaveTitle("Zoofus · Log in");
 });

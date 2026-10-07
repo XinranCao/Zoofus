@@ -12,7 +12,7 @@ async function signUp(page: Page) {
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Nickname").fill("Scroll");
   await page.getByRole("button", { name: "Start cutting" }).click();
-  await expect(page).toHaveTitle("Zoofus · Make a sticker");
+  await expect(page).toHaveTitle("Zoofus · Home");
 }
 
 async function toEdgeStudio(page: Page) {

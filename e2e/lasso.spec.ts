@@ -26,7 +26,7 @@ async function openLasso(page: Page, photo: Buffer) {
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Nickname").fill("Lasso");
   await page.getByRole("button", { name: "Start cutting" }).click();
-  await expect(page).toHaveTitle("Zoofus · Make a sticker");
+  await expect(page).toHaveTitle("Zoofus · Home");
   await page.locator('input[type="file"]').first().setInputFiles({
     name: "photo.png",
     mimeType: "image/png",

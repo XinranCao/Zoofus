@@ -3,6 +3,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import { cleanForFirestore } from "@/paper/patternSchema";
 import {
   countJournals,
+  listRecentJournals,
   createJournal,
   deleteJournal,
   getJournal,
@@ -48,6 +49,17 @@ export function useJournals({ read = true }: { read?: boolean } = {}) {
     queryKey: key(uid ?? ""),
     queryFn: () => listJournals(uid!),
     enabled: Boolean(uid) && read,
+  });
+}
+
+/** The newest few journals, for the home page (not the whole list). */
+export function useRecentJournals(count: number) {
+  const uid = useUid();
+  return useQuery({
+    // under the list's key, so a save, a create or a delete refreshes it too
+    queryKey: [...key(uid ?? ""), "recent", count],
+    queryFn: () => listRecentJournals(uid!, count),
+    enabled: Boolean(uid),
   });
 }
 

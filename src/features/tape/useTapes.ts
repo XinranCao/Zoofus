@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/features/auth/useAuth";
-import { deleteTape, listTapes, renameTape, saveTape, updateTape } from "./tape.api";
+import {
+  deleteTape,
+  listRecentTapes,
+  listTapes,
+  renameTape,
+  saveTape,
+  updateTape,
+} from "./tape.api";
 import type { TapeSpec } from "./tape.schema";
 
 const key = (uid: string) => ["tapes", uid] as const;
@@ -11,6 +18,17 @@ export function useTapes() {
   return useQuery({
     queryKey: key(uid ?? ""),
     queryFn: () => listTapes(uid!),
+    enabled: Boolean(uid),
+  });
+}
+
+/** The newest few tapes, for the home page. */
+export function useRecentTapes(count: number) {
+  const { currentUser } = useAuth();
+  const uid = currentUser?.uid;
+  return useQuery({
+    queryKey: [...key(uid ?? ""), "recent", count],
+    queryFn: () => listRecentTapes(uid!, count),
     enabled: Boolean(uid),
   });
 }

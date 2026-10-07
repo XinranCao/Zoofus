@@ -78,7 +78,7 @@ test("the sticker book of 60 generates its tears in a few milliseconds, then hit
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("secret123");
   await page.getByRole("button", { name: "Log in" }).click();
-  await expect(page.getByRole("heading", { name: "Make a sticker" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
   // Chrome's mid-tier mobile profile: the CPU slowed 4×; then load the book from scratch
   const cdp = await page.context().newCDPSession(page);

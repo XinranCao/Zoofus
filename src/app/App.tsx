@@ -6,10 +6,12 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppShell } from "@/components/layout/AppShell";
 import { ManagerGate } from "@/features/admin/ManagerGate";
 import { ProtectedRoute } from "@/features/auth/ProtectedRoute";
+import { useAuth } from "@/features/auth/useAuth";
 
 const LoginPage = lazy(() => import("@/features/auth/pages/LoginPage"));
 const SignUpPage = lazy(() => import("@/features/auth/pages/SignUpPage"));
-const HomePage = lazy(() => import("@/pages/HomePage"));
+const HomePage = lazy(() => import("@/features/home/HomePage"));
+const LandingPage = lazy(() => import("@/features/home/LandingPage"));
 const AccountPage = lazy(() => import("@/features/account/AccountPage"));
 const DesignSystemPage = import.meta.env.DEV
   ? lazy(() => import("@/pages/dev/DesignSystemPage"))
@@ -34,6 +36,12 @@ function RouteLoading() {
       <LoadingNote text={t("common.loading")} />
     </div>
   );
+}
+
+/** `/`: your desk when you are signed in, what Zoofus is when you are not. */
+function HomeOrLanding() {
+  const { currentUser } = useAuth();
+  return currentUser ? <HomePage /> : <LandingPage />;
 }
 
 export default function App() {
@@ -138,14 +146,7 @@ export default function App() {
             />
             <Route path="/tape" element={<Navigate to="/tapes" replace />} />
             <Route path="*" element={<NotFoundPage />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <HomePage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/" element={<HomeOrLanding />} />
           </Routes>
         </Suspense>
       </ErrorBoundary>

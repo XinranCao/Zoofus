@@ -2409,3 +2409,159 @@
   outline: 3px solid var(--plum-900);
   outline-offset: 2px;
 }
+
+/* ---------- home and landing ---------- */
+@layer components {
+  .zf-home {
+    display: grid;
+    gap: 44px;
+  }
+  .zf-home-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+    gap: 40px;
+    align-items: center;
+  }
+  .zf-home-two {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+  .zf-home-cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .zf-home-row {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .zf-home-row h2 {
+    margin: 0;
+  }
+  .zf-home-demo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .zf-home-step {
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    text-align: center;
+    min-width: 0;
+    font-size: 14px;
+  }
+  .zf-home-photo {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .zf-home-arrow {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 24px;
+    color: var(--doodle);
+  }
+  .zf-home-page {
+    position: relative;
+    width: 100%;
+    min-height: 120px;
+    display: grid;
+    place-items: center;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0 17px,
+      rgb(108 74 59 / 0.18) 17px 18px
+    );
+  }
+  /* an ink stamp: the words in a hand-drawn oval (an SVG stroke, never a border-radius) */
+  .zf-home-stamp {
+    position: relative;
+    display: inline-block;
+    padding: 4px 14px;
+    font-family: var(--font-display);
+    font-size: 13px;
+    color: var(--brick-600);
+    transform: rotate(-6deg);
+  }
+  .zf-home-stamp svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .zf-home-stamp.is-done {
+    color: var(--moss-700);
+    transform: rotate(5deg);
+  }
+  /* a short screen keeps the form in view: the pitch (one sentence about the product) waits */
+  @media (max-height: 700px) {
+    .zf-pitch {
+      display: none;
+    }
+  }
+  .zf-home-card {
+    all: unset;
+    box-sizing: border-box;
+    display: block;
+    cursor: pointer;
+    min-width: 0;
+  }
+  .zf-home-waiting {
+    display: grid;
+    gap: 10px;
+  }
+  .zf-home-waiting__row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .zf-home-waiting__row + .zf-home-waiting__row {
+    border-top: 1px dashed var(--ink-muted);
+    padding-top: 10px;
+  }
+  .zf-home-continue {
+    display: grid;
+    grid-template-columns: minmax(0, 150px) minmax(0, 1fr);
+    gap: 22px;
+    align-items: center;
+  }
+  .zf-home-strip {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px 6px;
+  }
+  @media (max-width: 900px) {
+    .zf-home-hero,
+    .zf-home-two {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .zf-home-cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 759px) {
+    .zf-home {
+      gap: 32px;
+    }
+    .zf-home-continue {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .zf-home-strip {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .zf-home-arrow {
+      width: 22px;
+    }
+  }
+}

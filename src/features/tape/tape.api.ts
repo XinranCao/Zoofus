@@ -4,6 +4,7 @@ import {
   doc,
   getCountFromServer,
   getDocs,
+  limit,
   orderBy,
   query,
   serverTimestamp,
@@ -32,6 +33,17 @@ export async function listTapes(uid: string): Promise<Tape[]> {
       );
   }
   return tapes;
+}
+
+/** The newest few tapes, for the home page. */
+export async function listRecentTapes(uid: string, count: number): Promise<Tape[]> {
+  const snap = await getDocs(
+    query(tapesRef(uid), orderBy("createdAt", "desc"), limit(count)),
+  );
+  return snap.docs.flatMap((d) => {
+    const parsed = tapeDocSchema.safeParse(d.data());
+    return parsed.success ? [{ id: d.id, ...parsed.data } as Tape] : [];
+  });
 }
 
 export async function saveTape(uid: string, tape: TapeSpec): Promise<string> {

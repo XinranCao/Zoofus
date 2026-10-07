@@ -113,7 +113,7 @@ for (const variant of VARIANTS) {
       await shot("06-signup-step2");
       await page.getByLabel(t("auth.nickname")).fill("Mei");
       await page.getByRole("button", { name: t("auth.signup.start") }).click();
-      await expect(page.getByRole("heading", { name: t("home.title") })).toBeVisible();
+      await expect(page.getByRole("heading", { level: 1, name: /Mei/ })).toBeVisible();
 
       // --- home (empty), menu ---
       await shot("07-home-empty");

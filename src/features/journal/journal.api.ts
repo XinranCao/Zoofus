@@ -5,6 +5,7 @@ import {
   getCountFromServer,
   getDoc,
   getDocs,
+  limit,
   orderBy,
   query,
   serverTimestamp,
@@ -38,6 +39,17 @@ const parse = (id: string, data: unknown): Journal | null => {
 
 export async function listJournals(uid: string): Promise<Journal[]> {
   const snap = await getDocs(query(journalsRef(uid), orderBy("updatedAt", "desc")));
+  return snap.docs.flatMap((d) => {
+    const j = parse(d.id, d.data());
+    return j ? [j] : [];
+  });
+}
+
+/** The most recently edited few (the home page shows two or three, and the one to continue). */
+export async function listRecentJournals(uid: string, count: number): Promise<Journal[]> {
+  const snap = await getDocs(
+    query(journalsRef(uid), orderBy("updatedAt", "desc"), limit(count)),
+  );
   return snap.docs.flatMap((d) => {
     const j = parse(d.id, d.data());
     return j ? [j] : [];
