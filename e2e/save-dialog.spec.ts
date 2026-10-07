@@ -35,7 +35,7 @@ test.describe("phone", () => {
 
     const sbox = (await scroller.boundingBox())!;
     const pbox = (await preview.boundingBox())!;
-    expect(pbox.height).toBeLessThanOrEqual(667 * 0.4); // about 40% of the screen
+    expect(pbox.height).toBeLessThanOrEqual(667 * 0.3); // a small part of the screen: the options need the room
     expect(pbox.y).toBeGreaterThanOrEqual(sbox.y - 1);
 
     // scroll to the very end: the last option is above the pinned footer, the preview still shows
@@ -47,9 +47,11 @@ test.describe("phone", () => {
     const after = (await preview.boundingBox())!;
     expect(after.y).toBeGreaterThanOrEqual(sbox.y - 1);
     expect(after.y + after.height).toBeLessThanOrEqual(sbox.y + sbox.height + 1);
-    await expect(dlg.getByRole("radio", { name: "Torn" })).toBeAttached();
-    await dlg.getByRole("radio", { name: "Torn" }).scrollIntoViewIfNeeded();
-    const tbox = (await dlg.getByRole("radio", { name: "Torn" }).boundingBox())!;
+    // the edge shape is a drop-down on a phone
+    const shape = dlg.getByRole("button", { name: /^Edge shape/ });
+    await expect(shape).toBeAttached();
+    await shape.scrollIntoViewIfNeeded();
+    const tbox = (await shape.boundingBox())!;
     expect(tbox.y + tbox.height).toBeLessThanOrEqual(abox.y + 1);
   });
 });
@@ -91,8 +93,8 @@ for (const [width, height] of [
     const st = (await stage.boundingBox())!;
     const sc = (await scroller.boundingBox())!;
     const ac = (await actions.boundingBox())!;
-    // the stage (the preview's box) is at least 140 px high and fully in the scrolling part
-    expect(st.height).toBeGreaterThanOrEqual(140);
+    // the stage (the preview's box) is at least 110 px high and fully in the scrolling part
+    expect(st.height).toBeGreaterThanOrEqual(110);
     expect(st.y).toBeGreaterThanOrEqual(sc.y - 1);
     expect(st.y + st.height).toBeLessThanOrEqual(sc.y + sc.height + 1);
     expect(p.x).toBeGreaterThanOrEqual(st.x - 1);
