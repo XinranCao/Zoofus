@@ -31,7 +31,12 @@ const keys = {
   shared: (uid: string) => ["sentShares", uid] as const,
 };
 
-const POLL = 60_000;
+/**
+ * The live listeners (`useRealtime.ts`) already refresh these lists the moment something arrives,
+ * so this poll is only a safety net (for what a listener of the newest few cannot see, such as a
+ * friend removed by the other side). TanStack Query pauses it while the tab is hidden.
+ */
+const POLL = 5 * 60_000;
 
 function useUid() {
   return useAuth().currentUser?.uid;

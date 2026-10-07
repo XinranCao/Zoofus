@@ -32,6 +32,8 @@
 
 - **PM-v1.7.6-016: the emulator build can open in Chinese.** `VITE_DEFAULT_LANG=zh-CN npm run dev:emulated` (or `build:e2e`) starts the emulated app in Chinese, as production does; without the variable it stays English, so the tests are unchanged (`docs/debugging.md`).
 
+- **PM-v1.7.6-015 (part): less polling.** Friends, requests, shares and the workspaces list are refreshed by their live listeners the moment something changes, so the background poll is now a five-minute safety net (it was 60 s and 30 s; it already pauses while the tab is hidden). Not done: one counter document for the badge and moving the Together page picture out of the workspace document (both need rules and write-path changes).
+
 ## v1.7.6 – 2026-10-06
 
 No rules change in this release.
