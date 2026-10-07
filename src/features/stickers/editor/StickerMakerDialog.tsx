@@ -134,10 +134,17 @@ function MakerBody({
   // step 2 opens at the top, where the whole preview is (step 1 may have scrolled)
   const resultRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    // (and after saving, so the "Saved" note is in view)
     if (view === "result")
       resultRef.current?.closest(".zf-dialog__scroll")?.scrollTo?.(0, 0);
-  }, [view, saved]);
+  }, [view]);
+  // after saving, the "Saved" note is brought into view only if it is not already (and clear of the
+  // pinned preview: the scroller's scroll padding takes care of that), so the dialog does not jump
+  useEffect(() => {
+    if (!saved) return;
+    resultRef.current
+      ?.querySelector("[data-saved-note]")
+      ?.scrollIntoView?.({ block: "nearest" });
+  }, [saved]);
   const dirty = selections.length > 0 && !saved;
   const requestClose = () => (dirty ? setLeaving(true) : onClose());
 
@@ -152,13 +159,21 @@ function MakerBody({
     return renderSticker(source, edge, seed);
   };
 
+  // A second press (a double click) must not save a second sticker: the guard is set on the first
+  // press, before anything is awaited, and cleared only if the save failed or a new sticker starts.
+  const saveGuard = useRef(false);
+  const [saveBusy, setSaveBusy] = useState(false);
   const onSave = async () => {
-    if (!source) return;
+    if (!source || saveGuard.current) return;
+    saveGuard.current = true;
+    setSaveBusy(true);
     try {
       const sticker = await bake();
       const date = new Intl.DateTimeFormat(i18n.language, {
         day: "numeric",
         month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
       }).format(new Date());
       const id = await save.mutateAsync({
         name: name.trim() || t("maker.edge.defaultName", { date }),
@@ -169,11 +184,14 @@ function MakerBody({
       });
       setSavedId(id);
     } catch (err) {
+      saveGuard.current = false;
       const body =
         err instanceof StickerLimitError
           ? t(err.code === "count" ? "maker.errors.limit" : "maker.errors.tooBig")
           : t("maker.errors.save");
       toast.push({ kind: "error", title: t("auth.errors.toastTitle"), body });
+    } finally {
+      setSaveBusy(false);
     }
   };
 
@@ -232,6 +250,7 @@ function MakerBody({
               seed="more"
               onClick={() => {
                 setName("");
+                saveGuard.current = false;
                 setSavedId(null);
                 setImage(null);
               }}
@@ -268,10 +287,10 @@ function MakerBody({
             icon="book"
             seed="sv"
             disabled={!source}
-            loading={save.isPending}
+            loading={save.isPending || saveBusy}
             onClick={onSave}
           >
-            {save.isPending ? t("maker.edge.saving") : t("maker.edge.save")}
+            {save.isPending || saveBusy ? t("maker.edge.saving") : t("maker.edge.save")}
           </Button>
         )}
         <Button
@@ -350,7 +369,7 @@ function MakerBody({
                 onAvatar ? undefined : (
                   <>
                     {saved && !onAvatar && (
-                      <div style={{ marginBottom: 16 }}>
+                      <div style={{ marginBottom: 16 }} data-saved-note>
                         <ToastNote
                           kind="success"
                           title={t("maker.edge.saved")}
@@ -371,6 +390,7 @@ function MakerBody({
                       >
                         <TextField
                           label={t("maker.edge.nameLabel")}
+                          placeholder={t("maker.edge.namePlaceholder")}
                           hint={saved ? undefined : t("maker.edge.nameHint")}
                           value={name}
                           maxLength={MAX_STICKER_NAME}

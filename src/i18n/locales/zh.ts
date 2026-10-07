@@ -215,6 +215,7 @@ export const zh: Messages = {
       nameLabel: "名字",
       nameHint: "可以不填,不填就用剪下的日期。",
       defaultName: "贴纸 {{date}}",
+      namePlaceholder: "取个名字（可不填）",
       preview: "贴纸预览",
     },
   },

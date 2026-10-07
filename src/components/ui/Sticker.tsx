@@ -120,7 +120,10 @@ export function Sticker({
       canvas.width = out.width;
       canvas.height = out.height;
       canvas.style.width = out.width / dpr + "px";
-      canvas.style.height = out.height / dpr + "px";
+      // the height follows the width (never a fixed height): in a box narrower than the sticker it
+      // shrinks with the width and keeps its shape
+      canvas.style.height = "auto";
+      canvas.style.aspectRatio = `${out.width} / ${out.height}`;
       canvas.getContext("2d")?.drawImage(out, 0, 0);
       out.width = 0; // (the shown copy is the only one kept)
       out.height = 0;
@@ -166,7 +169,13 @@ export function Sticker({
         ref={ref}
         // a sticker with no name is decoration (a heading's art): nothing to announce
         {...(label ? { role: "img", "aria-label": label } : { "aria-hidden": true })}
-        style={{ width: reserveW, height: reserveH }}
+        // the shape is kept by the ratio: if the box is narrower than the sticker (a phone), the
+        // height follows the width instead of staying put, so a round sticker is never an oval
+        style={{
+          width: reserveW,
+          height: "auto",
+          aspectRatio: `${reserveW} / ${reserveH}`,
+        }}
       />
     </span>
   );

@@ -111,6 +111,7 @@ export function StickerEdgeStudio({
             max={160}
             step={10}
             seed="ew"
+            disabled={locked}
             onChange={(v) => onChange({ scale: v / 100 })}
             format={(v) =>
               v === 0 ? t("maker.edge.none") : `${edgeWidth(long, v / 100)} px`

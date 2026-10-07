@@ -1,5 +1,5 @@
 {
-  "checked": 543,
+  "checked": 541,
   "lowest": [
     {
       "screen": "en/desktop/10-book-empty",
@@ -23,7 +23,7 @@
     },
     {
       "screen": "en/desktop/20-tapes",
-      "text": "Washi and masking tape to stick on journ",
+      "text": "Washi and masking tape for your journal ",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -43,7 +43,7 @@
     },
     {
       "screen": "en/desktop/20e-journal-studio",
-      "text": "All changes saved",
+      "text": "Saved",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -83,7 +83,7 @@
     },
     {
       "screen": "en/desktop/21-account",
-      "text": "ds-en-desktop-1791266892692@example.com",
+      "text": "ds-en-desktop-1791337740166@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",

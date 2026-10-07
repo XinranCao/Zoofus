@@ -219,6 +219,7 @@ export const en = {
       nameLabel: "Name",
       nameHint: "Optional. Without one it is named after the day you cut it.",
       defaultName: "Cut {{date}}",
+      namePlaceholder: "Name it (optional)",
       preview: "Sticker preview",
     },
   },

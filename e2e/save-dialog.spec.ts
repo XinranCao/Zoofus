@@ -263,3 +263,43 @@ for (const [width, height] of [
     expect(clipped).toBe(false);
   });
 }
+
+// PM-v1.7.6-007: a photo is never squashed in step 2, one press of Save makes one sticker
+for (const [width, height] of [
+  [375, 667],
+  [768, 1024],
+  [1440, 900],
+] as const) {
+  test(`the step 2 preview keeps the shape of what is drawn at ${width}x${height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height });
+    await signUp(page, "Round");
+    const dlg = await toSaveDialog(page);
+    const preview = dlg.getByRole("img", { name: /^Sticker preview/ });
+    await page.waitForTimeout(800); // drawn
+    const { shown, drawn, dbg } = await preview.evaluate((c) => {
+      const el = c as HTMLCanvasElement;
+      const r = el.getBoundingClientRect();
+      return {
+        shown: r.width / r.height,
+        drawn: el.width / el.height,
+        dbg: [r.width, r.height, el.width, el.height, el.style.cssText],
+      };
+    });
+    expect(Math.abs(shown / drawn - 1), JSON.stringify(dbg)).toBeLessThan(0.03);
+  });
+}
+
+test("pressing Save twice quickly makes one sticker, and the edge slider is locked after", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await signUp(page, "Twice");
+  const dlg = await toSaveDialog(page);
+  await dlg.getByRole("button", { name: "Save to Library" }).dblclick();
+  await expect(dlg.getByText("Saved to your Library.", { exact: true })).toBeVisible();
+  await expect(dlg.getByRole("slider", { name: /Edge width/ })).toBeDisabled();
+  await page.goto("/stickers");
+  await expect(page.locator(".zf-grid-book .zf-tile")).toHaveCount(1);
+});

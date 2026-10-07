@@ -1,5 +1,5 @@
 {
-  "checked": 545,
+  "checked": 543,
   "lowest": [
     {
       "screen": "zh/desktop/10-book-empty",
@@ -43,7 +43,7 @@
     },
     {
       "screen": "zh/desktop/20e-journal-studio",
-      "text": "所有改动都已保存",
+      "text": "已保存",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
@@ -83,7 +83,7 @@
     },
     {
       "screen": "zh/desktop/21-account",
-      "text": "ds-zh-desktop-1791266978199@example.com",
+      "text": "ds-zh-desktop-1791337824723@example.com",
       "ratio": 4.97,
       "min": 4.5,
       "fg": "#57620d",
