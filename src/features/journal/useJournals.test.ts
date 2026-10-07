@@ -3,7 +3,12 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { createElement, type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { Journal } from "./journal.schema";
-import { patchJournal, useJournals, useSaveJournal } from "./useJournals";
+import {
+  patchJournal,
+  patchJournalPages,
+  useJournals,
+  useSaveJournal,
+} from "./useJournals";
 
 const api = vi.hoisted(() => ({
   listJournals: vi.fn(),
@@ -46,6 +51,27 @@ describe("patchJournal (the cached list after a save or a heal)", () => {
   it("leaves a list that is not loaded, or does not have the journal, alone", () => {
     expect(patchJournal(undefined, "a", {}, true)).toBeUndefined();
     expect(patchJournal(list, "zzz", { title: "x" }, true)).toBe(list);
+  });
+});
+
+describe("patchJournalPages (the pages of the Journals screen)", () => {
+  const data = {
+    pageParams: [null, null],
+    pages: [
+      { journals: [j("a", "A"), j("b", "B")], cursor: null },
+      { journals: [j("c", "C")], cursor: null },
+    ],
+  };
+
+  it("changes the journal in whichever page holds it, and nothing else", () => {
+    const next = patchJournalPages(data, "c", { title: "New" })!;
+    expect(next.pages[1]!.journals[0]!.title).toBe("New");
+    expect(next.pages[0]!.journals.map((x) => x.title)).toEqual(["A", "B"]);
+    expect(data.pages[1]!.journals[0]!.title).toBe("C"); // the old pages are not touched
+  });
+
+  it("leaves pages that are not loaded alone", () => {
+    expect(patchJournalPages(undefined, "a", {})).toBeUndefined();
   });
 });
 
