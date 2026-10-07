@@ -10,6 +10,8 @@
 
 - **PM-v1.7.6-003: the "drawImage on a canvas of 0 size" console error is gone.** A pen line being drawn (pencil, marker, crayon) gives each step's canvas back to the browser; it did so in an effect cleanup, which also runs when React mounts a component twice in development, so a canvas still on the page was emptied and Konva drew it (a `pageerror`). The previous canvas is now released only after the new one has replaced it. A new e2e opens a journal, places a sticker, tape, text and all four pens, saves and reloads, and fails on any page error or console error.
 
+- **PM-v1.7.6-004: signing in reads only what the first screen shows.** Home reads the 12 newest stickers (`useRecentStickers`, was every sticker); the Library reads 40 at a time with a "Show more" button (`useStickerPages`; a `/stickers?edit=<id>` link to a sticker past the first page fetches that one by id); starting a journal counts journals on the server (`getCountFromServer`, only while the dialog is open) instead of reading them all, and the page-picture healer now works only on journals another screen has already loaded; the friends list is read only when the Start-a-page dialog opens; the live listeners watch the newest 5 of friends, requests and inbox instead of all of them, and the request and inbox lists stop at 50. The sticker picker, collections and the journal's pictures still read every sticker, as they need them all. **Not done:** storing a nickname and avatar on each friend document (a copy that would go stale when a friend changes them; the list still reads one profile per friend, but only on the Friends page).
+
 ## v1.7.6 – 2026-10-06
 
 No rules change in this release.

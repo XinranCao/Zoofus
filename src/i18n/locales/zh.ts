@@ -4,6 +4,7 @@ import type { Messages } from "./en";
 export const zh: Messages = {
   common: {
     dismiss: "关闭提示",
+    showMore: "显示更多",
     close: "关闭",
     cancel: "取消",
     back: "返回",

@@ -1,10 +1,18 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useAuth } from "@/features/auth/useAuth";
 import { COMPRESSION, encodeWithin } from "@/lib/image";
 import type { EdgeSpec } from "@/paper/renderSticker";
 import { cutRect, decodeOutline } from "../editor/domain/outline";
 import {
   deleteSticker,
+  getSticker,
+  listRecentStickers,
+  listStickerPage,
   listStickers,
   renameSticker,
   saveSticker,
@@ -12,7 +20,13 @@ import {
 } from "./stickers.api";
 import type { Sticker } from "./sticker.schema";
 
-const keys = { all: (uid: string) => ["stickers", uid] as const };
+// every key starts with `all`, so one invalidation after a save, delete or rename reaches them all
+const keys = {
+  all: (uid: string) => ["stickers", uid] as const,
+  recent: (uid: string) => ["stickers", uid, "recent"] as const,
+  pages: (uid: string) => ["stickers", uid, "pages"] as const,
+  one: (uid: string, id: string) => ["stickers", uid, "one", id] as const,
+};
 
 function useUid() {
   const { currentUser } = useAuth();
@@ -25,6 +39,38 @@ export function useStickers() {
     queryKey: keys.all(uid ?? ""),
     queryFn: () => listStickers(uid!),
     enabled: Boolean(uid),
+  });
+}
+
+/** The newest few stickers: what the home page shows, without reading the whole library. */
+export function useRecentStickers(count = 12) {
+  const uid = useUid();
+  return useQuery({
+    queryKey: [...keys.recent(uid ?? ""), count],
+    queryFn: () => listRecentStickers(uid!, count),
+    enabled: Boolean(uid),
+  });
+}
+
+/** The Library, a page at a time (newest first). */
+export function useStickerPages() {
+  const uid = useUid();
+  return useInfiniteQuery({
+    queryKey: keys.pages(uid ?? ""),
+    queryFn: ({ pageParam }) => listStickerPage(uid!, pageParam),
+    initialPageParam: undefined as Parameters<typeof listStickerPage>[1],
+    getNextPageParam: (last) => last.next,
+    enabled: Boolean(uid),
+  });
+}
+
+/** One sticker by id, for a link that may point past the pages loaded so far. */
+export function useStickerById(id: string | null, enabled: boolean) {
+  const uid = useUid();
+  return useQuery({
+    queryKey: keys.one(uid ?? "", id ?? ""),
+    queryFn: () => getSticker(uid!, id!),
+    enabled: Boolean(uid && id && enabled),
   });
 }
 

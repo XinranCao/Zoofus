@@ -1,7 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query";
 import {
   collection,
+  limit,
   onSnapshot,
+  orderBy,
   query,
   where,
   type Query,
@@ -20,6 +22,9 @@ import { cleanFinishedShares } from "./social.api";
  * you shows up (and its badge lights) the moment it is written, without a refresh. The first
  * snapshot of each listener is skipped, since the page has just loaded that data itself.
  */
+/** How many of the newest documents each list is watched through. */
+const WATCHED = 5;
+
 export function useRealtimeSync() {
   const uid = useAuth().currentUser?.uid;
   const qc = useQueryClient();
@@ -45,17 +50,22 @@ export function useRealtimeSync() {
       );
     };
     const mine = (name: string) => collection(db, "users", uid, name);
-    watch(mine("friends"), [
+    // Only the newest few of each are listened to: a listener delivers every document it matches
+    // when it starts, and a long list is not needed to notice that something new has arrived.
+    // (A friend removed by the other side shows up at the next poll of the list.)
+    const newest = (name: string, field: string) =>
+      query(mine(name), orderBy(field, "desc"), limit(WATCHED));
+    watch(newest("friends", "since"), [
       ["friends", uid],
       ["requests", uid],
       ["sentRequests", uid],
     ]);
-    watch(mine("requests"), [["requests", uid]]);
-    watch(mine("sentRequests"), [
+    watch(newest("requests", "createdAt"), [["requests", uid]]);
+    watch(newest("sentRequests", "createdAt"), [
       ["sentRequests", uid],
       ["friends", uid],
     ]);
-    watch(mine("inbox"), [["inbox", uid]]);
+    watch(newest("inbox", "createdAt"), [["inbox", uid]]);
     // what friends have finished with: the pictures I copied for them are no longer needed
     stops.push(
       onSnapshot(

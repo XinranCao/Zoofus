@@ -15,7 +15,7 @@ import {
 } from "@/features/stickers/editor/LazyStickerMaker";
 import { StickerDetailDialog } from "@/features/stickers/library/StickerDetailDialog";
 import { StickerTile, TILE_HEIGHT } from "@/features/stickers/library/StickerTile";
-import { useStickers } from "@/features/stickers/library/useStickers";
+import { useRecentStickers } from "@/features/stickers/library/useStickers";
 
 /**
  * Home: the hero entry into the sticker maker plus the recently cut row. Dropping a photo anywhere
@@ -24,7 +24,7 @@ import { useStickers } from "@/features/stickers/library/useStickers";
 export default function HomePage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { data, isPending } = useStickers();
+  const { data, isPending } = useRecentStickers(12);
   const [makerOpen, setMakerOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [howOpen, setHowOpen] = useState(false);

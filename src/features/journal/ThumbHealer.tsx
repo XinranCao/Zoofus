@@ -19,7 +19,8 @@ const ThumbMaker = lazy(() => import("./ThumbMaker"));
  */
 export function ThumbHealer() {
   const { currentUser } = useAuth();
-  const { data } = useJournals();
+  // heals what some other screen has already loaded; it never reads the journals itself
+  const { data } = useJournals({ read: false });
   const tried = useRef(new Set<string>());
   const [current, setCurrent] = useState<Journal | null>(null);
   const { pathname } = useLocation();

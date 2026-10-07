@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/features/auth/useAuth";
 import { cleanForFirestore } from "@/paper/patternSchema";
 import {
+  countJournals,
   createJournal,
   deleteJournal,
   getJournal,
@@ -37,12 +38,28 @@ const one = (uid: string, id: string) => ["journal", uid, id] as const;
 
 const useUid = () => useAuth().currentUser?.uid;
 
-export function useJournals() {
+/**
+ * Every journal with its items. Heavy, so only the screens that show journals read it. With
+ * `{ read: false }` a component only watches what some other screen has already loaded.
+ */
+export function useJournals({ read = true }: { read?: boolean } = {}) {
   const uid = useUid();
   return useQuery({
     queryKey: key(uid ?? ""),
     queryFn: () => listJournals(uid!),
-    enabled: Boolean(uid),
+    enabled: Boolean(uid) && read,
+  });
+}
+
+/** How many journals there are, without reading them (for numbering a new one and the limit). */
+export function useJournalCount(enabled: boolean) {
+  const uid = useUid();
+  return useQuery({
+    queryKey: ["journalCount", uid ?? ""],
+    queryFn: () => countJournals(uid!),
+    enabled: Boolean(uid) && enabled,
+    // a journal made or deleted since is counted again the next time the dialog opens
+    staleTime: 0,
   });
 }
 
@@ -66,7 +83,10 @@ export function useCreateJournal() {
       if (!uid) throw new Error("Not signed in");
       return createJournal(uid, input, existing);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: key(uid ?? "") }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["journalCount", uid ?? ""] });
+      return qc.invalidateQueries({ queryKey: key(uid ?? "") });
+    },
   });
 }
 

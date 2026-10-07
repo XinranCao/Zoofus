@@ -3,12 +3,17 @@ import {
   deleteDoc,
   doc,
   getCountFromServer,
+  getDoc,
   getDocs,
+  limit,
   orderBy,
   query,
   serverTimestamp,
   setDoc,
+  startAfter,
   updateDoc,
+  type DocumentData,
+  type QueryDocumentSnapshot,
 } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
@@ -29,40 +34,75 @@ const extensionFor = (blob: Blob) => (blob.type === "image/webp" ? "webp" : "png
 
 const stickersRef = (uid: string) => collection(db, "users", uid, "stickers");
 
+/** Reads one sticker document; one unreadable document must never take the whole book down with it. */
+function readSticker(id: string, data: DocumentData): Sticker | null {
+  const parsed = stickerDocSchema.safeParse(data);
+  if (parsed.success)
+    return { id, ...parsed.data, kind: stickerKind(parsed.data) } as Sticker;
+  // A bad edge only costs the sticker its editability: show it as a plain, baked sticker.
+  const {
+    edge: _edge,
+    seed: _seed,
+    sourcePath: _sp,
+    sourceUrl: _su,
+    outline: _ol,
+    cut: _cut,
+    ...rest
+  } = data;
+  const plain = stickerDocSchema.safeParse(rest);
+  if (plain.success) return { id, ...plain.data, kind: "legacy" } as Sticker;
+  console.warn(`Skipping sticker ${id}: its data could not be read`, parsed.error.issues);
+  return null;
+}
+
+const readAll = (docs: QueryDocumentSnapshot[]): Sticker[] =>
+  docs.flatMap((d) => readSticker(d.id, d.data()) ?? []);
+
+/** Every sticker (the picker, collections and the journal's pictures need them all). */
 export async function listStickers(uid: string): Promise<Sticker[]> {
   const snap = await getDocs(query(stickersRef(uid), orderBy("createdAt", "desc")));
-  const stickers: Sticker[] = [];
-  for (const d of snap.docs) {
-    // One unreadable document must never take the whole book down with it.
-    const parsed = stickerDocSchema.safeParse(d.data());
-    if (parsed.success) {
-      stickers.push({
-        id: d.id,
-        ...parsed.data,
-        kind: stickerKind(parsed.data),
-      } as Sticker);
-      continue;
-    }
-    // A bad edge only costs the sticker its editability: show it as a plain, baked sticker.
-    const {
-      edge: _edge,
-      seed: _seed,
-      sourcePath: _sp,
-      sourceUrl: _su,
-      outline: _ol,
-      cut: _cut,
-      ...rest
-    } = d.data();
-    const plain = stickerDocSchema.safeParse(rest);
-    if (plain.success)
-      stickers.push({ id: d.id, ...plain.data, kind: "legacy" } as Sticker);
-    else
-      console.warn(
-        `Skipping sticker ${d.id}: its data could not be read`,
-        parsed.error.issues,
-      );
-  }
-  return stickers;
+  return readAll(snap.docs);
+}
+
+/** The newest few (the home page shows five of them). */
+export async function listRecentStickers(uid: string, count: number): Promise<Sticker[]> {
+  const snap = await getDocs(
+    query(stickersRef(uid), orderBy("createdAt", "desc"), limit(count)),
+  );
+  return readAll(snap.docs);
+}
+
+export const STICKER_PAGE = 40;
+
+export interface StickerPage {
+  stickers: Sticker[];
+  /** Where the next page starts; undefined when this was the last. */
+  next?: QueryDocumentSnapshot;
+}
+
+/** One page of the Library, newest first. */
+export async function listStickerPage(
+  uid: string,
+  after?: QueryDocumentSnapshot,
+): Promise<StickerPage> {
+  const snap = await getDocs(
+    query(
+      stickersRef(uid),
+      orderBy("createdAt", "desc"),
+      ...(after ? [startAfter(after)] : []),
+      limit(STICKER_PAGE),
+    ),
+  );
+  return {
+    stickers: readAll(snap.docs),
+    next: snap.docs.length === STICKER_PAGE ? snap.docs[snap.docs.length - 1] : undefined,
+  };
+}
+
+/** One sticker by id (a link such as `/stickers?edit=<id>` may point past the first page). */
+export async function getSticker(uid: string, id: string): Promise<Sticker | null> {
+  const snap = await getDoc(doc(stickersRef(uid), id));
+  return snap.exists() ? readSticker(snap.id, snap.data()) : null;
 }
 
 export interface NewSticker {

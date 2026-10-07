@@ -4,6 +4,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
   orderBy,
   query,
   serverTimestamp,
@@ -175,7 +176,7 @@ export async function listFriends(me: string): Promise<Friend[]> {
 
 export async function listIncoming(me: string): Promise<FriendRequest[]> {
   const snap = await getDocs(
-    query(userCol(me, "requests"), orderBy("createdAt", "desc")),
+    query(userCol(me, "requests"), orderBy("createdAt", "desc"), limit(MAX_LISTED)),
   );
   const out = await Promise.all(
     snap.docs.map(async (d): Promise<FriendRequest | null> => {
@@ -273,8 +274,13 @@ export async function setFriendNickname(
 
 // ---------------------------------------------------------------- the inbox
 
+/** The most things waiting for me that are listed (and counted on the badge) at once. */
+export const MAX_LISTED = 50;
+
 export async function listInbox(me: string): Promise<Share[]> {
-  const snap = await getDocs(query(userCol(me, "inbox"), orderBy("createdAt", "desc")));
+  const snap = await getDocs(
+    query(userCol(me, "inbox"), orderBy("createdAt", "desc"), limit(MAX_LISTED)),
+  );
   return snap.docs.flatMap((d) => {
     const r = shareDocSchema.safeParse(d.data());
     return r.success

@@ -1,4 +1,4 @@
-import { useJournals } from "@/features/journal/useJournals";
+import { useJournalCount } from "@/features/journal/useJournals";
 import { NewJournalDialog } from "@/features/journal/NewJournalDialog";
 import { StickerMakerDialog } from "@/features/stickers/editor/LazyStickerMaker";
 import { NewTapeDialog } from "@/features/tape/NewTapeDialog";
@@ -13,7 +13,8 @@ import { useMake } from "@/lib/makeStore";
 export function MakeHost() {
   const open = useMake((s) => s.open);
   const close = useMake((s) => s.close);
-  const { data: journals } = useJournals();
+  // only counted when the New journal dialog is open: no journal is read just to start one
+  const { data: journalCount } = useJournalCount(open === "journal");
   const { data: workspaces } = useWorkspaces();
   return (
     <>
@@ -22,7 +23,8 @@ export function MakeHost() {
       <NewJournalDialog
         open={open === "journal"}
         onClose={close}
-        existing={journals?.length ?? 0}
+        existing={journalCount ?? 0}
+        ready={journalCount !== undefined}
       />
       <NewWorkspaceDialog
         open={open === "together"}

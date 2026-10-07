@@ -60,12 +60,12 @@ export function useMyPublicProfile() {
   return query;
 }
 
-export function useFriends() {
+export function useFriends(enabled = true) {
   const uid = useUid();
   return useQuery({
     queryKey: keys.friends(uid ?? ""),
     queryFn: () => listFriends(uid!),
-    enabled: Boolean(uid),
+    enabled: Boolean(uid) && enabled,
     refetchInterval: POLL,
   });
 }

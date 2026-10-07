@@ -16,10 +16,13 @@ export function NewJournalDialog({
   open,
   onClose,
   existing,
+  ready = true,
 }: {
   open: boolean;
   onClose: () => void;
   existing: number;
+  /** The count is known (it is read when the dialog opens). */
+  ready?: boolean;
 }) {
   const { t } = useTranslation();
   const toast = useToast();
@@ -71,6 +74,7 @@ export function NewJournalDialog({
             icon="check"
             seed="njg"
             loading={create.isPending}
+            disabled={!ready}
             type="submit"
             form="new-journal-form"
           >

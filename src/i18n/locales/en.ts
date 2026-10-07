@@ -2,6 +2,7 @@
 export const en = {
   common: {
     dismiss: "Dismiss",
+    showMore: "Show more",
     close: "Close",
     cancel: "Cancel",
     back: "Back",

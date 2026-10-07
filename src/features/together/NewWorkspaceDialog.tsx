@@ -33,7 +33,7 @@ export function NewWorkspaceDialog({
   const { t } = useTranslation();
   const toast = useToast();
   const navigate = useNavigate();
-  const { data: friends = [] } = useFriends();
+  const { data: friends = [] } = useFriends(open);
   const create = useCreateWorkspace();
   const [title, setTitle] = useState("");
   const [page, setPage] = useState<PageSpec>(DEFAULT_PAGE);

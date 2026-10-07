@@ -2,6 +2,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getCountFromServer,
   getDoc,
   getDocs,
   orderBy,
@@ -41,6 +42,11 @@ export async function listJournals(uid: string): Promise<Journal[]> {
     const j = parse(d.id, d.data());
     return j ? [j] : [];
   });
+}
+
+/** How many journals there are, counted by the server (one read for up to 1,000, no documents sent). */
+export async function countJournals(uid: string): Promise<number> {
+  return (await getCountFromServer(journalsRef(uid))).data().count;
 }
 
 export async function getJournal(uid: string, id: string): Promise<Journal | null> {
