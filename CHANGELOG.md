@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- **PM-v1.7.6-001: the login page loads 109 kB less JavaScript.** `ThumbHealer` (mounted for every signed-in page) imported the whole drawing stack; it now loads that part (`ThumbMaker.tsx`) only when a journal needs a page picture. Initial JavaScript (gzip): 538 kB → 416 kB (1024-byte kB; 424 kB in 1000s). Paper grain is now `src/styles/grain.webp` (18.7 kB, was a 63 kB PNG in `public/`), hashed into `/assets` and cached as immutable. `npm audit fix` cleared the one high finding (`source-map-js`); Tailwind and the Testing Library packages moved to `devDependencies`. CI runs `npm audit --omit=dev --audit-level=high` and `npm run check:bundle` (budget 440 kB, no Konva in the entry).
+
 ## v1.7.6 – 2026-10-06
 
 No rules change in this release.

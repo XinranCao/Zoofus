@@ -13,7 +13,7 @@
     drop-shadow(-2px 0 0 var(--plum-900)) drop-shadow(0 2px 0 var(--plum-900))
     drop-shadow(0 -2px 0 var(--plum-900));
   /* paper grain, tinted cocoa (overrides the plain colour of the same name in tokens.css) */
-  --grain: url("/grain.png");
+  --grain: url("./grain.webp");
 }
 
 @theme {
