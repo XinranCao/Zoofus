@@ -94,11 +94,17 @@ export interface JournalChanges {
   thumb?: Blob | null;
 }
 
+/** What a save tells the caller: the new picture, if one was made. */
+export interface SavedJournal {
+  thumbPath?: string;
+  thumbUrl?: string;
+}
+
 export async function saveJournal(
   uid: string,
   journal: Pick<Journal, "id" | "thumbPath">,
   changes: JournalChanges,
-): Promise<string | undefined> {
+): Promise<SavedJournal> {
   if (changes.items && changes.items.length > MAX_JOURNAL_ITEMS)
     throw new JournalLimitError();
   const update: Record<string, unknown> = { updatedAt: serverTimestamp() };
@@ -106,18 +112,21 @@ export async function saveJournal(
   if (changes.page) update.page = cleanForFirestore(changes.page);
   if (changes.items) update.items = cleanForFirestore(changes.items);
   let newThumbPath: string | undefined;
+  let newThumbUrl: string | undefined;
   if (changes.thumb) {
     // a new name every time, so a cached picture is never served for the new page
     newThumbPath = `${uid}/journals/${journal.id}/thumb_${Date.now()}.webp`;
     const fileRef = ref(storage, newThumbPath);
     await uploadBytes(fileRef, changes.thumb, { contentType: "image/webp" });
-    update.thumbUrl = await getDownloadURL(fileRef);
+    newThumbUrl = await getDownloadURL(fileRef);
+    update.thumbUrl = newThumbUrl;
     update.thumbPath = newThumbPath;
   }
   await updateDoc(doc(journalsRef(uid), journal.id), update);
   if (newThumbPath && journal.thumbPath && journal.thumbPath !== newThumbPath)
     await deleteFileIfExists(ref(storage, journal.thumbPath)).catch(() => {});
-  return newThumbPath; // the caller keeps it, so the next save knows what to replace
+  // the caller keeps the path, so the next save knows what to replace; the list patches its copy
+  return { thumbPath: newThumbPath, thumbUrl: newThumbUrl };
 }
 
 /**
@@ -128,7 +137,7 @@ export async function setJournalThumb(
   uid: string,
   journal: Pick<Journal, "id" | "thumbPath">,
   thumb: Blob,
-): Promise<void> {
+): Promise<{ thumbPath: string; thumbUrl: string }> {
   const path = `${uid}/journals/${journal.id}/thumb_${Date.now()}.webp`;
   const fileRef = ref(storage, path);
   await uploadBytes(fileRef, thumb, { contentType: "image/webp" });
@@ -136,6 +145,7 @@ export async function setJournalThumb(
   await updateDoc(doc(journalsRef(uid), journal.id), { thumbUrl: url, thumbPath: path });
   if (journal.thumbPath && journal.thumbPath !== path)
     await deleteFileIfExists(ref(storage, journal.thumbPath)).catch(() => {});
+  return { thumbPath: path, thumbUrl: url };
 }
 
 export async function renameJournal(uid: string, id: string, title: string) {

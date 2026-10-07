@@ -45,4 +45,5 @@ Anything another person's browser will load (a public profile's `avatarUrl`, a s
 | `zoofus.lang`                                 | the language the person chose (`en` or `zh-CN`); with none, the interface starts in Chinese           |
 | `zf-lite`                                     | `1` / `0`: "lite" drawing for a slow computer (`?lite=1` / `?lite=0`; set by itself when frames drop) |
 | `zf-journal-title-<uid>-<journalId>`          | a journal title being typed, until the server has it (a reload at once still shows and saves it)      |
+| `zf-heal-failed`                              | journals whose page picture could not be drawn, with the time, so they are not retried for a day      |
 | `zf-verify-collapsed/-views/-explained-<uid>` | the "confirm your email" note: shrunk, page views, and whether its explaining sentence was shown      |

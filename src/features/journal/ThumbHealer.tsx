@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useAuth } from "@/features/auth/useAuth";
 import { isLite } from "@/lib/lite";
 import type { Journal } from "./journal.schema";
+import { recentlyFailed } from "./healMemory";
 import { useJournals } from "./useJournals";
 
 /** At most this many pictures are made in one visit, one after the other (fewer on a slow computer). */
@@ -30,6 +31,7 @@ export function ThumbHealer() {
         !j.thumbUrl &&
         j.items.length > 0 &&
         !tried.current.has(j.id) &&
+        !recentlyFailed(j.id) &&
         !pathname.includes(j.id), // not the one being edited just now
     );
     if (!next) return;

@@ -6,6 +6,8 @@ import type { Journal } from "./journal.schema";
 import { exportStage } from "./exportStage";
 import { JournalCanvas } from "./JournalCanvas";
 import { useStickerResolver } from "./stickerRegistry";
+import { rememberFailure } from "./healMemory";
+import { patchJournal } from "./useJournals";
 
 const WIDTH = 480;
 
@@ -49,10 +51,14 @@ export default function ThumbMaker({
         if (!alive || !st) return;
         const blob = await exportStage(st, journal.page.width, WIDTH, 0.8, "image/webp");
         if (!alive) return;
-        await setJournalThumb(uid, journal, blob);
-        await qc.invalidateQueries({ queryKey: ["journals", uid] });
+        const saved = await setJournalThumb(uid, journal, blob);
+        // only this one picture changed: patch the list instead of reading every journal again
+        qc.setQueryData<Journal[]>(["journals", uid], (list) =>
+          patchJournal(list, journal.id, saved, false),
+        );
       } catch (err) {
         console.warn("Could not make a page picture for a journal", err);
+        rememberFailure(journal.id);
       } finally {
         if (alive) setTimeout(onDone, 800);
       }

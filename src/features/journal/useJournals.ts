@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/features/auth/useAuth";
+import { cleanForFirestore } from "@/paper/patternSchema";
 import {
   createJournal,
   deleteJournal,
@@ -11,6 +12,25 @@ import {
   type NewJournal,
 } from "./journal.api";
 import type { Journal } from "./journal.schema";
+
+/**
+ * Puts what a save or a heal changed into the cached list, so nothing is read again (re-reading
+ * every journal with all its items on each save is what this replaces). The list stays in the
+ * server's order: most recently updated first.
+ */
+export function patchJournal(
+  list: Journal[] | undefined,
+  id: string,
+  change: Partial<Journal>,
+  moveToFront: boolean,
+): Journal[] | undefined {
+  if (!list) return list;
+  const at = list.findIndex((j) => j.id === id);
+  if (at === -1) return list;
+  const next = { ...list[at]!, ...change };
+  const rest = list.filter((_, i) => i !== at);
+  return moveToFront ? [next, ...rest] : list.map((j, i) => (i === at ? next : j));
+}
 
 const key = (uid: string) => ["journals", uid] as const;
 const one = (uid: string, id: string) => ["journal", uid, id] as const;
@@ -64,7 +84,20 @@ export function useSaveJournal() {
       if (!uid) throw new Error("Not signed in");
       return saveJournal(uid, journal, changes);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: key(uid ?? "") }),
+    onSuccess: (saved, { journal, changes }) => {
+      const change: Partial<Journal> = { updatedAt: new Date() };
+      if (changes.title !== undefined) change.title = changes.title;
+      // as stored: no `undefined` fields (the next share writes these items out again)
+      if (changes.page) change.page = cleanForFirestore(changes.page);
+      if (changes.items) change.items = cleanForFirestore(changes.items);
+      if (saved.thumbUrl) {
+        change.thumbUrl = saved.thumbUrl;
+        change.thumbPath = saved.thumbPath;
+      }
+      qc.setQueryData<Journal[]>(key(uid ?? ""), (list) =>
+        patchJournal(list, journal.id, change, true),
+      );
+    },
   });
 }
 
