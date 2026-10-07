@@ -42,7 +42,6 @@ export const MAKE_ITEMS: { key: MakeKey; icon: IconName }[] = [
   { key: "sticker", icon: "lasso" },
   { key: "tape", icon: "tape" },
   { key: "journal", icon: "journal" },
-  { key: "together", icon: "users" },
 ];
 
 /**

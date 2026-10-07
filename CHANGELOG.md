@@ -12,6 +12,8 @@
 
 - **PM-v1.7.6-004: signing in reads only what the first screen shows.** Home reads the 12 newest stickers (`useRecentStickers`, was every sticker); the Library reads 40 at a time with a "Show more" button (`useStickerPages`; a `/stickers?edit=<id>` link to a sticker past the first page fetches that one by id); starting a journal counts journals on the server (`getCountFromServer`, only while the dialog is open) instead of reading them all, and the page-picture healer now works only on journals another screen has already loaded; the friends list is read only when the Start-a-page dialog opens; the live listeners watch the newest 5 of friends, requests and inbox instead of all of them, and the request and inbox lists stop at 50. The sticker picker, collections and the journal's pictures still read every sticker, as they need them all. **Not done:** storing a nickname and avatar on each friend document (a copy that would go stale when a friend changes them; the list still reads one profile per friend, but only on the Friends page).
 
+- **PM-v1.7.6-005: one name, "Journal together" (一起做手账).** The top bar, phone menu, page title, back link ("Back to Journal together") and the invitation badge ("Journal together: 1 invitation waiting") use the one name, and the page's button is "Start a page" (发起一页). The Make menu lists only Sticker, Tape and Journal: the second entry for the same page is gone (the Start a page dialog opens from its own page, or `/together?make=1`).
+
 ## v1.7.6 – 2026-10-06
 
 No rules change in this release.
