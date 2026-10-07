@@ -8,6 +8,8 @@
 
 - **PM-v1.7.6-002: a save no longer re-reads every journal, and has a maximum wait.** After a save or a page-picture heal the cached Journals list is patched (title, updated time, picture, moved to the front) instead of invalidated, which had re-downloaded every journal with all its items each time. The items write is never later than 15 s after the first unsaved change (it used to wait for a pause), the picture never later than 30 s (and still 20 s apart); both come from a small tested scheduler (`saveScheduler.ts`). A journal whose picture could not be made is remembered for a day in `localStorage` (`zf-heal-failed`) instead of being retried on every visit. `saveJournal` and `setJournalThumb` now return the new picture's path and link.
 
+- **PM-v1.7.6-003: the "drawImage on a canvas of 0 size" console error is gone.** A pen line being drawn (pencil, marker, crayon) gives each step's canvas back to the browser; it did so in an effect cleanup, which also runs when React mounts a component twice in development, so a canvas still on the page was emptied and Konva drew it (a `pageerror`). The previous canvas is now released only after the new one has replaced it. A new e2e opens a journal, places a sticker, tape, text and all four pens, saves and reloads, and fails on any page error or console error.
+
 ## v1.7.6 – 2026-10-06
 
 No rules change in this release.

@@ -357,8 +357,15 @@ function StrokeLine({
         : null,
     [layout, item.tool, item.size, item.color, points, live],
   );
-  // a line still being drawn makes a new canvas at every step: give the old one back
-  useEffect(() => (live ? () => releaseCanvas(canvas) : undefined), [canvas, live]);
+  // a line still being drawn makes a new canvas at every step: give the previous one back, but
+  // only once this one has replaced it on the page. (Releasing in a cleanup would also run on a
+  // development double-mount and empty a canvas that is still being drawn.)
+  const shown = useRef<HTMLCanvasElement | null>(null);
+  useEffect(() => {
+    const before = shown.current;
+    shown.current = canvas;
+    if (live && before && before !== canvas) releaseCanvas(before);
+  }, [canvas, live]);
   const ref = (n: Konva.Node | null) => {
     if (id) register?.(id, n);
   };

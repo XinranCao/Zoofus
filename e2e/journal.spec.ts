@@ -426,3 +426,61 @@ test("choose several things with an area, move them together, copy and paste by 
   await page.keyboard.press("ControlOrMeta+z");
   await expect(items).toHaveCount(6);
 });
+
+test("opening a journal and placing a sticker, text, tape and pen lines raises no error", async ({
+  page,
+}) => {
+  const problems: string[] = [];
+  page.on("pageerror", (e) =>
+    problems.push(
+      "pageerror: " +
+        e.message +
+        " " +
+        (e.stack ?? "").split("\n").slice(1, 8).join(" | "),
+    ),
+  );
+  page.on("console", (m) => {
+    if (m.type() !== "error") return;
+    // the browser's own notes about the dev server's inline scripts are not the app's errors
+    if (/Content Security Policy|Failed to load resource/.test(m.text())) return;
+    problems.push("console: " + m.text().slice(0, 300));
+  });
+  await signUp(page, "Quiet");
+  await makeSticker(page);
+  await page.goto("/journals?make=1");
+  const dlg = page.getByRole("dialog", { name: "New journal" });
+  await dlg.getByLabel("Title").fill("Quiet page");
+  await dlg.getByRole("button", { name: "Start" }).click();
+  await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
+  await page.getByRole("button", { name: "Sticker" }).first().click();
+  await page.getByRole("dialog").getByRole("button", { name: /^Cut / }).first().click();
+  await page.getByRole("button", { name: "Tape", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Pink dots" }).click();
+  await page.waitForTimeout(500);
+  await page.getByRole("button", { name: "Text", exact: true }).click();
+  const box = (await page.locator(".zf-jstudio__page canvas").first().boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.2);
+  await page.getByLabel("Text", { exact: true }).fill("Hello");
+  for (const [tool, fy] of [
+    ["pen", 0.5],
+    ["pencil", 0.6],
+    ["marker", 0.7],
+    ["crayon", 0.8],
+  ] as const) {
+    await page.getByRole("button", { name: "Draw", exact: true }).click();
+    await page.getByRole("radio", { name: new RegExp(`^${tool}$`, "i") }).click();
+    await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * fy);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * (fy + 0.04), {
+      steps: 8,
+    });
+    await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * fy, { steps: 8 });
+    await page.mouse.up();
+  }
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("Journal saved.").first()).toBeVisible();
+  await page.reload();
+  await page.waitForTimeout(1500);
+  await expect(page.locator(".zf-jstudio__page canvas").first()).toBeVisible();
+  expect(problems).toEqual([]);
+});
