@@ -39,3 +39,20 @@ The owner's answers, applied in the app. Everything below is **Decided**.
 | – | Google sign-in button | **Decided.** Follow Google's current Sign in with Google branding guidelines exactly (light theme, official label, unmodified "G"). **An intentional exception**, kept after review (October 2026), to "everything is torn": it is not torn, clipped, rotated or recoloured, and it also has the white fill and 1px border Google specifies. It sits inside the torn auth card with normal spacing. | `src/components/ui/GoogleButton.tsx` |
 | – | Language switch | **Decided.** Same placement. In the account menu a segmented "EN · 中文"; signed out, a quiet button reading "中文" or "English". | `src/components/ui/Masthead.tsx` |
 | – | Legacy stickers | **Decided.** Typed `kind: 'legacy'`; they display, download and rename; "Edit edge" is replaced by a note. No bulk migration. | `sticker.schema.ts`, `StickerDetailDialog.tsx` |
+
+## Decided (round 3, v2.0.0)
+
+| # | Question | Decision | In the app |
+| --- | --- | --- | --- |
+| 10 | Collage / journal pages | **Decided and built.** Pages are the journal studio: a sheet on the notebook ground with stickers, tape, text and pen lines. Desktop, tablet and phone layouts are in `03-screens.md`. | `src/features/journal/` |
+| 11 | Sticker book on Home | **Decided.** Home is a desk with four layouts; the landing page is the signed-out front door. | `src/features/home/` |
+| – | Tagline | **Decided.** The wordmark stays alone. The landing's `h1` "Turn your photos into stickers." is page copy and may stay. | `LandingPage.tsx` |
+| – | A Chinese name for Zoofus | **Decided.** None. Zoofus is written as "Zoofus" in Chinese text too, with no reading. | `src/i18n/locales/zh.ts` |
+| – | Price | **Decided.** "Free to use." / 免费使用。 near the main button and in the privacy line. A price is never shown. | landing copy |
+| – | Platforms named | **Decided.** The Chinese landing may name 微信 and 小红书; the English one does not name apps. | landing copy |
+| – | Friends and Together terms | **Decided.** 好友 for friends (never 朋友); the nav reads "Journal together" / 一起做手账. | `locales.test.ts` bans the old words |
+| – | Phone journal editor | **Decided.** Under 500px: a one-row top bar (arrow, title, save line, Save, More), a fixed bottom tool bar, and a sheet for the selected thing. | `components.css`, `JournalStudio.tsx` |
+| – | Pen realism | **Decided.** Pencil, marker and crayon get real textures; the pen stays clean. Strokes stay vectors. | `penTexture.ts` |
+| – | Tile pictures | **Decided.** Tiles use small WebP pictures; the full file is for the open view and the page. | `smallPicture()` |
+| 15 | Sharing user patterns | **Still open.** Tapes and edge prints are copied when a friend keeps a shared tape or sticker; there is no "make a tape from this sticker" yet. | – |
+

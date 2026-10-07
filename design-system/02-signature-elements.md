@@ -262,3 +262,24 @@ type PatternSpec = {
 **User colours (16):** sheet, cream, peach, blush, pink, celery, lime, mustard, apricot, rose, olive, tangerine, brick, plum, moss, cocoa. The near-fluorescent tones (orange-500, chartreuse-400, hotpink-300, magenta-500) are not offered, which keeps homemade prints faded.
 
 **Accessibility.** Pixel cells are buttons (`aria-pressed`, "Row 3 column 5"). The doodle pad has an accessible name, and the pattern presets are a radiogroup, so anyone who cannot draw can still make a pattern from presets and pixels.
+
+## 9. Edges on chrome are never borders
+
+`e2e/design-system.spec.ts` fails any piece of chrome that has a computed `border` or `border-radius`. When a design needs a line, draw it some other way:
+
+- **Dashed or lined edge** (the phone journal tool bar's top edge, the dashed divider, the dashed drop zone): a `background` made of a `linear-gradient` or `repeating-linear-gradient`, or an inline SVG, sized to the edge. Never `border-top: 1px dashed`.
+- **A round or oval mark** (the home's "Start here" and "Done" stamps): an SVG `ellipse` with a hand-lettered word on top. Never `border-radius: 50%`.
+- **A box round a selection** (the several-things box in the journal studio): drawn on the Konva canvas with a dashed stroke, with a turn handle a fixed gap above it. It is a canvas drawing, not chrome.
+- **A row that changes content** (a Save button appearing, a status line changing) must not change height or wrap, so nothing below it moves. Icons are 24px, which is what keeps such a row on one line.
+
+## 10. User-made marks look like the real thing
+
+What a person draws or prints with is allowed to be more realistic than the chrome, because it is their work, not the interface.
+
+- **Pens.** Four tools, each drawn at its own width (pen 1×, pencil 0.8×, marker 2.6×, crayon 1.7× the chosen size). The pen stays a crisp vector line. Pencil, marker and crayon are painted once per stroke into a small canvas: a solid path with paper "tooth" rubbed out of it by a grain that is fixed to the page, so two strokes over the same spot show the same tooth, as on real paper, and a stroke that grows while it is drawn does not shimmer. Whatever the tool, a stroke is stored as a short vector string (a few hundred bytes) and stays sharp at any zoom.
+- **Tape and sticker prints** use `PatternSpec` and the 16 `USER_COLORS`; the faded-palette rule for chrome does not apply to them.
+- Never a shadow on a sticker or a piece of tape, in the page or in the export.
+
+## 11. Small pictures
+
+A tile, a picker, a folder and a face show a sticker's small picture (320px WebP, 20 kB at most, `smallPicture()` in `sticker.schema.ts`); the open view, the journal page and the exports use the full file. Both come from the same `dieCut()`, so what a tile shows is what the sticker is. A sticker without a small picture shows its full file until one is made for it, out of sight, the first time it is on screen. Journals do the same with the picture of the page (480px WebP).

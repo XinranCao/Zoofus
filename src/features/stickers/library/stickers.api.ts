@@ -278,7 +278,13 @@ export async function setStickerThumb(
 ): Promise<{ thumbPath: string; thumbUrl: string }> {
   const thumbPath = `${uid}/stickers/${sticker.id}_${Date.now()}_t.webp`;
   const thumbUrl = await upload(thumbPath, thumb);
-  await updateDoc(doc(stickersRef(uid), sticker.id), { thumbPath, thumbUrl });
+  try {
+    await updateDoc(doc(stickersRef(uid), sticker.id), { thumbPath, thumbUrl });
+  } catch (err) {
+    // the sticker may have been deleted meanwhile: leave no file behind that nothing points at
+    await deleteFileIfExists(ref(storage, thumbPath)).catch(() => {});
+    throw err;
+  }
   if (sticker.thumbPath && sticker.thumbPath !== thumbPath)
     await deleteFileIfExists(ref(storage, sticker.thumbPath)).catch(() => {});
   return { thumbPath, thumbUrl };
