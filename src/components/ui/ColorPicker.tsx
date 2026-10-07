@@ -1,11 +1,12 @@
 import * as RPopover from "@radix-ui/react-popover";
 import * as RRadio from "@radix-ui/react-radio-group";
 import { useTranslation } from "react-i18next";
-import { useId, type ComponentProps, type CSSProperties } from "react";
+import { useId, useState, type ComponentProps, type CSSProperties } from "react";
 import { cn } from "@/lib/cn";
 import { hex, USER_COLORS } from "@/paper/pattern";
 import { seededRot } from "@/paper/random";
 import { tornVars } from "@/paper/torn";
+import { Chip } from "./Chip";
 import { Icon } from "./Icon";
 import { Paper } from "./Paper";
 
@@ -158,6 +159,65 @@ export function ColorPickerPopover({
               onChange={onChange}
               colors={colors}
               columns={columns}
+              label={label}
+            />
+          </Paper>
+        </RPopover.Content>
+      </RPopover.Portal>
+    </RPopover.Root>
+  );
+}
+
+/**
+ * A colour choice folded into a drop-down, for a phone: a torn chip showing the colour and its name,
+ * which opens the swatches in a small scrap. Choosing one closes it.
+ */
+export function ColorDropdown({
+  value,
+  onChange,
+  colors = USER_COLORS,
+  label,
+  seed = "",
+}: {
+  value: string;
+  onChange: (token: string) => void;
+  colors?: readonly (string | [string, string])[];
+  label: string;
+  seed?: string;
+}) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const name = t(`colours.${value}`, { defaultValue: COLOR_NAMES[value] ?? value });
+  return (
+    <RPopover.Root open={open} onOpenChange={setOpen}>
+      <RPopover.Trigger asChild>
+        <Chip seed={seed + "cd"} className="zf-select" aria-label={`${label}: ${name}`}>
+          <span
+            aria-hidden="true"
+            className="zf-colordot"
+            style={{ background: hex(value) }}
+          />
+          <span className="zf-select__value">{name}</span>
+          <Icon name="chevron" style={{ width: 16, height: 16 }} />
+        </Chip>
+      </RPopover.Trigger>
+      <RPopover.Portal>
+        <RPopover.Content asChild sideOffset={8} align="start" collisionPadding={12}>
+          <Paper
+            seed={seed + "cdp"}
+            size="md"
+            tone="scrap"
+            rotate={0}
+            className="zf-colormenu z-50"
+            faceStyle={{ padding: "16px 14px 16px" }}
+          >
+            <ColorPicker
+              value={value}
+              onChange={(v) => {
+                onChange(v);
+                setOpen(false);
+              }}
+              colors={colors}
               label={label}
             />
           </Paper>

@@ -1,3 +1,4 @@
+import { chooseKind } from "./support/flows";
 import { expect, test, type Page } from "@playwright/test";
 import { patternPng } from "./png";
 
@@ -32,7 +33,7 @@ async function toEdgeStudio(page: Page) {
   await maker.getByRole("button", { name: "Cut it out" }).click();
   const result = page.getByRole("dialog", { name: "Your sticker" });
   await expect(result).toBeVisible();
-  await page.getByRole("radio", { name: "Pixels" }).click(); // the tallest content there is
+  await chooseKind(page, "Pixels"); // the tallest content there is
   return result;
 }
 

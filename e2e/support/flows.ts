@@ -43,3 +43,16 @@ export async function makeSticker(
   ).toBeVisible();
   await page.getByRole("button", { name: "Close" }).first().click();
 }
+
+/** Choose a pattern kind in the pattern editor: a row of radios, or (on a phone) a drop-down. */
+export async function chooseKind(page: Page, name: string) {
+  const radio = page.getByRole("radio", { name });
+  const dropdown = page.getByRole("button", { name: /^(Pattern|Print):/ });
+  await expect(radio.or(dropdown).first()).toBeVisible();
+  if (await radio.count()) {
+    await radio.click();
+    return;
+  }
+  await dropdown.click();
+  await page.getByRole("menuitemradio", { name, exact: true }).click();
+}

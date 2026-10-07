@@ -1446,10 +1446,16 @@
     position: absolute;
     inset: -12px;
   }
-  /* the pixel grid fills the width it has, and dragging paints, so a cell need not be a full tap target */
+  /* the pixel grid is small on a phone: dragging on it paints (it must not scroll), so a finger that
+     is only scrolling the page should rarely land on it; the page scrolls from everywhere else */
   .zf-pixels {
     grid-template-columns: repeat(8, 1fr);
-    width: min(100%, 304px);
+    width: min(60%, 168px);
+    flex: 0 0 auto;
+  }
+  .zf-doodle-pad {
+    width: 112px;
+    height: 112px;
   }
   .zf-pixel {
     width: auto;
@@ -2757,4 +2763,20 @@
 .zf-grid-book.is-long > .zf-tile {
   content-visibility: auto;
   contain-intrinsic-size: auto 310px;
+}
+
+/* a colour drop-down (phone): the chosen colour as a dot before its name */
+.zf-colordot {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  background: var(--tone, currentColor);
+}
+.zf-colormenu {
+  width: min(300px, calc(100vw - 24px));
+}
+/* four to a row at a 48px pitch, so 16 colours are four short rows */
+.zf-colormenu .zf-swatches {
+  grid-template-columns: repeat(4, 28px) !important;
+  justify-content: space-around;
 }
