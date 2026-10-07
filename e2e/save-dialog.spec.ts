@@ -252,13 +252,15 @@ for (const [width, height] of [
     const body = dlg.locator(".zf-toast__body", { hasText: /Tap Edit edge/ });
     await expect(body).toBeVisible();
     await expect(dlg.getByText(/Optional\. Without one/)).toHaveCount(0);
+    // the text fits its own box, and the box fits what the dialog shows (nothing cut at the sides)
     const clipped = await body.evaluate((el) => {
-      let node: HTMLElement | null = el as HTMLElement;
-      while (node && node !== document.body) {
-        if (node.scrollWidth > node.clientWidth + 1) return true;
-        node = node.parentElement;
-      }
-      return false;
+      const r = el.getBoundingClientRect();
+      const s = el.closest(".zf-dialog__scroll")!.getBoundingClientRect();
+      return (
+        el.scrollWidth > el.clientWidth + 1 ||
+        r.left < s.left - 1 ||
+        r.right > s.right + 1
+      );
     });
     expect(clipped).toBe(false);
   });
