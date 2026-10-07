@@ -3,6 +3,7 @@ export const en = {
   common: {
     dismiss: "Dismiss",
     showMore: "Show more",
+    stillWorking: "Still working. This is taking longer than usual.",
     close: "Close",
     cancel: "Cancel",
     back: "Back",

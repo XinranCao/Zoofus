@@ -26,6 +26,8 @@
 
 - **PM-v1.7.6-010: the journal editor on a phone shows the page first.** Under 500 px the top bar is one row (back, title, status, Save) with Undo, Redo, zoom, Paper and Download image behind a "More" button, the six tools are a bar along the bottom of the screen (icon above the word, all six at once), the confirm-email note stays out of the editor, and what is chosen or typed (the text panel) is a sheet above the tool bar, so creating a text box no longer scrolls the page away. At 375x667 and 390x844 more than half of the screen is page. On tablets (500 to 1099 px) the panel sits beside the page. A tape picked from the list lands on top of everything, selected, with the note "Tape added" (胶带已贴上). The studio takes a new `more` prop (`header` is now just the status and Save); Together keeps "Save a copy" behind More on a phone.
 
+- **PM-v1.7.6-012: lists that never look lost.** A journal tile with no page picture yet (the page you have just left, or one saved before pictures were kept) now draws the page from its items, read-only, instead of showing bare paper (`JournalLivePage`, loaded only when a tile needs it, for the first 6 tiles of a list). The "Loading your …" note adds "Still working. This is taking longer than usual." after 3 s. New journal's Start says "Starting…" at once, and Save edge ignores a second press from the first (the drawing step used to come before the button changed). Lists already showed skeletons and a status after 300 ms.
+
 ## v1.7.6 – 2026-10-06
 
 No rules change in this release.

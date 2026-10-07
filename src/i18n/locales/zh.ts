@@ -5,6 +5,7 @@ export const zh: Messages = {
   common: {
     dismiss: "关闭提示",
     showMore: "显示更多",
+    stillWorking: "还在加载，比平时慢一些。",
     close: "关闭",
     cancel: "取消",
     back: "返回",

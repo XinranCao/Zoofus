@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Paper } from "./Paper";
 
 /** True once `ms` have passed since the component mounted (a quick load never flashes a state). */
@@ -16,10 +17,13 @@ function useAfter(ms: number): boolean {
  * 300 ms. Mount it while a list is loading, next to its skeleton.
  */
 export function LoadingNote({ text }: { text: string }) {
+  const { t } = useTranslation();
   const late = useAfter(300);
+  const slow = useAfter(3000);
   return (
     <p className="zf-muted" role="status" style={{ margin: "0 0 12px" }}>
       {late ? text : ""}
+      {slow ? ` ${t("common.stillWorking")}` : ""}
     </p>
   );
 }

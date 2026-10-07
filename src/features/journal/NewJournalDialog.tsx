@@ -78,7 +78,7 @@ export function NewJournalDialog({
             type="submit"
             form="new-journal-form"
           >
-            {t("journal.start")}
+            {create.isPending ? t("auth.signup.starting") : t("journal.start")}
           </Button>
         </>
       }

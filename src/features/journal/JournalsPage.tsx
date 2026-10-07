@@ -143,6 +143,7 @@ export default function JournalsPage() {
               key={j.id}
               journal={j}
               index={i}
+              live={i < 6}
               date={date(j)}
               selecting={selection.active}
               selected={selection.ids.has(j.id)}

@@ -102,8 +102,12 @@ function EditEdgeBody({ sticker, onClose }: { sticker: Sticker; onClose: () => v
 
   // after a saved edit, focus goes to that sticker's card (not back to a button that is gone)
   const edited = useRef(false);
+  // the label changes and a second press is ignored from the first press (drawing the sticker
+  // comes before the upload, and the upload's own pending state starts only after it)
+  const [busy, setBusy] = useState(false);
   const save = async () => {
-    if (!source) return;
+    if (!source || busy) return;
+    setBusy(true);
     try {
       const canvas = await renderSticker(source, edge, seed);
       await update.mutateAsync({
@@ -130,6 +134,8 @@ function EditEdgeBody({ sticker, onClose }: { sticker: Sticker; onClose: () => v
         title: t("auth.errors.toastTitle"),
         body: `${t("book.editEdgeFailed")} (${code})`,
       });
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -159,10 +165,10 @@ function EditEdgeBody({ sticker, onClose }: { sticker: Sticker; onClose: () => v
             icon="check"
             seed="ees"
             disabled={!source}
-            loading={update.isPending}
+            loading={busy || update.isPending}
             onClick={() => void save()}
           >
-            {update.isPending ? t("maker.edge.saving") : t("book.editEdgeSave")}
+            {busy || update.isPending ? t("maker.edge.saving") : t("book.editEdgeSave")}
           </Button>
         </>
       }

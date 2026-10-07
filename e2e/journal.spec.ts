@@ -480,3 +480,27 @@ test("opening a journal and placing a sticker, text, tape and pen lines raises n
   await expect(page.locator(".zf-jstudio__page canvas").first()).toBeVisible();
   expect(problems).toEqual([]);
 });
+
+// PM-v1.7.6-012: leaving the editor never leaves a blank tile (the page is drawn from its items
+// until its picture exists)
+test("back from the editor, the journal's tile shows the page at once", async ({
+  page,
+}) => {
+  await signUp(page, "Back");
+  await page.goto("/journals?make=1");
+  const dlg = page.getByRole("dialog", { name: "New journal" });
+  await dlg.getByLabel("Title").fill("Quick page");
+  await dlg.getByRole("button", { name: "Start" }).click();
+  await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
+  await page.getByRole("button", { name: "Text", exact: true }).click();
+  const box = (await page.locator(".zf-jstudio__page canvas").first().boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.2);
+  await page.getByLabel("Text", { exact: true }).fill("Not blank");
+  // at once, before the picture could have been uploaded
+  await page.getByRole("link", { name: "← Journals" }).click();
+  const tile = page.locator(".zf-jtile").first();
+  await expect(tile).toBeVisible();
+  await expect(tile.locator(".zf-jtile__live canvas, img[src]").first()).toBeVisible({
+    timeout: 5000,
+  });
+});
