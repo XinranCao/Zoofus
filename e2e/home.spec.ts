@@ -66,7 +66,7 @@ test("a new account sees its first sticker to cut, and then its own desk", async
   await expect(page.getByRole("heading", { name: "Recently cut" })).toBeVisible();
   await expect(page.getByText("Four things to try")).toHaveCount(0);
   // a person with a sticker and no journal is pointed to a page
-  await expect(page.getByText("Put it on a page")).toBeVisible();
+  await expect(page.getByText("Put it on a page", { exact: true })).toBeVisible();
 });
 
 for (const [width, height] of [
