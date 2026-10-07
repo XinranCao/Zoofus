@@ -9,9 +9,7 @@ test("the account page uses plain words and says what is kept and who sees it", 
   await expect(
     page.getByRole("heading", { name: "What we keep, and who can see it" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Download my data (a file you can keep)" }),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Download my data" })).toBeVisible();
   await expect(page.locator("main")).not.toContainText("JSON");
   await expect(page.getByText(/Only you can see what is in your Library/)).toBeVisible();
   await expect(

@@ -178,22 +178,24 @@ test("the journal says whether it is saved, and the list shows it", async ({ pag
   await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
   const status = page
     .getByRole("status")
-    .filter({ hasText: /changes saved|Saving|Not saved/ });
-  await expect(status).toHaveText("All changes saved");
-  // exactly one indicator, and Save is not a red primary button
+    .filter({ hasText: /^(Saved|Saving…|Not saved yet)$/ });
+  await expect(status).toHaveText("Saved");
+  // exactly one indicator; Save is not there while nothing waits to be saved
   await expect(status).toHaveCount(1);
-  await expect(page.getByRole("button", { name: "Save", exact: true })).not.toHaveClass(
-    /\bprimary\b/,
-  );
+  await expect(page.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
 
   // a change: the status says it is on its way
   await page.getByRole("button", { name: "Text", exact: true }).click();
   const box = (await page.locator(".zf-jstudio__page canvas").first().boundingBox())!;
   await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.3);
   await page.getByLabel("Text", { exact: true }).fill("Hello");
-  await expect(status).toHaveText("Not saved yet");
+  await expect(status).toHaveText("Saving…");
+  // Save appears with the change, and is not a red primary button
+  await expect(page.getByRole("button", { name: "Save", exact: true })).not.toHaveClass(
+    /\bprimary\b/,
+  );
   await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(status).toHaveText("All changes saved");
+  await expect(status).toHaveText("Saved");
 
   // (leaving right after Save is tested on a slow connection below)
   await page.getByRole("link", { name: "← Journals" }).click();
@@ -211,23 +213,21 @@ async function newJournal(page: import("@playwright/test").Page, title: string) 
   await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
 }
 
-test("a new title settles to All changes saved, by itself and by Save", async ({
-  page,
-}) => {
+test("a new title settles to Saved, by itself and by Save", async ({ page }) => {
   await signUp(page, "Title");
   await newJournal(page, "First name");
   const status = page
     .getByRole("status")
-    .filter({ hasText: /changes saved|Saving|Not saved/ });
-  await expect(status).toHaveText("All changes saved");
+    .filter({ hasText: /^(Saved|Saving…|Not saved yet)$/ });
+  await expect(status).toHaveText("Saved");
   const title = page.getByLabel("Title", { exact: true });
   await title.fill("Second name");
-  await expect(status).toHaveText("Not saved yet");
-  await expect(status).toHaveText("All changes saved"); // no reload, no Save
+  await expect(status).toHaveText("Saving…");
+  await expect(status).toHaveText("Saved"); // no reload, no Save
   await title.fill("Third name");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText("Journal saved.").first()).toBeVisible();
-  await expect(status).toHaveText("All changes saved"); // the toast and the line agree
+  await expect(status).toHaveText("Saved"); // the toast and the line agree
 });
 
 test("a title typed and followed at once by Back, or by a reload, is kept", async ({
@@ -256,8 +256,8 @@ test("a title typed and followed at once by Back, or by a reload, is kept", asyn
   await expect(page.getByLabel("Title", { exact: true })).toHaveValue("After reload");
   const status = page
     .getByRole("status")
-    .filter({ hasText: /changes saved|Saving|Not saved/ });
-  await expect(status).toHaveText("All changes saved");
+    .filter({ hasText: /^(Saved|Saving…|Not saved yet)$/ });
+  await expect(status).toHaveText("Saved");
 });
 
 // PM-v1.7.2-002: what you place is written within seconds, not a minute
@@ -268,14 +268,14 @@ test("a placed item is saved within seconds and is there after a reload", async 
   await newJournal(page, "Seconds");
   const status = page
     .getByRole("status")
-    .filter({ hasText: /changes saved|Saving|Not saved/ });
-  await expect(status).toHaveText("All changes saved");
+    .filter({ hasText: /^(Saved|Saving…|Not saved yet)$/ });
+  await expect(status).toHaveText("Saved");
   await page.getByRole("button", { name: "Text", exact: true }).click();
   const box = (await page.locator(".zf-jstudio__page canvas").first().boundingBox())!;
   await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.3);
   await page.getByLabel("Text", { exact: true }).fill("Placed words");
-  await expect(status).toHaveText("Not saved yet");
-  await expect(status).toHaveText("All changes saved", { timeout: 6000 });
+  await expect(status).toHaveText("Saving…");
+  await expect(status).toHaveText("Saved", { timeout: 6000 });
   await page.reload();
   await expect(page.locator("#journal-items")).toContainText("Placed words");
 });
@@ -352,8 +352,8 @@ test("a journal without a page picture is given one, and lists show it", async (
   await placeText(page, "Words on the page");
   const status = page
     .getByRole("status")
-    .filter({ hasText: /changes saved|Saving|Not saved/ });
-  await expect(status).toHaveText("All changes saved", { timeout: 8000 });
+    .filter({ hasText: /^(Saved|Saving…|Not saved yet)$/ });
+  await expect(status).toHaveText("Saved", { timeout: 8000 });
   await page.getByRole("link", { name: "← Journals" }).click();
   const tile = page.locator(".zf-jtile").filter({ hasText: "No picture yet" });
   await expect(tile).toBeVisible();

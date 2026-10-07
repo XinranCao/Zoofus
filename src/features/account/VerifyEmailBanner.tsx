@@ -30,8 +30,8 @@ const viewCountOf = (uid: string) => Number(read(`${VIEWS}-${uid}`)) || 0;
 
 /**
  * Asks password-based users to confirm their email. The first time it says in one sentence that
- * this is optional; after Hide, or after a few page views, it shrinks to a small chip ("Email not confirmed") that opens
- * it again (Resend stays one press away). It never blocks anything, and it checks again whenever the person comes back to
+ * this is optional; after Hide, or after a few page views, it shrinks to a small chip ("Email not confirmed · Resend") that
+ * is the Resend button itself. It never blocks anything, and it checks again whenever the person comes back to
  * the tab (after clicking the link in the email), so there is no "I verified" button to press.
  */
 export function VerifyEmailBanner() {
@@ -41,7 +41,6 @@ export function VerifyEmailBanner() {
   const [sent, setSent] = useState(false);
   const uid = currentUser?.uid ?? "";
   const [away, setAway] = useState(() => read(`${COLLAPSED}-${uid}`) === "1");
-  const [open, setOpen] = useState(false); // opened again from the icon
   // the "optional" sentence is for the first time the note is seen (this load; not the next)
   const [explain] = useState(() => read(`${EXPLAINED}-${uid}`) !== "1");
   const pending =
@@ -69,19 +68,18 @@ export function VerifyEmailBanner() {
 
   const views = viewCountOf(uid);
   if (!pending) return null;
-  if ((away || views > FULL_VIEWS) && !open)
+  if (away || views > FULL_VIEWS)
     return (
       <div className="zf-verify zf-verify--small">
         <button
           type="button"
           className="zf-verify__chip"
-          aria-label={`${t("account.notConfirmed")}. ${t("account.verify")}`}
-          title={t("account.verifyWhy")}
-          aria-expanded={false}
-          onClick={() => setOpen(true)}
+          title={`${t("account.verify")} ${t("account.verifyWhy")}`}
+          disabled={sent}
+          onClick={() => void sendVerification().then(() => setSent(true))}
         >
           <Icon name="mail" />
-          {t("account.notConfirmed")}
+          {sent ? t("account.notConfirmedSent") : t("account.notConfirmedResend")}
         </button>
       </div>
     );
@@ -90,7 +88,7 @@ export function VerifyEmailBanner() {
       <Icon name="mail" />
       <span className="zf-verify__text">
         <b>{t("account.verify")}</b>
-        {explain && !open && <> {t("account.verifyWhy")}</>}
+        {explain && <> {t("account.verifyWhy")}</>}
       </span>
       {sent ? (
         // not a disabled button: that would stay a Tab stop that does nothing
@@ -114,7 +112,6 @@ export function VerifyEmailBanner() {
         onClick={() => {
           write(`${COLLAPSED}-${uid}`, "1");
           setAway(true);
-          setOpen(false);
         }}
       >
         <Icon name="x" />

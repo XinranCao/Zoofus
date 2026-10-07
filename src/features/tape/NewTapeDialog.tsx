@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { useToast } from "@/components/ui/Toast";
@@ -34,6 +34,8 @@ export function NewTapeDialog({
   const { t } = useTranslation();
   const toast = useToast();
   const navigate = useNavigate();
+  // the "See in Tapes" shortcut is only offered away from the Tapes page
+  const onTapesPage = useLocation().pathname === "/tapes";
   const { data: tapes } = useTapes();
   const save = useSaveTape();
   const update = useUpdateTape();
@@ -62,7 +64,7 @@ export function NewTapeDialog({
         toast.push({
           kind: "success",
           title: edit ? t("tape.updated") : t("tape.added", { name }),
-          ...(edit
+          ...(edit || onTapesPage
             ? {}
             : {
                 action: { label: t("tape.seeTapes"), onClick: () => navigate("/tapes") },

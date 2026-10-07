@@ -24,11 +24,10 @@ for (const [width, height] of [
     await page.setViewportSize({ width, height });
     await signUp(page, "Small");
     await openJournal(page);
-    // the status, Save and Download PNG are fully inside the screen, no swiping needed
+    // the status and Download image are fully inside the screen, no swiping needed
     for (const target of [
-      page.getByRole("status").filter({ hasText: /changes saved|Saving|Not saved/ }),
-      page.getByRole("button", { name: "Save", exact: true }),
-      page.getByRole("button", { name: "Download PNG" }),
+      page.getByRole("status").filter({ hasText: /^(Saved|Saving…|Not saved yet)$/ }),
+      page.getByRole("button", { name: "Download image" }),
     ]) {
       const b = (await target.boundingBox())!;
       expect(b.x).toBeGreaterThanOrEqual(0);

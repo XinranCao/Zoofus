@@ -158,14 +158,14 @@ test("at 640x360 the preview stays in view while choosing, and Saved is visible"
 test.describe("desktop", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  test("Save to Library is the primary button, Download PNG a quiet one; then See it and Make another", async ({
+  test("Save to Library is the primary button, Download image a quiet one; then See it and Make another", async ({
     page,
   }) => {
     await signUp(page, "Primary");
     const dlg = await toSaveDialog(page);
     const save = dlg.getByRole("button", { name: "Save to Library" });
     await expect(save).toHaveClass(/\bprimary\b/);
-    await expect(dlg.getByRole("button", { name: "Download PNG" })).toHaveClass(
+    await expect(dlg.getByRole("button", { name: "Download image" })).toHaveClass(
       /\bquiet\b/,
     );
     await save.click();
@@ -173,7 +173,7 @@ test.describe("desktop", () => {
     await expect(dlg.getByRole("button", { name: "See it in Library" })).toHaveClass(
       /\bprimary\b/,
     );
-    await expect(dlg.getByRole("button", { name: "Download PNG" })).toHaveClass(
+    await expect(dlg.getByRole("button", { name: "Download image" })).toHaveClass(
       /\bquiet\b/,
     );
     await dlg.getByRole("button", { name: "Make another" }).click();
@@ -206,9 +206,9 @@ test.describe("desktop", () => {
     await expect(note).toBeVisible();
     // the lock is explained in words, in the dialog's description too, and Tab skips what is locked
     await expect(
-      dlg.getByText(/To change the edge, use Edit edge\. The name is fixed\./).first(),
+      dlg.getByText(/Want a different edge\? Tap Edit edge\./).first(),
     ).toBeVisible();
-    await expect(dlg).toHaveAccessibleDescription(/To change the edge, use Edit edge/);
+    await expect(dlg).toHaveAccessibleDescription(/Tap Edit edge/);
     await expect(dlg.getByLabel("Name")).toBeDisabled();
     const landed: string[] = [];
     for (let i = 0; i < 8; i++) {
@@ -233,3 +233,33 @@ test.describe("desktop", () => {
     await expect(page.locator(".zf-tile")).toHaveCount(1);
   });
 });
+
+// PM-v1.7.6-006: the saved note is whole on a phone (it used to be clipped at 360 to 375 px)
+for (const [width, height] of [
+  [360, 740],
+  [375, 667],
+] as const) {
+  test(`the saved note is whole at ${width}x${height}, and the name hint is gone once saved`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height });
+    await signUp(page, "Phone");
+    const dlg = await toSaveDialog(page);
+    await expect(dlg.getByText(/Optional\. Without one/)).toBeVisible();
+    await dlg.getByRole("button", { name: "Save to Library" }).click();
+    const note = dlg.getByText("Saved to your Library.", { exact: true });
+    await note.scrollIntoViewIfNeeded();
+    const body = dlg.locator(".zf-toast__body", { hasText: /Tap Edit edge/ });
+    await expect(body).toBeVisible();
+    await expect(dlg.getByText(/Optional\. Without one/)).toHaveCount(0);
+    const clipped = await body.evaluate((el) => {
+      let node: HTMLElement | null = el as HTMLElement;
+      while (node && node !== document.body) {
+        if (node.scrollWidth > node.clientWidth + 1) return true;
+        node = node.parentElement;
+      }
+      return false;
+    });
+    expect(clipped).toBe(false);
+  });
+}

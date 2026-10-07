@@ -79,6 +79,23 @@ const writeDraft = (key: string, value: string | null) => {
   }
 };
 
+/** How long unsaved changes may wait before the status admits it. */
+const NOT_SAVED_AFTER_MS = 10_000;
+
+/** True once `active` has been true for `ms` without a break. */
+function useElapsed(active: boolean, ms: number) {
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    if (!active) return;
+    const timer = setTimeout(() => setDone(true), ms);
+    return () => {
+      clearTimeout(timer);
+      setDone(false);
+    };
+  }, [active, ms]);
+  return active && done;
+}
+
 function Editor({ journal }: { journal: Journal }) {
   const { t } = useTranslation();
   const toast = useToast();
@@ -209,6 +226,18 @@ function Editor({ journal }: { journal: Journal }) {
     return () => window.removeEventListener("beforeunload", warn);
   }, [store]);
 
+  // "Saving…" from the first edit, then "Saved". "Not saved yet" only when it is taking long (more
+  // than about 10 s) or the last save failed, so it means something when it shows.
+  const unsaved = dirty || titleDirty;
+  const slow = useElapsed(unsaved, NOT_SAVED_AFTER_MS);
+  const statusState = save.isPending
+    ? "saving"
+    : unsaved
+      ? slow || save.isError
+        ? "pending"
+        : "saving"
+      : "saved";
+
   return (
     <div className="zf-page zf-page--wide">
       <JournalStudio
@@ -219,21 +248,20 @@ function Editor({ journal }: { journal: Journal }) {
         exportRef={exportRef}
         header={
           <>
-            <SaveStatus
-              state={
-                save.isPending ? "saving" : dirty || titleDirty ? "pending" : "saved"
-              }
-            />
-            <Button
-              variant="quiet"
-              size="sm"
-              icon="check"
-              seed="jsave"
-              loading={save.isPending}
-              onClick={() => void saveNow()}
-            >
-              {t("common.save")}
-            </Button>
+            <SaveStatus state={statusState} />
+            {/* Save is only there when something is waiting to be saved (or being saved) */}
+            {(unsaved || save.isPending) && (
+              <Button
+                variant="quiet"
+                size="sm"
+                icon="check"
+                seed="jsave"
+                loading={save.isPending}
+                onClick={() => void saveNow()}
+              >
+                {t("common.save")}
+              </Button>
+            )}
             <Button
               variant="secondary"
               size="sm"

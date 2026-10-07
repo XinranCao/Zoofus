@@ -71,7 +71,7 @@ export default function LoginPage() {
         <div id="login-error" style={{ marginBottom: 16 }}>
           <ToastNote
             kind="error"
-            title={t("auth.errors.toastTitle")}
+            title={t("auth.errors.loginTitle")}
             body={t(error === "google" ? "auth.errors.google" : "auth.errors.login")}
             seed="login-error"
             role="alert"

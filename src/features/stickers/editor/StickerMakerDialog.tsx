@@ -371,7 +371,7 @@ function MakerBody({
                       >
                         <TextField
                           label={t("maker.edge.nameLabel")}
-                          hint={t("maker.edge.nameHint")}
+                          hint={saved ? undefined : t("maker.edge.nameHint")}
                           value={name}
                           maxLength={MAX_STICKER_NAME}
                           disabled={saved}

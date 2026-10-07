@@ -57,7 +57,7 @@ test("editing the edge of a saved sticker saves", async ({ page }) => {
       await dlg.getByRole("radio", { name: shape }).click();
       await dlg.getByRole("radio", { name: kind }).click();
       await dlg.getByRole("button", { name: "Save edge" }).click();
-      await expect(page.getByText("Edge saved.", { exact: true }).last()).toBeVisible({
+      await expect(page.getByText(/has its new edge\./).last()).toBeVisible({
         timeout: 10000,
       });
       await expect(dlg).toBeHidden();

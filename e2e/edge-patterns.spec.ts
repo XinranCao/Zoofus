@@ -60,7 +60,7 @@ test("a pattern shows with the default colours, and the tile shows a new edge at
   await edit.getByRole("radio", { name: "Torn" }).click();
   await edit.getByRole("radio", { name: "Stripes" }).click();
   await edit.getByRole("button", { name: "Save edge" }).click();
-  await expect(page.getByText("Edge saved.", { exact: true }).last()).toBeVisible();
+  await expect(page.getByText(/has its new edge\./).last()).toBeVisible();
   await expect(edit).toBeHidden();
   // no reload: the tile already shows the new picture, loaded
   const now = page.locator(".zf-tile img").first();

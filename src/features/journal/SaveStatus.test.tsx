@@ -5,7 +5,7 @@ import { SaveStatus } from "./SaveStatus";
 
 describe("SaveStatus", () => {
   it.each([
-    ["saved", "All changes saved"],
+    ["saved", "Saved"],
     ["saving", "Saving…"],
     ["pending", "Not saved yet"],
   ] as const)("says %s in a polite status", (state, text) => {

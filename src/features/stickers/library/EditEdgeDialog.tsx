@@ -117,8 +117,7 @@ function EditEdgeBody({ sticker, onClose }: { sticker: Sticker; onClose: () => v
       });
       toast.push({
         kind: "success",
-        title: t("book.editEdgeSaved"),
-        body: t("book.editEdgeSavedFor", { name: sticker.name }),
+        title: t("book.editEdgeSavedFor", { name: sticker.name }),
       });
       edited.current = true; // (the dialog hands focus to this sticker as it closes)
       onClose();

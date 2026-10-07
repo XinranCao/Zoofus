@@ -14,6 +14,8 @@
 
 - **PM-v1.7.6-005: one name, "Journal together" (一起做手账).** The top bar, phone menu, page title, back link ("Back to Journal together") and the invitation badge ("Journal together: 1 invitation waiting") use the one name, and the page's button is "Start a page" (发起一页). The Make menu lists only Sticker, Tape and Journal: the second entry for the same page is gone (the Start a page dialog opens from its own page, or `/together?make=1`).
 
+- **PM-v1.7.6-006: the sentences people misread, rewritten (en and zh).** The saved-sticker note no longer says "The name is fixed" (it says where to find it, how to change the edge and that it can be renamed in the Library; the name hint disappears once saved, and the note is whole at 360 and 375 px). The email note reads "Confirm your email. Optional for now; it lets you reset your password later.", and its small form is itself a button, "Email not confirmed · Resend". Sign-up step 2 asks "What should we call you?" with an empty nickname field (it used to be filled from the email address, which friends would then see) and says "Starting…" at once. The tape toast offers "See in Tapes" only away from the Tapes page, and the edge toast is the one sentence ("“Name” has its new edge."). The journal's status says "Saving…" from the first edit and then "Saved", and "Not saved yet" only when saving takes more than about 10 s or failed; Save shows only while something waits. "Download PNG" is "Download image" (下载图片), the account data text lost its two filler sentences, the Tapes lead is shorter, and a failed login says 登录失败 / "Couldn't log in".
+
 ## v1.7.6 – 2026-10-06
 
 No rules change in this release.
