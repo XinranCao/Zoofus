@@ -92,8 +92,14 @@ export default defineConfig(({ mode }) => ({
   // is what their assertions read; whoever picks a language keeps it (it is remembered).
   define: {
     __APP_VERSION__: JSON.stringify(version),
+    // (the emulator build opens in English unless asked: `VITE_DEFAULT_LANG=zh-CN npm run dev:emulated`
+    // shows what a visitor in production sees first)
     ...(mode === "emulator"
-      ? { "import.meta.env.VITE_DEFAULT_LANG": JSON.stringify("en") }
+      ? {
+          "import.meta.env.VITE_DEFAULT_LANG": JSON.stringify(
+            process.env.VITE_DEFAULT_LANG === "zh-CN" ? "zh-CN" : "en",
+          ),
+        }
       : {}),
   },
   plugins: [woff2Only(), react(), tailwindcss(), preloadFonts()],

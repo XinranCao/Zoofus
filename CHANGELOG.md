@@ -30,6 +30,8 @@
 
 - **PM-v1.7.6-011: choosing several things and copying them, without a keyboard.** With the Move tool, a "Select several" (多选) button at the corner of the page makes every tap add a thing to the choice or take it out (a finger or a mouse; the handles step aside meanwhile). Copy is in the panel of one thing as well as of a group, and a Paste (粘贴) button shows up after a Copy, in those panels and beside "Select several". Duplicate and Paste put the copies 16 units aside (a little further each time) and choose them, so the count matches. The Ctrl/Cmd sentence is hidden on touch screens, and a press anywhere in the work area, the margin round the page too, puts Ctrl+A, copy, paste and Delete on the page.
 
+- **PM-v1.7.6-016: the emulator build can open in Chinese.** `VITE_DEFAULT_LANG=zh-CN npm run dev:emulated` (or `build:e2e`) starts the emulated app in Chinese, as production does; without the variable it stays English, so the tests are unchanged (`docs/debugging.md`).
+
 ## v1.7.6 – 2026-10-06
 
 No rules change in this release.
