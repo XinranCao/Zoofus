@@ -31,4 +31,12 @@ describe("ensureFont", () => {
       false,
     );
   });
+
+  it("a new text starts in a Chinese handwriting font when the interface is in Chinese", async () => {
+    const { defaultTextFont, DEFAULT_FONT, fontOf } = await import("./fonts");
+    expect(defaultTextFont("zh-CN")).toBe("wenkai");
+    expect(fontOf(defaultTextFont("zh-CN")).key).toBe("wenkai");
+    expect(defaultTextFont("en")).toBe(DEFAULT_FONT);
+    expect(defaultTextFont(undefined)).toBe(DEFAULT_FONT);
+  });
 });

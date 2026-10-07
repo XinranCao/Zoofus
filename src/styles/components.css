@@ -1435,6 +1435,8 @@
   .zf-swatches.compact {
     grid-template-columns: repeat(auto-fill, 28px) !important;
     gap: 20px !important;
+    /* the first swatch's tap area reaches 9px beyond it: room for it inside a scrolling dialog */
+    padding-inline-start: 4px;
   }
   .zf-swatch::after {
     inset: -10px; /* 28 + 20 = a 48px pitch: neighbours' areas meet, never overlap */

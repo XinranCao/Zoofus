@@ -58,21 +58,23 @@ describe("PatternEditor", () => {
     const seen: PatternSpec[] = [];
     render(<Harness initial={{ kind: "stripes" }} seen={seen} />);
     expect(
-      within(screen.getByRole("radiogroup", { name: "Paper colour" })).getAllByRole(
+      within(screen.getByRole("radiogroup", { name: "Base colour" })).getAllByRole(
         "radio",
       ),
     ).toHaveLength(16);
     await userEvent.click(
-      within(screen.getByRole("radiogroup", { name: "Paper colour" })).getByRole(
-        "radio",
-        { name: "Brick" },
-      ),
+      within(screen.getByRole("radiogroup", { name: "Base colour" })).getByRole("radio", {
+        name: "Brick",
+      }),
     );
     expect(last(seen).bg).toBe("brick-600");
     await userEvent.click(
-      within(screen.getByRole("radiogroup", { name: "Ink colour" })).getByRole("radio", {
-        name: "Moss",
-      }),
+      within(screen.getByRole("radiogroup", { name: "Pattern colour" })).getByRole(
+        "radio",
+        {
+          name: "Moss",
+        },
+      ),
     );
     expect(last(seen).ink).toBe("moss-700");
     for (const name of [last(seen).bg, last(seen).ink])
@@ -114,7 +116,7 @@ describe("PatternEditor", () => {
   it("a solid print has colour only: no ink, size, turn or weight", async () => {
     render(<Harness initial={{ kind: "solid" }} seen={[]} />);
     expect(screen.queryByRole("slider")).toBeNull();
-    expect(screen.queryByRole("radiogroup", { name: "Ink colour" })).toBeNull();
+    expect(screen.queryByRole("radiogroup", { name: "Pattern colour" })).toBeNull();
   });
 });
 

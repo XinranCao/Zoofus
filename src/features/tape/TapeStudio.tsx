@@ -206,7 +206,6 @@ export function TapeStudio({
             value={draft.length}
             min={TAPE_LIMITS.length.min}
             max={TAPE_LIMITS.length.max}
-            unit=" px"
             seed="tl"
             onChange={(length) => onDraft({ length })}
           />
@@ -215,7 +214,6 @@ export function TapeStudio({
             value={draft.thickness}
             min={TAPE_LIMITS.thickness.min}
             max={TAPE_LIMITS.thickness.max}
-            unit=" px"
             seed="tw"
             onChange={(thickness) => onDraft({ thickness })}
           />

@@ -84,6 +84,9 @@ test("the sticker book of 60 generates its tears in a few milliseconds, then hit
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
   await page.goto("/stickers");
+  // the book shows 40 at a time; "Show more" brings the other 20
+  await expect(page.getByRole("button", { name: /^Open Sticker/ })).toHaveCount(40);
+  await page.getByRole("button", { name: "Show more" }).click();
   await expect(page.getByRole("button", { name: /^Open Sticker/ })).toHaveCount(60);
   const first = await page.evaluate(async (TORN) => {
     const torn = await import(/* @vite-ignore */ TORN);

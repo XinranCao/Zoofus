@@ -37,7 +37,7 @@ for (const size of [
     await expect(cut).toBeEnabled();
     await expect(
       page.getByRole("status").filter({ hasText: "percent wide" }),
-    ).toContainText("Rectangle, Select: 60 percent wide and 60 percent tall");
+    ).toContainText("Rectangle, Keep: 60 percent wide and 60 percent tall");
     await page.keyboard.press("ArrowRight");
     await page.keyboard.press("Shift+ArrowRight"); // wider
     await expect(

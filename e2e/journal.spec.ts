@@ -19,10 +19,10 @@ test("make a journal: paper, sticker, tape, text, drawing, erase, save, reopen",
   await expect(dlg).toBeVisible();
   await dlg.getByLabel("Title").fill("My trip");
   await dlg.getByRole("radio", { name: "Newspaper" }).click();
-  await dlg.getByRole("button", { name: /^Pattern/ }).click();
+  await dlg.getByRole("button", { name: /^Lines/ }).click();
   await page.getByRole("menuitemradio", { name: "Aged" }).click();
   await dlg.getByRole("radio", { name: "Notebook" }).click();
-  await dlg.getByRole("button", { name: /^Pattern/ }).click();
+  await dlg.getByRole("button", { name: /^Lines/ }).click();
   await page.getByRole("menuitemradio", { name: "Grid" }).click();
   await dlg.getByRole("button", { name: "Start" }).click();
   await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
@@ -398,18 +398,14 @@ test("choose several things with an area, move them together, copy and paste by 
   await page.mouse.down();
   await page.mouse.move(...at(0.8, 0.45), { steps: 8 });
   await page.mouse.up();
-  await expect(
-    page.getByRole("status").filter({ hasText: "2 things chosen" }),
-  ).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "2 selected" })).toBeVisible();
 
   // move them together by dragging inside the box
   await page.mouse.move(...at(0.4, 0.25));
   await page.mouse.down();
   await page.mouse.move(...at(0.4, 0.55), { steps: 8 });
   await page.mouse.up();
-  await expect(
-    page.getByRole("status").filter({ hasText: "2 things chosen" }),
-  ).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "2 selected" })).toBeVisible();
   await expect(items).toHaveCount(2);
 
   // copy and paste with the keyboard: the copies are chosen, so there are four

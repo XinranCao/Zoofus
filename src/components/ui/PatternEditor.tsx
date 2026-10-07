@@ -317,8 +317,9 @@ export function PatternEditor({
           }
         />
       </div>
+      {/* each colour picker takes a row of its own, so its swatches have the width they need */}
       <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-        <div>
+        <div style={{ flex: "1 1 280px", minWidth: 0 }}>
           <div className="zf-label" style={{ marginBottom: 8 }}>
             {s.kind === "solid" ? t("pattern.colour") : t("pattern.paper")}
           </div>
@@ -331,7 +332,7 @@ export function PatternEditor({
           />
         </div>
         {s.kind !== "solid" && (
-          <div>
+          <div style={{ flex: "1 1 280px", minWidth: 0 }}>
             <div className="zf-label" style={{ marginBottom: 8 }}>
               {t("pattern.ink")}
             </div>

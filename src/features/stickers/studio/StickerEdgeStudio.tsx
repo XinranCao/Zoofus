@@ -5,7 +5,7 @@ import { Slider } from "@/components/ui/Slider";
 import { StudioPreview } from "@/components/ui/StudioPreview";
 import { Sticker } from "@/components/ui/Sticker";
 import { ToggleGroup } from "@/components/ui/ToggleGroup";
-import { edgeWidth, type EdgeShape } from "@/paper/dieCut";
+import type { EdgeShape } from "@/paper/dieCut";
 import type { EdgeSpec } from "@/paper/renderSticker";
 
 /**
@@ -34,7 +34,6 @@ export function StickerEdgeStudio({
   lead?: ReactNode;
 }) {
   const { t } = useTranslation();
-  const long = source ? Math.max(source.width, source.height) : previewSize;
   // The preview is drawn whole ("contain") inside what the dialog can show of it: about half of the
   // scrolling part's height, and never under 100 px, so the sticker is never cut by the window.
   const root = useRef<HTMLDivElement>(null);
@@ -114,7 +113,11 @@ export function StickerEdgeStudio({
             disabled={locked}
             onChange={(v) => onChange({ scale: v / 100 })}
             format={(v) =>
-              v === 0 ? t("maker.edge.none") : `${edgeWidth(long, v / 100)} px`
+              v === 0
+                ? t("maker.edge.none")
+                : t(
+                    `maker.edge.widths.${v <= 60 ? "thin" : v <= 110 ? "medium" : "thick"}`,
+                  )
             }
           />
           <PatternEditor

@@ -6,7 +6,8 @@ import {
   type ReactNode,
 } from "react";
 import { createStore, useStore, type StoreApi } from "zustand";
-import { DEFAULT_FONT } from "../fonts";
+import i18n from "i18next";
+import { defaultTextFont } from "../fonts";
 import {
   DEFAULT_PAGE,
   type InkName,
@@ -91,7 +92,12 @@ export function createJournalStore(): JournalStore {
     clip: null,
     tool: "select",
     pen: { tool: "pen", color: "cocoa-800", size: 4 },
-    text: { font: DEFAULT_FONT, size: 44, color: "cocoa-800", bold: false },
+    text: {
+      font: defaultTextFont(i18n.language),
+      size: 44,
+      color: "cocoa-800",
+      bold: false,
+    },
     past: [],
     future: [],
     dirty: false,
