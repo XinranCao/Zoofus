@@ -172,28 +172,41 @@ export const assetsSchema = z.record(z.string(), z.unknown()).transform((rec) =>
   return out;
 });
 
-export const journalDocSchema = z.object({
-  title: z.string().min(1).max(MAX_JOURNAL_TITLE),
-  page: pageSpecSchema,
-  items: itemsSchema,
-  assets: assetsSchema.optional().catch(undefined),
-  thumbUrl: pictureUrlSchema.optional().catch(undefined),
-  thumbPath: z.string().optional().catch(undefined),
-  origin: z
-    .object({ from: z.string().optional(), workspace: z.string().optional() })
-    .optional()
-    .catch(undefined),
-  // (null while the server has not stamped a write made just now: a list read straight after
-  // saving must still show the journal)
-  createdAt: z
-    .instanceof(Timestamp)
-    .nullable()
-    .transform((t) => (t ? t.toDate() : new Date())),
-  updatedAt: z
-    .instanceof(Timestamp)
-    .nullable()
-    .transform((t) => (t ? t.toDate() : new Date())),
-});
+export const journalDocSchema = z
+  .object({
+    title: z.string().min(1).max(MAX_JOURNAL_TITLE),
+    page: pageSpecSchema,
+    // Absent in a journal saved since v2: its items are one document of their own (`body/items`), so
+    // a list stays about a kilobyte per journal. Older journals still carry them here.
+    items: itemsSchema.optional(),
+    itemCount: z.number().int().min(0).max(MAX_JOURNAL_ITEMS).optional().catch(undefined),
+    assets: assetsSchema.optional().catch(undefined),
+    thumbUrl: pictureUrlSchema.optional().catch(undefined),
+    thumbPath: z.string().optional().catch(undefined),
+    origin: z
+      .object({ from: z.string().optional(), workspace: z.string().optional() })
+      .optional()
+      .catch(undefined),
+    // (null while the server has not stamped a write made just now: a list read straight after
+    // saving must still show the journal)
+    createdAt: z
+      .instanceof(Timestamp)
+      .nullable()
+      .transform((t) => (t ? t.toDate() : new Date())),
+    updatedAt: z
+      .instanceof(Timestamp)
+      .nullable()
+      .transform((t) => (t ? t.toDate() : new Date())),
+  })
+  .transform(({ items, itemCount, ...rest }) => ({
+    ...rest,
+    /** The items, when this document carries them (older journals); otherwise `[]` until loaded. */
+    items: items ?? [],
+    /** How many items the page has, whether or not they are loaded. */
+    itemCount: itemCount ?? items?.length ?? 0,
+    /** The items are kept in their own document and are not in this one. */
+    slim: items === undefined,
+  }));
 export type Journal = z.output<typeof journalDocSchema> & { id: string };
 
 export const newId = () => crypto.randomUUID().replace(/-/g, "").slice(0, 12);

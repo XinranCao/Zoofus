@@ -101,10 +101,13 @@ service cloud.firestore {
       // validated by the client (zod); the 1 MiB document limit is the final backstop.
       match /journals/{jid} {
         function validJournal(d) {
-          return d.keys().hasOnly(['title', 'page', 'items', 'assets', 'thumbUrl', 'thumbPath', 'origin', 'createdAt', 'updatedAt'])
+          return d.keys().hasOnly(['title', 'page', 'items', 'itemCount', 'assets', 'thumbUrl', 'thumbPath', 'origin', 'createdAt', 'updatedAt'])
             && isString(d.title, 80) && d.title.size() > 0
             && validPage(d.page)
-            && d.items is list && d.items.size() <= 400
+            // The items are in their own document (body/items) since v2.0.0, so a list of journals
+            // stays light; a journal saved before still carries them here until it is next saved.
+            && (!('items' in d) || (d.items is list && d.items.size() <= 400))
+            && (!('itemCount' in d) || (d.itemCount is int && d.itemCount >= 0 && d.itemCount <= 400))
             && (!('assets' in d) || (d.assets is map && d.assets.size() <= 80))
             && (!('thumbUrl' in d) || isString(d.thumbUrl, 2048))
             && (!('thumbPath' in d) || (isString(d.thumbPath, 512) && d.thumbPath.matches('^' + uid + '/journals/.+')))
@@ -123,10 +126,29 @@ service cloud.firestore {
             && isString(request.resource.data.thumbPath, 512)
             && request.resource.data.thumbPath.matches('^' + uid + '/journals/.+');
         }
+        // Also allowed: an older journal's items move into their own document, nothing else changes
+        // (so its "updated" time stays).
+        function slimOnly() {
+          return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['items', 'itemCount'])
+            && !('items' in request.resource.data)
+            && request.resource.data.itemCount is int
+            && request.resource.data.itemCount >= 0 && request.resource.data.itemCount <= 400;
+        }
         allow update: if isOwner(uid)
           && request.resource.data.createdAt == resource.data.createdAt
-          && (validJournal(request.resource.data) || pictureOnly());
+          && (validJournal(request.resource.data) || pictureOnly() || slimOnly());
         allow delete: if isOwner(uid);
+
+        // users/{uid}/journals/{jid}/body/items: the things on the page, one document, read only when
+        // the page is opened or drawn.
+        match /body/{part} {
+          allow read: if isOwner(uid);
+          allow create, update: if isOwner(uid) && part == 'items'
+            && request.resource.data.keys().hasOnly(['items', 'updatedAt'])
+            && request.resource.data.items is list && request.resource.data.items.size() <= 400
+            && request.resource.data.updatedAt == request.time;
+          allow delete: if isOwner(uid);
+        }
       }
 
       // users/{uid}/collections/{cid}: a collection the person makes up: pointers to their own

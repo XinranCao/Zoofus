@@ -52,7 +52,7 @@ export function JournalTile({
       decoding="async"
       style={{ display: "block", width: "100%", height: "auto" }}
     />
-  ) : live && journal.items.length > 0 ? (
+  ) : live && journal.itemCount > 0 ? (
     <Suspense fallback={<PaperPreview page={journal.page} width={w} />}>
       <LivePage journal={journal} width={w - 12} />
     </Suspense>

@@ -1,13 +1,13 @@
 import { useEffect, useRef } from "react";
 import type Konva from "konva";
-import { useQueryClient } from "@tanstack/react-query";
-import { setJournalThumb } from "./journal.api";
+import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
+import { setJournalThumb, type JournalPageResult } from "./journal.api";
 import type { Journal } from "./journal.schema";
 import { exportStage } from "./exportStage";
 import { JournalCanvas } from "./JournalCanvas";
 import { useStickerResolver } from "./stickerRegistry";
 import { rememberFailure } from "./healMemory";
-import { patchJournal } from "./useJournals";
+import { patchJournal, patchJournalPages } from "./useJournals";
 
 const WIDTH = 480;
 
@@ -55,6 +55,10 @@ export default function ThumbMaker({
         // only this one picture changed: patch the list instead of reading every journal again
         qc.setQueryData<Journal[]>(["journals", uid], (list) =>
           patchJournal(list, journal.id, saved, false),
+        );
+        qc.setQueriesData<InfiniteData<JournalPageResult>>(
+          { queryKey: ["journals", uid, "pages"] },
+          (d) => patchJournalPages(d, journal.id, saved),
         );
       } catch (err) {
         console.warn("Could not make a page picture for a journal", err);

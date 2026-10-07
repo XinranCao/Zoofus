@@ -11,7 +11,7 @@ import {
   deleteCollection,
   listCollections,
 } from "@/features/collections/collections.api";
-import { deleteJournal, listJournals } from "@/features/journal/journal.api";
+import { deleteJournal, listJournals, withItems } from "@/features/journal/journal.api";
 import { deleteTape, listTapes } from "@/features/tape/tape.api";
 import { fetchProfile } from "@/features/profile/profile.api";
 import { deleteSticker, listStickers } from "@/features/stickers/library/stickers.api";
@@ -41,13 +41,15 @@ import { deleteFileIfExists, deleteFolder } from "@/lib/storage";
 import { buildExport, type AccountExport } from "./account.export";
 
 export async function exportAccountData(uid: string): Promise<AccountExport> {
-  const [profile, stickers, tapes, journals, collections] = await Promise.all([
+  const [profile, stickers, tapes, journalList, collections] = await Promise.all([
     fetchProfile(uid),
     listStickers(uid),
     listTapes(uid),
     listJournals(uid),
     listCollections(uid),
   ]);
+  // the export carries what is on every page, which lists no longer do
+  const journals = await Promise.all(journalList.map((j) => withItems(uid, j)));
   return buildExport({ profile, stickers, tapes, journals, collections });
 }
 

@@ -3,8 +3,9 @@ import { useLocation } from "react-router-dom";
 import { useAuth } from "@/features/auth/useAuth";
 import { isLite } from "@/lib/lite";
 import type { Journal } from "./journal.schema";
-import { recentlyFailed } from "./healMemory";
-import { useJournals } from "./useJournals";
+import { recentlyFailed, rememberFailure } from "./healMemory";
+import { loadItems } from "./journal.api";
+import { useLoadedJournals, useSlimming } from "./useJournals";
 
 /** At most this many pictures are made in one visit, one after the other (fewer on a slow computer). */
 const perVisit = () => (isLite() ? 3 : 12);
@@ -20,7 +21,8 @@ const ThumbMaker = lazy(() => import("./ThumbMaker"));
 export function ThumbHealer() {
   const { currentUser } = useAuth();
   // heals what some other screen has already loaded; it never reads the journals itself
-  const { data } = useJournals({ read: false });
+  const data = useLoadedJournals();
+  useSlimming(data);
   const tried = useRef(new Set<string>());
   const [current, setCurrent] = useState<Journal | null>(null);
   const { pathname } = useLocation();
@@ -30,7 +32,7 @@ export function ThumbHealer() {
     const next = data.find(
       (j) =>
         !j.thumbUrl &&
-        j.items.length > 0 &&
+        j.itemCount > 0 &&
         !tried.current.has(j.id) &&
         !recentlyFailed(j.id) &&
         !pathname.includes(j.id), // not the one being edited just now
@@ -39,7 +41,10 @@ export function ThumbHealer() {
     // after the page has settled, so it never competes with what the person is doing
     const timer = setTimeout(() => {
       tried.current.add(next.id);
-      setCurrent(next);
+      // its items are read now (one small document), so the page can be drawn
+      void loadItems(currentUser.uid, next)
+        .then((items) => setCurrent({ ...next, items, slim: false }))
+        .catch(() => rememberFailure(next.id));
     }, 1500);
     return () => clearTimeout(timer);
   }, [data, current, currentUser, pathname]);

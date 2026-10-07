@@ -18,6 +18,9 @@ vi.mock("./journal.api", () => ({
   createJournal: vi.fn(),
   deleteJournal: vi.fn(),
   getJournal: vi.fn(),
+  listJournalPage: vi.fn(),
+  loadItems: vi.fn(),
+  slimJournal: vi.fn(),
   renameJournal: vi.fn(),
 }));
 
@@ -71,8 +74,16 @@ describe("saving a journal", () => {
       );
     expect(api.listJournals).toHaveBeenCalledTimes(1);
     expect(list.result.current.data!.map((x) => x.id)).toEqual(["b", "a"]);
-    // nothing undefined reaches a share, which writes these items out again
-    expect("sy" in (list.result.current.data![0]!.items[0] as object)).toBe(false);
+    // the list carries only the count; the items are kept for the tile, with nothing undefined
+    // (a share writes these items out again)
+    expect(list.result.current.data![0]).toMatchObject({
+      itemCount: 1,
+      slim: true,
+      items: [],
+    });
+    const kept = qc.getQueryData<object[]>(["journalItems", "u1", "b"]);
+    expect(kept).toHaveLength(1);
+    expect("sy" in kept![0]!).toBe(false);
     await waitFor(() =>
       expect(list.result.current.data![0]).toMatchObject({
         title: "Renamed 4",

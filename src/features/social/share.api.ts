@@ -1,6 +1,6 @@
 import { doc, serverTimestamp, writeBatch } from "firebase/firestore";
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { createJournal } from "@/features/journal/journal.api";
+import { createJournal, withItems } from "@/features/journal/journal.api";
 import type { Asset, Item, Journal } from "@/features/journal/journal.schema";
 import { saveSticker } from "@/features/stickers/library/stickers.api";
 import type { Sticker } from "@/features/stickers/library/sticker.schema";
@@ -92,7 +92,7 @@ export async function shareWith(
         ends: t.ends,
       };
     } else {
-      const j = source.journal;
+      const j = await withItems(me, source.journal);
       name = j.title;
       const assets: Record<string, Asset> = {};
       const idOf = new Map<string, string>(); // old ref -> new asset id
