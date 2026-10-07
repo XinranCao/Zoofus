@@ -1,3 +1,4 @@
+import { chooseKind } from "./support/flows";
 import { expect, test, type Page } from "@playwright/test";
 import { patternPng } from "./png";
 
@@ -12,7 +13,7 @@ async function signUp(page: Page) {
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Nickname").fill("Scroll");
   await page.getByRole("button", { name: "Start cutting" }).click();
-  await expect(page).toHaveTitle("Zoofus · Make a sticker");
+  await expect(page).toHaveTitle("Zoofus · Home");
 }
 
 async function toEdgeStudio(page: Page) {
@@ -32,7 +33,7 @@ async function toEdgeStudio(page: Page) {
   await maker.getByRole("button", { name: "Cut it out" }).click();
   const result = page.getByRole("dialog", { name: "Your sticker" });
   await expect(result).toBeVisible();
-  await page.getByRole("radio", { name: "Pixels" }).click(); // the tallest content there is
+  await chooseKind(page, "Pixels"); // the tallest content there is
   return result;
 }
 

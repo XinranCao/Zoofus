@@ -94,7 +94,7 @@ export function pasteOps(
 ): { ops: Op[]; ids: string[] } {
   const room = MAX_JOURNAL_ITEMS - items.length;
   if (clip.length === 0 || room < clip.length) return { ops: [], ids: [] };
-  const d = 28 * Math.max(1, times);
+  const d = 16 * Math.max(1, times);
   const base = topZ(items);
   const ops: Op[] = [];
   const ids: string[] = [];

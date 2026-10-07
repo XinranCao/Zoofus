@@ -13,7 +13,7 @@
     drop-shadow(-2px 0 0 var(--plum-900)) drop-shadow(0 2px 0 var(--plum-900))
     drop-shadow(0 -2px 0 var(--plum-900));
   /* paper grain, tinted cocoa (overrides the plain colour of the same name in tokens.css) */
-  --grain: url("/grain.png");
+  --grain: url("./grain.webp");
 }
 
 @theme {
@@ -1435,6 +1435,8 @@
   .zf-swatches.compact {
     grid-template-columns: repeat(auto-fill, 28px) !important;
     gap: 20px !important;
+    /* the first swatch's tap area reaches 9px beyond it: room for it inside a scrolling dialog */
+    padding-inline-start: 4px;
   }
   .zf-swatch::after {
     inset: -10px; /* 28 + 20 = a 48px pitch: neighbours' areas meet, never overlap */
@@ -1444,10 +1446,16 @@
     position: absolute;
     inset: -12px;
   }
-  /* the pixel grid fills the width it has, and dragging paints, so a cell need not be a full tap target */
+  /* the pixel grid is small on a phone: dragging on it paints (it must not scroll), so a finger that
+     is only scrolling the page should rarely land on it; the page scrolls from everywhere else */
   .zf-pixels {
     grid-template-columns: repeat(8, 1fr);
-    width: min(100%, 304px);
+    width: min(60%, 168px);
+    flex: 0 0 auto;
+  }
+  .zf-doodle-pad {
+    width: 112px;
+    height: 112px;
   }
   .zf-pixel {
     width: auto;
@@ -1940,13 +1948,22 @@
   gap: 22px;
   align-items: start;
 }
+.zf-jstudio__toolswrap {
+  position: sticky;
+  top: 90px;
+  display: grid;
+  gap: 10px;
+  align-items: start;
+  min-width: 0;
+}
 .zf-jstudio__tools {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
   gap: 10px;
-  position: sticky;
-  top: 90px;
+}
+.zf-jstudio__morebtn {
+  display: none;
 }
 .zf-jstudio__tools .zf-chip {
   width: 100%;
@@ -1958,8 +1975,8 @@
   width: 100%;
   box-sizing: border-box;
 }
-.zf-jstudio__tools > :not(.zf-chip, button) {
-  grid-column: 1 / -1;
+.zf-jstudio__aside {
+  min-width: 0;
 }
 .zf-jstudio__area {
   min-width: 0;
@@ -2028,8 +2045,10 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 10px;
   }
-  .zf-jstudio__tools {
+  .zf-jstudio__toolswrap {
     position: static;
+  }
+  .zf-jstudio__tools {
     display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -2406,4 +2425,358 @@
   filter: none;
   outline: 3px solid var(--plum-900);
   outline-offset: 2px;
+}
+
+/* ---------- home and landing ---------- */
+@layer components {
+  .zf-home {
+    display: grid;
+    gap: 44px;
+  }
+  .zf-home-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+    gap: 40px;
+    align-items: center;
+  }
+  .zf-home-two {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+  .zf-home-cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .zf-home-row {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .zf-home-row h2 {
+    margin: 0;
+  }
+  .zf-home-demo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .zf-home-step {
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    text-align: center;
+    min-width: 0;
+    font-size: 14px;
+  }
+  .zf-home-photo {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .zf-home-arrow {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 24px;
+    color: var(--doodle);
+  }
+  .zf-home-page {
+    position: relative;
+    width: 100%;
+    min-height: 120px;
+    display: grid;
+    place-items: center;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0 17px,
+      rgb(108 74 59 / 0.18) 17px 18px
+    );
+  }
+  /* an ink stamp: the words in a hand-drawn oval (an SVG stroke, never a border-radius) */
+  .zf-home-stamp {
+    position: relative;
+    display: inline-block;
+    padding: 4px 14px;
+    font-family: var(--font-display);
+    font-size: 13px;
+    color: var(--brick-600);
+    transform: rotate(-6deg);
+  }
+  .zf-home-stamp svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .zf-home-stamp.is-done {
+    color: var(--moss-700);
+    transform: rotate(5deg);
+  }
+  /* a short screen keeps the form in view: the pitch (one sentence about the product) waits */
+  @media (max-height: 700px) {
+    .zf-pitch {
+      display: none;
+    }
+  }
+  .zf-home-card {
+    all: unset;
+    box-sizing: border-box;
+    display: block;
+    cursor: pointer;
+    min-width: 0;
+  }
+  .zf-home-waiting {
+    display: grid;
+    gap: 10px;
+  }
+  .zf-home-waiting__row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .zf-home-waiting__row + .zf-home-waiting__row {
+    border-top: 1px dashed var(--ink-muted);
+    padding-top: 10px;
+  }
+  .zf-home-continue {
+    display: grid;
+    grid-template-columns: minmax(0, 150px) minmax(0, 1fr);
+    gap: 22px;
+    align-items: center;
+  }
+  .zf-home-strip {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px 6px;
+  }
+  @media (max-width: 900px) {
+    .zf-home-hero,
+    .zf-home-two {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .zf-home-cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 759px) {
+    .zf-home {
+      gap: 32px;
+    }
+    .zf-home-continue {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .zf-home-strip {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .zf-home-arrow {
+      width: 22px;
+    }
+  }
+}
+
+/* tablet: the panel for what is chosen sits beside the page, the tools stay above it */
+@media (min-width: 500px) and (max-width: 1099px) {
+  .zf-jstudio__body {
+    grid-template-columns: minmax(0, 1fr) 280px;
+    align-items: start;
+  }
+  .zf-jstudio__toolswrap {
+    grid-column: 1 / -1;
+  }
+  .zf-jstudio__panel {
+    position: sticky;
+    top: 90px;
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .zf-jstudio__areawrap {
+    grid-column: 1;
+    grid-row: 2;
+  }
+}
+
+/* phone: the page first. One row for back, title and status; Undo, zoom, Paper and Download are
+   behind "More"; the tools are a bar at the bottom where the thumb is; the text panel is a sheet
+   above that bar, so the page never scrolls away to reach it */
+@media (max-width: 499px) {
+  .zf-jstudio {
+    padding-bottom: 76px;
+    gap: 8px;
+  }
+  .zf-jstudio__bar {
+    gap: 0 8px;
+    flex-wrap: wrap;
+  }
+  .zf-jstudio__bar > div:nth-child(2) {
+    flex: 1 1 90px !important;
+    min-width: 90px !important;
+    max-width: none !important;
+  }
+  /* the back link is just its arrow (its name is still read out): the row never wraps when Save
+     appears beside the status, so the page does not jump down */
+  .zf-jstudio__bar .zf-backlink {
+    font-size: 0;
+    min-width: 36px;
+    justify-content: center;
+  }
+  .zf-jstudio__bar .zf-backlink::before {
+    content: "\2190";
+    font-size: 20px;
+  }
+  .zf-jstudio__file {
+    order: 0;
+    flex: none;
+    gap: 0 4px;
+  }
+  .zf-jstudio__morebtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 44px;
+    min-width: 44px;
+    justify-content: center;
+    padding: 0 6px;
+    /* just the dots on a phone (the name is still read out): the row must not wrap */
+    font-size: 0;
+    font-family: var(--font-display);
+    color: var(--ink);
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+  .zf-jstudio__morebtn .zf-icon {
+    width: 24px;
+    height: 24px;
+  }
+  .zf-jstudio__barbtns {
+    display: none;
+    flex: 1 1 100%;
+  }
+  .zf-jstudio__barbtns.is-open {
+    display: block;
+    order: 5;
+  }
+  .zf-jstudio__edit {
+    flex-wrap: wrap;
+    overflow: visible;
+    mask-image: none;
+    padding: 0;
+  }
+  .zf-jstudio__tools {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 2px;
+    overflow: visible;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+    /* a dashed line along its top edge, drawn as a background (chrome has no borders) */
+    background-color: var(--sheet-50, #fbf6ee);
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--ink-muted) 0 8px,
+      transparent 8px 14px
+    );
+    background-size: 100% 2px;
+    background-repeat: no-repeat;
+  }
+  .zf-jstudio__tools > * {
+    flex: none;
+  }
+  .zf-jstudio__tools .zf-chip {
+    width: 100%;
+    min-width: 0;
+  }
+  .zf-jstudio__tools .zf-chip .zf-face {
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 2px;
+    font-size: 12px;
+    text-align: center;
+  }
+  .zf-jstudio__area {
+    padding: 6px;
+  }
+  .zf-jstudio__aside {
+    order: 4;
+  }
+  .zf-jstudio__hint {
+    display: none;
+  }
+  .zf-jstudio__panel {
+    position: fixed;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 64px;
+    z-index: 25;
+    max-height: 42vh;
+    max-height: 42dvh;
+    overflow: auto;
+    padding: 0 8px;
+  }
+  /* the editor needs the room: the confirm-email note waits until the person leaves it */
+  body:has(.zf-jstudio) .zf-verify {
+    display: none;
+  }
+}
+
+/* the page area's frame, with "Select several" and Paste floating at its corner */
+.zf-jstudio__areawrap {
+  position: relative;
+  min-width: 0;
+}
+.zf-jstudio__multi {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 3;
+  display: flex;
+  gap: 6px;
+}
+.zf-jstudio__multi .zf-btn[aria-pressed="true"] .zf-face {
+  text-decoration: underline 2px;
+  text-underline-offset: 4px;
+}
+/* a touch screen has no Ctrl key: the shortcut sentence is for people with a keyboard */
+@media (pointer: coarse) {
+  .zf-jstudio__keys {
+    display: none;
+  }
+}
+
+/* A long Library: the browser does not lay out or paint tiles far off screen (the 40-at-a-time
+   pages keep it short; this is for when a person has loaded 100 or more). */
+.zf-grid-book.is-long > .zf-tile {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 310px;
+}
+
+/* a colour drop-down (phone): the chosen colour as a dot before its name */
+.zf-colordot {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  background: var(--tone, currentColor);
+}
+.zf-colormenu {
+  width: min(300px, calc(100vw - 24px));
+}
+/* four to a row at a 48px pitch, so 16 colours are four short rows */
+.zf-colormenu .zf-swatches {
+  grid-template-columns: repeat(4, 28px) !important;
+  justify-content: space-around;
 }

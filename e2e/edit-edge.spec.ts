@@ -21,7 +21,7 @@ test("editing the edge of a saved sticker saves", async ({ page }) => {
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Nickname").fill("Edit");
   await page.getByRole("button", { name: "Start cutting" }).click();
-  await expect(page).toHaveTitle("Zoofus · Make a sticker");
+  await expect(page).toHaveTitle("Zoofus · Home");
   await page
     .locator('input[type="file"]')
     .first()
@@ -57,7 +57,7 @@ test("editing the edge of a saved sticker saves", async ({ page }) => {
       await dlg.getByRole("radio", { name: shape }).click();
       await dlg.getByRole("radio", { name: kind }).click();
       await dlg.getByRole("button", { name: "Save edge" }).click();
-      await expect(page.getByText("Edge saved.", { exact: true }).last()).toBeVisible({
+      await expect(page.getByText(/has its new edge\./).last()).toBeVisible({
         timeout: 10000,
       });
       await expect(dlg).toBeHidden();

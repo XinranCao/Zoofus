@@ -13,8 +13,8 @@ test("Chinese: sign-up steps are titled, colours have names, decoration is silen
   await page.getByLabel("邮箱").fill(`zh-${Date.now()}@example.com`);
   await page.getByLabel("密码").fill("secret123");
   await page.getByRole("button", { name: "继续" }).click();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("让它属于你");
-  await expect(page).toHaveTitle("Zoofus · 注册:你的昵称");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("怎么称呼你？");
+  await expect(page).toHaveTitle("Zoofus · 注册：你的昵称");
   await page.getByLabel("昵称").fill("小明");
   await page.getByRole("button", { name: /开始/ }).click();
   await expect(page).toHaveTitle(/^Zoofus · (?!注册)/);

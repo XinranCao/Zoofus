@@ -163,7 +163,7 @@ test("keyboard: Save edge lands on the sticker, Log out on the login heading, En
   await edit.getByRole("button", { name: "Save edge" }).focus();
   await page.keyboard.press("Enter");
   await expect(edit).toBeHidden();
-  await expect(page.getByText("Edge saved.", { exact: true }).last()).toBeVisible();
+  await expect(page.getByText(/has its new edge\./).last()).toBeVisible();
   await expect(page.locator(".zf-tile").first().locator(".zf-tile__open")).toBeFocused();
 
   // New journal: Enter in the title starts it

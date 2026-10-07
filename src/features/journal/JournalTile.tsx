@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
@@ -9,11 +10,15 @@ import { ensureFontsFor } from "@/lib/cjkFonts";
 import type { Journal } from "./journal.schema";
 import { PaperPreview } from "./PageSetup";
 
+// the page drawn from its items, while its picture does not exist yet (loads Konva only then)
+const LivePage = lazy(() => import("./JournalLivePage"));
+
 /** One journal in a list: its picture (or its paper, until it has one), its title and what you can do. */
 export function JournalTile({
   journal,
   date,
   index = 0,
+  live = true,
   selecting,
   selected,
   onToggle,
@@ -24,6 +29,8 @@ export function JournalTile({
   journal: Journal;
   date?: string;
   index?: number;
+  /** Draw the page from its items when it has no picture yet (a list limits how many do). */
+  live?: boolean;
   selecting?: boolean;
   selected?: boolean;
   onToggle?: () => void;
@@ -45,6 +52,10 @@ export function JournalTile({
       decoding="async"
       style={{ display: "block", width: "100%", height: "auto" }}
     />
+  ) : live && journal.itemCount > 0 ? (
+    <Suspense fallback={<PaperPreview page={journal.page} width={w} />}>
+      <LivePage journal={journal} width={w - 12} />
+    </Suspense>
   ) : (
     <PaperPreview page={journal.page} width={w} />
   );

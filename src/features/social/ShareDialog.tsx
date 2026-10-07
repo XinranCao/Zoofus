@@ -1,3 +1,4 @@
+import { smallPicture } from "@/features/stickers/library/sticker.schema";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -140,7 +141,7 @@ export function ShareDialog({
             {sources.slice(0, 8).map((s, i) => {
               const src =
                 s.kind === "sticker"
-                  ? s.sticker.imageUrl
+                  ? smallPicture(s.sticker)
                   : s.kind === "journal"
                     ? s.journal.thumbUrl
                     : undefined;

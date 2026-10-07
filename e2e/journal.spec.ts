@@ -19,10 +19,10 @@ test("make a journal: paper, sticker, tape, text, drawing, erase, save, reopen",
   await expect(dlg).toBeVisible();
   await dlg.getByLabel("Title").fill("My trip");
   await dlg.getByRole("radio", { name: "Newspaper" }).click();
-  await dlg.getByRole("button", { name: /^Pattern/ }).click();
+  await dlg.getByRole("button", { name: /^Lines/ }).click();
   await page.getByRole("menuitemradio", { name: "Aged" }).click();
   await dlg.getByRole("radio", { name: "Notebook" }).click();
-  await dlg.getByRole("button", { name: /^Pattern/ }).click();
+  await dlg.getByRole("button", { name: /^Lines/ }).click();
   await page.getByRole("menuitemradio", { name: "Grid" }).click();
   await dlg.getByRole("button", { name: "Start" }).click();
   await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
@@ -178,22 +178,24 @@ test("the journal says whether it is saved, and the list shows it", async ({ pag
   await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
   const status = page
     .getByRole("status")
-    .filter({ hasText: /changes saved|Saving|Not saved/ });
-  await expect(status).toHaveText("All changes saved");
-  // exactly one indicator, and Save is not a red primary button
+    .filter({ hasText: /^(Saved|Saving…|Not saved yet)$/ });
+  await expect(status).toHaveText("Saved");
+  // exactly one indicator; Save is not there while nothing waits to be saved
   await expect(status).toHaveCount(1);
-  await expect(page.getByRole("button", { name: "Save", exact: true })).not.toHaveClass(
-    /\bprimary\b/,
-  );
+  await expect(page.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
 
   // a change: the status says it is on its way
   await page.getByRole("button", { name: "Text", exact: true }).click();
   const box = (await page.locator(".zf-jstudio__page canvas").first().boundingBox())!;
   await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.3);
   await page.getByLabel("Text", { exact: true }).fill("Hello");
-  await expect(status).toHaveText("Not saved yet");
+  await expect(status).toHaveText("Saving…");
+  // Save appears with the change, and is not a red primary button
+  await expect(page.getByRole("button", { name: "Save", exact: true })).not.toHaveClass(
+    /\bprimary\b/,
+  );
   await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(status).toHaveText("All changes saved");
+  await expect(status).toHaveText("Saved");
 
   // (leaving right after Save is tested on a slow connection below)
   await page.getByRole("link", { name: "← Journals" }).click();
@@ -211,23 +213,21 @@ async function newJournal(page: import("@playwright/test").Page, title: string) 
   await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
 }
 
-test("a new title settles to All changes saved, by itself and by Save", async ({
-  page,
-}) => {
+test("a new title settles to Saved, by itself and by Save", async ({ page }) => {
   await signUp(page, "Title");
   await newJournal(page, "First name");
   const status = page
     .getByRole("status")
-    .filter({ hasText: /changes saved|Saving|Not saved/ });
-  await expect(status).toHaveText("All changes saved");
+    .filter({ hasText: /^(Saved|Saving…|Not saved yet)$/ });
+  await expect(status).toHaveText("Saved");
   const title = page.getByLabel("Title", { exact: true });
   await title.fill("Second name");
-  await expect(status).toHaveText("Not saved yet");
-  await expect(status).toHaveText("All changes saved"); // no reload, no Save
+  await expect(status).toHaveText("Saving…");
+  await expect(status).toHaveText("Saved"); // no reload, no Save
   await title.fill("Third name");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText("Journal saved.").first()).toBeVisible();
-  await expect(status).toHaveText("All changes saved"); // the toast and the line agree
+  await expect(status).toHaveText("Saved"); // the toast and the line agree
 });
 
 test("a title typed and followed at once by Back, or by a reload, is kept", async ({
@@ -256,8 +256,8 @@ test("a title typed and followed at once by Back, or by a reload, is kept", asyn
   await expect(page.getByLabel("Title", { exact: true })).toHaveValue("After reload");
   const status = page
     .getByRole("status")
-    .filter({ hasText: /changes saved|Saving|Not saved/ });
-  await expect(status).toHaveText("All changes saved");
+    .filter({ hasText: /^(Saved|Saving…|Not saved yet)$/ });
+  await expect(status).toHaveText("Saved");
 });
 
 // PM-v1.7.2-002: what you place is written within seconds, not a minute
@@ -268,14 +268,14 @@ test("a placed item is saved within seconds and is there after a reload", async 
   await newJournal(page, "Seconds");
   const status = page
     .getByRole("status")
-    .filter({ hasText: /changes saved|Saving|Not saved/ });
-  await expect(status).toHaveText("All changes saved");
+    .filter({ hasText: /^(Saved|Saving…|Not saved yet)$/ });
+  await expect(status).toHaveText("Saved");
   await page.getByRole("button", { name: "Text", exact: true }).click();
   const box = (await page.locator(".zf-jstudio__page canvas").first().boundingBox())!;
   await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.3);
   await page.getByLabel("Text", { exact: true }).fill("Placed words");
-  await expect(status).toHaveText("Not saved yet");
-  await expect(status).toHaveText("All changes saved", { timeout: 6000 });
+  await expect(status).toHaveText("Saving…");
+  await expect(status).toHaveText("Saved", { timeout: 6000 });
   await page.reload();
   await expect(page.locator("#journal-items")).toContainText("Placed words");
 });
@@ -352,8 +352,8 @@ test("a journal without a page picture is given one, and lists show it", async (
   await placeText(page, "Words on the page");
   const status = page
     .getByRole("status")
-    .filter({ hasText: /changes saved|Saving|Not saved/ });
-  await expect(status).toHaveText("All changes saved", { timeout: 8000 });
+    .filter({ hasText: /^(Saved|Saving…|Not saved yet)$/ });
+  await expect(status).toHaveText("Saved", { timeout: 8000 });
   await page.getByRole("link", { name: "← Journals" }).click();
   const tile = page.locator(".zf-jtile").filter({ hasText: "No picture yet" });
   await expect(tile).toBeVisible();
@@ -398,18 +398,14 @@ test("choose several things with an area, move them together, copy and paste by 
   await page.mouse.down();
   await page.mouse.move(...at(0.8, 0.45), { steps: 8 });
   await page.mouse.up();
-  await expect(
-    page.getByRole("status").filter({ hasText: "2 things chosen" }),
-  ).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "2 selected" })).toBeVisible();
 
   // move them together by dragging inside the box
   await page.mouse.move(...at(0.4, 0.25));
   await page.mouse.down();
   await page.mouse.move(...at(0.4, 0.55), { steps: 8 });
   await page.mouse.up();
-  await expect(
-    page.getByRole("status").filter({ hasText: "2 things chosen" }),
-  ).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "2 selected" })).toBeVisible();
   await expect(items).toHaveCount(2);
 
   // copy and paste with the keyboard: the copies are chosen, so there are four
@@ -425,4 +421,153 @@ test("choose several things with an area, move them together, copy and paste by 
   await expect(items).toHaveCount(4);
   await page.keyboard.press("ControlOrMeta+z");
   await expect(items).toHaveCount(6);
+});
+
+test("opening a journal and placing a sticker, text, tape and pen lines raises no error", async ({
+  page,
+}) => {
+  const problems: string[] = [];
+  page.on("pageerror", (e) =>
+    problems.push(
+      "pageerror: " +
+        e.message +
+        " " +
+        (e.stack ?? "").split("\n").slice(1, 8).join(" | "),
+    ),
+  );
+  page.on("console", (m) => {
+    if (m.type() !== "error") return;
+    // the browser's own notes about the dev server's inline scripts are not the app's errors
+    if (/Content Security Policy|Failed to load resource/.test(m.text())) return;
+    problems.push("console: " + m.text().slice(0, 300));
+  });
+  await signUp(page, "Quiet");
+  await makeSticker(page);
+  await page.goto("/journals?make=1");
+  const dlg = page.getByRole("dialog", { name: "New journal" });
+  await dlg.getByLabel("Title").fill("Quiet page");
+  await dlg.getByRole("button", { name: "Start" }).click();
+  await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
+  await page.getByRole("button", { name: "Sticker" }).first().click();
+  await page.getByRole("dialog").getByRole("button", { name: /^Cut / }).first().click();
+  await page.getByRole("button", { name: "Tape", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Pink dots" }).click();
+  await page.waitForTimeout(500);
+  await page.getByRole("button", { name: "Text", exact: true }).click();
+  const box = (await page.locator(".zf-jstudio__page canvas").first().boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.2);
+  await page.getByLabel("Text", { exact: true }).fill("Hello");
+  for (const [tool, fy] of [
+    ["pen", 0.5],
+    ["pencil", 0.6],
+    ["marker", 0.7],
+    ["crayon", 0.8],
+  ] as const) {
+    await page.getByRole("button", { name: "Draw", exact: true }).click();
+    await page.getByRole("radio", { name: new RegExp(`^${tool}$`, "i") }).click();
+    await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * fy);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * (fy + 0.04), {
+      steps: 8,
+    });
+    await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * fy, { steps: 8 });
+    await page.mouse.up();
+  }
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("Journal saved.").first()).toBeVisible();
+  await page.reload();
+  await page.waitForTimeout(1500);
+  await expect(page.locator(".zf-jstudio__page canvas").first()).toBeVisible();
+  expect(problems).toEqual([]);
+});
+
+// PM-v1.7.6-012: leaving the editor never leaves a blank tile (the page is drawn from its items
+// until its picture exists)
+test("back from the editor, the journal's tile shows the page at once", async ({
+  page,
+}) => {
+  await signUp(page, "Back");
+  await page.goto("/journals?make=1");
+  const dlg = page.getByRole("dialog", { name: "New journal" });
+  await dlg.getByLabel("Title").fill("Quick page");
+  await dlg.getByRole("button", { name: "Start" }).click();
+  await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
+  await page.getByRole("button", { name: "Text", exact: true }).click();
+  const box = (await page.locator(".zf-jstudio__page canvas").first().boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.2);
+  await page.getByLabel("Text", { exact: true }).fill("Not blank");
+  // at once, before the picture could have been uploaded
+  await page.getByRole("link", { name: "← Journals" }).click();
+  const tile = page.locator(".zf-jtile").first();
+  await expect(tile).toBeVisible();
+  await expect(tile.locator(".zf-jtile__live canvas, img[src]").first()).toBeVisible({
+    timeout: 5000,
+  });
+});
+
+// PM-v1.7.6-011: choosing several things, and copying and pasting them, needs no keyboard
+test.describe("touch", () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+
+  test("select two things by tapping, copy and paste them: the copies are aside and chosen", async ({
+    page,
+  }) => {
+    await signUp(page, "Tap");
+    await page.goto("/journals?make=1");
+    await page
+      .getByRole("dialog", { name: "New journal" })
+      .getByRole("button", { name: "Start" })
+      .click();
+    await expect(page).toHaveURL(/\/journals\/[\w-]+$/);
+    const canvas = page.locator(".zf-jstudio__page canvas").first();
+    const place = async (fy: number, text: string) => {
+      await page.getByRole("button", { name: "Text", exact: true }).click();
+      const b = (await canvas.boundingBox())!;
+      await page.mouse.click(b.x + b.width * 0.35, b.y + b.height * fy);
+      await page.getByLabel("Text", { exact: true }).fill(text);
+      await page.waitForTimeout(900); // the handwriting font arrives, and the box takes its width
+    };
+    await place(0.15, "One");
+    await place(0.3, "Two");
+    await page.getByRole("button", { name: "Move", exact: true }).click();
+    await page.getByRole("button", { name: "Select several" }).click();
+    const b = (await canvas.boundingBox())!;
+    // "Two" is still the chosen one from placing it: tapping "One" adds it, tapping again removes it
+    await page.touchscreen.tap(b.x + b.width * 0.35, b.y + b.height * 0.15);
+    const count = page.getByRole("status").filter({ hasText: /\d selected/ });
+    await expect(count).toHaveText("2 selected");
+    // a Ctrl hint is for keyboards
+    await expect(page.locator(".zf-jstudio__keys")).toBeHidden();
+    await page.getByRole("button", { name: "Copy", exact: true }).click();
+    await page.getByRole("button", { name: "Paste", exact: true }).first().click();
+    await expect(page.locator("#journal-items li")).toHaveCount(4);
+    await expect(count).toHaveText("2 selected");
+  });
+});
+
+test("Ctrl+A works from the margin round the page, and Paste is a button after Copy", async ({
+  page,
+}) => {
+  await signUp(page, "Margin");
+  await page.goto("/journals?make=1");
+  await page
+    .getByRole("dialog", { name: "New journal" })
+    .getByRole("button", { name: "Start" })
+    .click();
+  const canvas = page.locator(".zf-jstudio__page canvas").first();
+  await page.getByRole("button", { name: "Text", exact: true }).click();
+  const b = (await canvas.boundingBox())!;
+  await page.mouse.click(b.x + b.width * 0.3, b.y + b.height * 0.2);
+  await page.getByLabel("Text", { exact: true }).fill("Only");
+  await page.getByRole("button", { name: "Move", exact: true }).click();
+  // a press in the margin of the work area (outside the page) puts the keys on the page
+  const area = (await page.locator(".zf-jstudio__area").boundingBox())!;
+  await page.mouse.click(area.x + 4, area.y + 4);
+  await page.keyboard.press("ControlOrMeta+a");
+  // (one thing is simply chosen: its panel has Copy)
+  await expect(page.getByRole("button", { name: "Copy", exact: true })).toBeVisible();
+  expect(await page.getByRole("button", { name: "Paste" }).count()).toBe(0);
+  await page.getByRole("button", { name: "Copy", exact: true }).click();
+  await page.getByRole("button", { name: "Paste", exact: true }).first().click();
+  await expect(page.locator("#journal-items li")).toHaveCount(2);
 });

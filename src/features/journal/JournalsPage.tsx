@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { BulkBar } from "@/components/ui/BulkBar";
@@ -20,13 +20,19 @@ import { useSelection } from "@/lib/useSelection";
 import { JournalTile } from "./JournalTile";
 import { NewJournalDialog } from "./NewJournalDialog";
 import { MAX_JOURNAL_TITLE, type Journal } from "./journal.schema";
-import { useDeleteJournal, useJournals, useRenameJournal } from "./useJournals";
+import {
+  useDeleteJournal,
+  useJournalCount,
+  useJournalPages,
+  useRenameJournal,
+} from "./useJournals";
 
 /** The journal collection: every journal you have made. Starting one opens the studio. */
 export default function JournalsPage() {
   const { t, i18n } = useTranslation();
   const toast = useToast();
-  const { data, isPending, isError } = useJournals();
+  const pages = useJournalPages();
+  const { isPending, isError } = pages;
   const remove = useDeleteJournal();
   const rename = useRenameJournal();
   const forget = useForgetItems();
@@ -41,7 +47,12 @@ export default function JournalsPage() {
   const { data: stickers } = useStickers();
   useMakeParam(() => setNewOpen(true));
 
-  const list = data ?? [];
+  const list = useMemo(
+    () => pages.data?.pages.flatMap((p) => p.journals) ?? [],
+    [pages.data],
+  );
+  // the number of journals, which a page of 30 does not show (it numbers a new one and checks the limit)
+  const { data: total } = useJournalCount(true);
   const date = (j: Journal) =>
     new Intl.DateTimeFormat(i18n.language, { day: "numeric", month: "short" }).format(
       j.updatedAt,
@@ -143,6 +154,7 @@ export default function JournalsPage() {
               key={j.id}
               journal={j}
               index={i}
+              live={i < 6}
               date={date(j)}
               selecting={selection.active}
               selected={selection.ids.has(j.id)}
@@ -155,6 +167,19 @@ export default function JournalsPage() {
               onDelete={() => setDeleting([j])}
             />
           ))}
+        </div>
+      )}
+
+      {pages.hasNextPage && (
+        <div style={{ display: "grid", placeItems: "center", margin: "20px 0 8px" }}>
+          <Button
+            variant="secondary"
+            seed="jshowmore"
+            loading={pages.isFetchingNextPage}
+            onClick={() => void pages.fetchNextPage()}
+          >
+            {t("common.showMore")}
+          </Button>
         </div>
       )}
 
@@ -202,7 +227,7 @@ export default function JournalsPage() {
       <NewJournalDialog
         open={newOpen}
         onClose={() => setNewOpen(false)}
-        existing={list.length}
+        existing={Math.max(list.length, total ?? 0)}
       />
       <ShareDialog
         open={shareOpen || shareOne !== null}

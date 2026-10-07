@@ -1,3 +1,4 @@
+import { cn } from "@/lib/cn";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
@@ -21,14 +22,28 @@ import { EditEdgeDialog } from "./EditEdgeDialog";
 import { StickerDetailDialog } from "./StickerDetailDialog";
 import { StickerTile, TILE_HEIGHT } from "./StickerTile";
 import type { Sticker } from "./sticker.schema";
-import { useDeleteSticker, useRenameSticker, useStickers } from "./useStickers";
+import {
+  useDeleteSticker,
+  useRenameSticker,
+  useStickerById,
+  useStickerPages,
+  useStickerThumbHealing,
+} from "./useStickers";
 
 const UNDO_MS = 6000;
+/** Past this many tiles the browser skips drawing the ones far off screen (`.is-long`). */
+const LONG_GRID = 100;
 
 export default function StickerBookPage() {
   const { t, i18n } = useTranslation();
   const toast = useToast();
-  const { data, isPending, isError } = useStickers();
+  const pages = useStickerPages();
+  const { isPending, isError } = pages;
+  const loaded = useMemo(
+    () => pages.data?.pages.flatMap((p) => p.stickers),
+    [pages.data],
+  );
+  useStickerThumbHealing(loaded);
   const remove = useDeleteSticker();
   const rename = useRenameSticker();
 
@@ -48,6 +63,16 @@ export default function StickerBookPage() {
   // `/stickers?edit=<id>` (from "Edit edge" in the maker's saved step) opens that sticker's edge editor
   const [params, setParams] = useSearchParams();
   const wantedEdit = params.get("edit");
+  // the linked sticker may be past the pages loaded so far: fetch it by itself
+  const inPages = Boolean(wantedEdit && loaded?.some((s) => s.id === wantedEdit));
+  const linked = useStickerById(
+    wantedEdit,
+    Boolean(wantedEdit) && !isPending && !inPages,
+  );
+  const data = useMemo(
+    () => (linked.data && !inPages ? [linked.data, ...(loaded ?? [])] : loaded),
+    [loaded, linked.data, inPages],
+  );
   const openEdgeId =
     editEdgeId ??
     (wantedEdit && data?.some((s) => s.id === wantedEdit) ? wantedEdit : null);
@@ -66,8 +91,8 @@ export default function StickerBookPage() {
   );
 
   const stickers = useMemo(
-    () => (data ?? []).filter((s) => !hidden.has(s.id)),
-    [data, hidden],
+    () => (loaded ?? []).filter((s) => !hidden.has(s.id)),
+    [loaded, hidden],
   );
   const find = (id: string | null) =>
     id ? ((data ?? []).find((s) => s.id === id) ?? null) : null;
@@ -236,7 +261,7 @@ export default function StickerBookPage() {
         </div>
       )}
       {stickers.length > 0 && (
-        <div className="zf-grid-book">
+        <div className={cn("zf-grid-book", stickers.length > LONG_GRID && "is-long")}>
           {stickers.map((s) => (
             <StickerTile
               key={s.id}
@@ -255,6 +280,19 @@ export default function StickerBookPage() {
               onToggle={() => selection.toggle(s.id)}
             />
           ))}
+        </div>
+      )}
+
+      {pages.hasNextPage && (
+        <div style={{ display: "grid", placeItems: "center", margin: "20px 0 8px" }}>
+          <Button
+            variant="secondary"
+            seed="showmore"
+            loading={pages.isFetchingNextPage}
+            onClick={() => void pages.fetchNextPage()}
+          >
+            {t("common.showMore")}
+          </Button>
         </div>
       )}
 

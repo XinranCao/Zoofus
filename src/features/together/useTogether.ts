@@ -21,7 +21,8 @@ export function useWorkspaces() {
     queryKey: key(uid ?? ""),
     queryFn: () => listWorkspaces(uid!),
     enabled: Boolean(uid),
-    refetchInterval: 30_000,
+    // a safety net: a listener on the workspaces refreshes the list when one changes
+    refetchInterval: 5 * 60_000,
   });
 }
 

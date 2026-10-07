@@ -1,5 +1,7 @@
 # Design system adoption report
 
+> **Update for v1.8.0.** This report describes round 1 (the adoption of the look). Since then the docs were brought up to date with what ships: `README.md` ("Since round 1"), `02-signature-elements.md` §9 to §11 (edges on chrome, user-made marks, small pictures), `03-screens.md` (landing, home, Library, journals and the studio on desktop, tablet and phone, friends, Together, account), `04-open-questions.md` (round 3 decisions) and a README for each component added since (`Select`, `SelectMark`, `BulkBar`, `PageHeader`, `ConfirmDialog`, `Collage`, `StudioPreview`, `SaveStatus`, `JournalTile`, `HomeCards`, `LandingPage`). `gallery.html`, the `preview.html` cards and `components/bundle.*` are round 1's reference and were not regenerated; the live gallery is `/dev/design-system` in a dev build.
+
 Branch: `dev` (the repo's only development branch; see `ADOPTION_PLAN.md`). Nothing is released or deployed.
 
 ## What changed

@@ -121,3 +121,13 @@ Start: `npm run emulators` and `npm run dev:emulated` (or the preview servers `f
 ## 7. What to include in a bug report
 
 The copied `/diagnostics` report, the exact steps, the time, and the code shown in the error message. With those, most problems can be placed in one of the sections above in a minute.
+
+## The emulator build's language
+
+Production opens in Chinese until a person picks a language. The emulator build (`npm run dev:emulated`, `npm run build:e2e`) and the unit tests open in English, because their assertions read English. To see what a visitor sees first, start the emulated app in Chinese:
+
+```bash
+VITE_DEFAULT_LANG=zh-CN npm run dev:emulated
+```
+
+The variable is read when the dev server (or the build) starts; any other value, or none, means English. A browser that has already picked a language keeps it (it is remembered in `zoofus.lang`), so use a clean profile or clear that key.

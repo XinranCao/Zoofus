@@ -78,6 +78,35 @@ describe("stickers", () => {
     );
   });
 
+  it("keeps a sticker's small picture small, and WebP", async () => {
+    const storage = env.authenticatedContext("alice").storage();
+    const webp = { contentType: "image/webp" };
+    await assertSucceeds(
+      uploadBytes(ref(storage, "alice/stickers/s1_t.webp"), bytes(20 * 1024), webp),
+    );
+    await assertSucceeds(
+      uploadBytes(ref(storage, "alice/stickers/s1_123_t.webp"), bytes(100 * 1024), webp),
+    );
+    // a "small" picture over 100 kB, or not WebP, is refused; a full sticker of that size is fine
+    await assertFails(
+      uploadBytes(ref(storage, "alice/stickers/s2_t.webp"), bytes(100 * 1024 + 1), webp),
+    );
+    await assertFails(
+      uploadBytes(ref(storage, "alice/stickers/s3_t.webp"), bytes(10), png),
+    );
+    await assertSucceeds(
+      uploadBytes(ref(storage, "alice/stickers/s4.webp"), bytes(300 * 1024), webp),
+    );
+    // only the owner
+    await assertFails(
+      uploadBytes(
+        ref(env.authenticatedContext("bob").storage(), "alice/stickers/s5_t.webp"),
+        bytes(10),
+        webp,
+      ),
+    );
+  });
+
   it("rejects non-image and oversized files", async () => {
     const storage = env.authenticatedContext("alice").storage();
     await assertFails(

@@ -113,7 +113,7 @@ for (const variant of VARIANTS) {
       await shot("06-signup-step2");
       await page.getByLabel(t("auth.nickname")).fill("Mei");
       await page.getByRole("button", { name: t("auth.signup.start") }).click();
-      await expect(page.getByRole("heading", { name: t("home.title") })).toBeVisible();
+      await expect(page.getByRole("heading", { level: 1, name: /Mei/ })).toBeVisible();
 
       // --- home (empty), menu ---
       await shot("07-home-empty");
@@ -167,8 +167,19 @@ for (const variant of VARIANTS) {
         page.getByRole("img", { name: t("maker.edge.preview") }),
       ).toBeVisible();
       await shot("15-maker-edge-torn");
-      await page.getByRole("radio", { name: t("maker.edge.shapes.wobbly") }).click();
-      await page.getByRole("radio", { name: t("pattern.kinds.dots") }).click();
+      // a row of radios, or (on a phone) a drop-down whose button starts with the group's name
+      const choose = async (group: string, name: string) => {
+        const radio = page.getByRole("radio", { name, exact: true });
+        const menu = page.getByRole("button", { name: new RegExp(`^${group}`) });
+        await expect(radio.or(menu).first()).toBeVisible();
+        if (await radio.count()) await radio.click();
+        else {
+          await menu.click();
+          await page.getByRole("menuitemradio", { name, exact: true }).click();
+        }
+      };
+      await choose(t("maker.edge.shape"), t("maker.edge.shapes.wobbly"));
+      await choose(t("maker.edge.fill"), t("pattern.kinds.dots"));
       await shot("16-maker-edge-pattern");
       await page.getByRole("button", { name: t("maker.edge.save") }).click();
       await expect(page.getByText(t("maker.edge.saved"), { exact: true })).toBeVisible();

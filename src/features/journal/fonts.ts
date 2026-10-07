@@ -136,6 +136,10 @@ export const FONTS: JournalFont[] = [
 
 export const DEFAULT_FONT = "caveat";
 
+/** The font a new text starts in: a Chinese handwriting font when the interface is in Chinese. */
+export const defaultTextFont = (language: string | undefined): string =>
+  language?.toLowerCase().startsWith("zh") ? "wenkai" : DEFAULT_FONT;
+
 export const fontOf = (key: string): JournalFont =>
   FONTS.find((f) => f.key === key) ?? FONTS.find((f) => f.key === DEFAULT_FONT)!;
 

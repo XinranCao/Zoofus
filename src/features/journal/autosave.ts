@@ -11,3 +11,10 @@ export const AUTOSAVE_MS = 60_000;
 export const PICTURE_AFTER_MS = 8_000;
 /** ...and never more often than this. */
 export const PICTURE_EVERY_MS = 20_000;
+
+/**
+ * ...and a write is never later than this after the first change that is not saved yet, however
+ * steadily someone edits (a crash or a closed laptop then loses at most this much).
+ */
+export const ITEMS_MAX_WAIT_MS = 15_000;
+export const PICTURE_MAX_WAIT_MS = 30_000;

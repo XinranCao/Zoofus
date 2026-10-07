@@ -180,6 +180,18 @@ export const COMPRESSION = {
     minSide: 480,
     maxBytes: 400 * 1024,
   },
+  /**
+   * The small picture a tile, a picker or a collection shows for a sticker (the full file is for
+   * the open view and the journal page). About 10 kB for a typical sticker, 20 kB at most.
+   */
+  stickerThumb: {
+    format: "webp",
+    maxSide: 320,
+    quality: 0.8,
+    minQuality: 0.5,
+    minSide: 128,
+    maxBytes: 20 * 1024,
+  },
   /** A sticker-shaped profile picture: transparent, tiny. */
   stickerAvatar: {
     format: "webp",

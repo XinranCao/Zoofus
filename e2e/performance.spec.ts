@@ -78,12 +78,15 @@ test("the sticker book of 60 generates its tears in a few milliseconds, then hit
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("secret123");
   await page.getByRole("button", { name: "Log in" }).click();
-  await expect(page.getByRole("heading", { name: "Make a sticker" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
   // Chrome's mid-tier mobile profile: the CPU slowed 4×; then load the book from scratch
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
   await page.goto("/stickers");
+  // the book shows 40 at a time; "Show more" brings the other 20
+  await expect(page.getByRole("button", { name: /^Open Sticker/ })).toHaveCount(40);
+  await page.getByRole("button", { name: "Show more" }).click();
   await expect(page.getByRole("button", { name: /^Open Sticker/ })).toHaveCount(60);
   const first = await page.evaluate(async (TORN) => {
     const torn = await import(/* @vite-ignore */ TORN);

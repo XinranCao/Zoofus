@@ -26,11 +26,13 @@ The new app writes things the live rules do not allow (or, for the older fields,
 npx firebase-tools@14 deploy --only firestore:rules,storage --project zoofus-48264
 ```
 
-What changed since the last deploy (the state at tag `ds-v2-round1`, which is what was deployed after round 1: `git diff ds-v2-round1 -- firestore.rules storage.rules`):
+What changed since the last deploy (the state at tag `v1.7.6`: `git diff v1.7.6 -- firestore.rules storage.rules`), all for v1.8.0:
 
-- `firestore.rules`: `validPattern` now allows only the known keys; `bg` and `ink` must be one of the 16 user colours; `scale` 6–28, `angle` 0–180, `weight` 0.1–0.9; `pixels` must be 8 rows of `^[01]{8}$`; `strokes` is a list of at most 60 whose first entry must be path data (`^[MLQCSTZmlqcstz0-9 .,-]+$`, at most 2,000 characters). Applies to tapes and to a sticker's `edge.fill`.
-- `storage.rules`: under `{uid}/stickers/`, `image/png` up to 10 MB or `image/webp` under 2 MB (it was `image/(webp|png)` under 2 MB).
-- Effect on existing data: nothing is rewritten. A document that already breaks a new limit (a print whose colour is outside the 16, or a doodle stroke with an arc command) is still readable but will be refused if that document is updated (for example, renaming that tape). New tapes and edges written by this version are inside the limits.
+- `firestore.rules`, journals: `items` is optional and `itemCount` (0 to 400) is allowed; a journal's items live in `journals/{id}/body/items` (owner only, only that document name, at most 400 items, `updatedAt` must be the server time); a journal may also be updated by `slimOnly()` (its items move out, nothing else changes, so its updated time stays).
+- `firestore.rules`, inbox: `inbox/{sid}/body/items` (a friend can create it only in the same batch as a share they send, at most 400 items; the owner reads and deletes it; the sender can delete it to take a share back).
+- `firestore.rules`, stickers: `thumbUrl` and `thumbPath` (own folder) on create, and on update so an older sticker can be given one.
+- `storage.rules`: a file ending `_t.webp` under `{uid}/stickers/` must be WebP and at most 100 kB (the small picture of a sticker).
+- Effect on existing data: nothing is rewritten by the deploy. Older journals keep their inline `items` and are moved to `body/items` by the app, a few at a time, as people use it (or at their next save). Older stickers get a small picture the first time they are on screen. Older shares keep their items in the payload and are read as before.
 
 To dry-run the rules against the emulators only, `npm run test:rules` does that without touching production.
 
@@ -79,7 +81,7 @@ Then open the live site and watch the browser console on sign in (**including Go
 
 ## 4. Rollback
 
-- **App**: Firebase console → Hosting → Release history → roll back to the previous release (or `git revert` on `main`, tag a patch, and let the workflow redeploy). The sticker documents the new version writes (`edge`, `seed`, `sourcePath`) are ignored by the old version, which is why the rollback is safe; the old version shows the baked image.
+- **App**: Firebase console → Hosting → Release history → roll back to the previous release (or `git revert` on `main`, tag a patch, and let the workflow redeploy). **From v1.8.0 a rollback below v1.8 is not harmless:** a journal whose items have moved to `body/items` has no `items` in its own document, and v1.7.x skips a journal like that (it reads as missing in the list) until v1.8 is back; shares sent from v2 show no page to a v1.7.x receiver. Nothing is lost (the data is all there). Prefer fixing forward with a patch; if you must roll back, roll forward again as soon as the cause is fixed.
 - **Rules**: redeploy the previous rules from git, for example
 
   ```bash
@@ -89,4 +91,4 @@ Then open the live site and watch the browser console on sign in (**including Go
 
   copy them over `firestore.rules` and `storage.rules` in a throwaway checkout, and run the deploy command in step 1 there. Rolling the rules back does not delete any data.
 
-- **Data**: this release performs no migration, so there is nothing to undo in Firestore or Storage.
+- **Data**: v1.8.0 moves data, one journal at a time, in the user's own browser (`useSlimming`: `items` into `body/items`, same content, `updatedAt` kept). It never deletes anything that is not also written elsewhere first (one batch). There is no switch to move it back; copying `body/items` into `items` on a journal restores the older shape by hand.

@@ -25,9 +25,12 @@ service firebase.storage {
     }
 
     // stickers, journal thumbnails and pictures, copies made for sharing, copies made for working together
+    // A sticker's small picture (`<id>_t.webp`, 320 px, about 10 kB) is held to 100 kB, so a tile can
+    // never be made to download something big.
     match /{uid}/stickers/{file=**} {
       allow read: if isOwner(uid);
-      allow create, update: if isOwner(uid) && validPicture();
+      allow create, update: if isOwner(uid) && validPicture()
+        && (!request.resource.name.matches('.*_t[.]webp') || (request.resource.contentType == 'image/webp' && request.resource.size <= 100 * 1024));
       allow delete: if isOwner(uid);
     }
     match /{uid}/journals/{file=**} {

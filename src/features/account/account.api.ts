@@ -11,7 +11,7 @@ import {
   deleteCollection,
   listCollections,
 } from "@/features/collections/collections.api";
-import { deleteJournal, listJournals } from "@/features/journal/journal.api";
+import { deleteJournal, listJournals, withItems } from "@/features/journal/journal.api";
 import { deleteTape, listTapes } from "@/features/tape/tape.api";
 import { fetchProfile } from "@/features/profile/profile.api";
 import { deleteSticker, listStickers } from "@/features/stickers/library/stickers.api";
@@ -21,7 +21,7 @@ import {
   dismissShare,
   listFriends,
   listIncoming,
-  listInbox,
+  listAllInboxIds,
   listSent,
   listSentShares,
   removeFriend,
@@ -41,13 +41,15 @@ import { deleteFileIfExists, deleteFolder } from "@/lib/storage";
 import { buildExport, type AccountExport } from "./account.export";
 
 export async function exportAccountData(uid: string): Promise<AccountExport> {
-  const [profile, stickers, tapes, journals, collections] = await Promise.all([
+  const [profile, stickers, tapes, journalList, collections] = await Promise.all([
     fetchProfile(uid),
     listStickers(uid),
     listTapes(uid),
     listJournals(uid),
     listCollections(uid),
   ]);
+  // the export carries what is on every page, which lists no longer do
+  const journals = await Promise.all(journalList.map((j) => withItems(uid, j)));
   return buildExport({ profile, stickers, tapes, journals, collections });
 }
 
@@ -96,7 +98,7 @@ async function removeSocial(uid: string): Promise<void> {
     listFriends(uid),
     listIncoming(uid),
     listSent(uid),
-    listInbox(uid),
+    listAllInboxIds(uid),
     listWorkspaces(uid),
   ]);
   await Promise.all(
@@ -113,7 +115,7 @@ async function removeSocial(uid: string): Promise<void> {
   ).catch(() => {});
   const stillSent = await listSentShares(uid);
   await Promise.all(stillSent.map((x) => unshare(uid, x.to, x.id, x.files)));
-  await Promise.all(inbox.map((x) => dismissShare(uid, x.id)));
+  await Promise.all(inbox.map((id) => dismissShare(uid, id)));
   await Promise.all(incoming.map((r) => declineRequest(uid, r.from)));
   await Promise.all(sentReq.map((r) => cancelRequest(uid, r.to)));
   await Promise.all(friends.map((f) => removeFriend(uid, f.uid)));

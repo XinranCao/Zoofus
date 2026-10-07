@@ -21,14 +21,14 @@ test.describe("desktop", () => {
     await expect(menu.getByText("Language", { exact: true })).toBeVisible();
     await menu.getByRole("menuitemradio", { name: "中文" }).click();
     await expect(
-      page.getByRole("link", { name: "资料库", exact: true }).first(),
+      page.getByRole("link", { name: "素材库", exact: true }).first(),
     ).toBeVisible();
 
     // the choice is kept after a reload (S9)
     await page.reload();
     await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
     await expect(
-      page.getByRole("link", { name: "资料库", exact: true }).first(),
+      page.getByRole("link", { name: "素材库", exact: true }).first(),
     ).toBeVisible();
   });
 });

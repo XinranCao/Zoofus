@@ -18,7 +18,7 @@ describe("Masthead: what is waiting", () => {
     const nav = screen.getByRole("navigation", { name: "Main" });
     expect(within(nav).getByLabelText("2 waiting")).toHaveTextContent("2");
     expect(
-      within(nav).getByRole("img", { name: "1 invitation waiting" }),
+      within(nav).getByRole("img", { name: "Journal together: 1 invitation waiting" }),
     ).toBeInTheDocument();
     // the phone's one Menu button says that something is waiting inside
     const menu = screen.getByRole("button", { name: /Menu/ });

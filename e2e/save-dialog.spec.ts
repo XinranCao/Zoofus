@@ -35,7 +35,7 @@ test.describe("phone", () => {
 
     const sbox = (await scroller.boundingBox())!;
     const pbox = (await preview.boundingBox())!;
-    expect(pbox.height).toBeLessThanOrEqual(667 * 0.4); // about 40% of the screen
+    expect(pbox.height).toBeLessThanOrEqual(667 * 0.3); // a small part of the screen: the options need the room
     expect(pbox.y).toBeGreaterThanOrEqual(sbox.y - 1);
 
     // scroll to the very end: the last option is above the pinned footer, the preview still shows
@@ -47,9 +47,11 @@ test.describe("phone", () => {
     const after = (await preview.boundingBox())!;
     expect(after.y).toBeGreaterThanOrEqual(sbox.y - 1);
     expect(after.y + after.height).toBeLessThanOrEqual(sbox.y + sbox.height + 1);
-    await expect(dlg.getByRole("radio", { name: "Torn" })).toBeAttached();
-    await dlg.getByRole("radio", { name: "Torn" }).scrollIntoViewIfNeeded();
-    const tbox = (await dlg.getByRole("radio", { name: "Torn" }).boundingBox())!;
+    // the edge shape is a drop-down on a phone
+    const shape = dlg.getByRole("button", { name: /^Edge shape/ });
+    await expect(shape).toBeAttached();
+    await shape.scrollIntoViewIfNeeded();
+    const tbox = (await shape.boundingBox())!;
     expect(tbox.y + tbox.height).toBeLessThanOrEqual(abox.y + 1);
   });
 });
@@ -91,8 +93,8 @@ for (const [width, height] of [
     const st = (await stage.boundingBox())!;
     const sc = (await scroller.boundingBox())!;
     const ac = (await actions.boundingBox())!;
-    // the stage (the preview's box) is at least 140 px high and fully in the scrolling part
-    expect(st.height).toBeGreaterThanOrEqual(140);
+    // the stage (the preview's box) is at least 110 px high and fully in the scrolling part
+    expect(st.height).toBeGreaterThanOrEqual(110);
     expect(st.y).toBeGreaterThanOrEqual(sc.y - 1);
     expect(st.y + st.height).toBeLessThanOrEqual(sc.y + sc.height + 1);
     expect(p.x).toBeGreaterThanOrEqual(st.x - 1);
@@ -158,14 +160,14 @@ test("at 640x360 the preview stays in view while choosing, and Saved is visible"
 test.describe("desktop", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  test("Save to Library is the primary button, Download PNG a quiet one; then See it and Make another", async ({
+  test("Save to Library is the primary button, Download image a quiet one; then See it and Make another", async ({
     page,
   }) => {
     await signUp(page, "Primary");
     const dlg = await toSaveDialog(page);
     const save = dlg.getByRole("button", { name: "Save to Library" });
     await expect(save).toHaveClass(/\bprimary\b/);
-    await expect(dlg.getByRole("button", { name: "Download PNG" })).toHaveClass(
+    await expect(dlg.getByRole("button", { name: "Download image" })).toHaveClass(
       /\bquiet\b/,
     );
     await save.click();
@@ -173,7 +175,7 @@ test.describe("desktop", () => {
     await expect(dlg.getByRole("button", { name: "See it in Library" })).toHaveClass(
       /\bprimary\b/,
     );
-    await expect(dlg.getByRole("button", { name: "Download PNG" })).toHaveClass(
+    await expect(dlg.getByRole("button", { name: "Download image" })).toHaveClass(
       /\bquiet\b/,
     );
     await dlg.getByRole("button", { name: "Make another" }).click();
@@ -206,9 +208,9 @@ test.describe("desktop", () => {
     await expect(note).toBeVisible();
     // the lock is explained in words, in the dialog's description too, and Tab skips what is locked
     await expect(
-      dlg.getByText(/To change the edge, use Edit edge\. The name is fixed\./).first(),
+      dlg.getByText(/Want a different edge\? Tap Edit edge\./).first(),
     ).toBeVisible();
-    await expect(dlg).toHaveAccessibleDescription(/To change the edge, use Edit edge/);
+    await expect(dlg).toHaveAccessibleDescription(/Tap Edit edge/);
     await expect(dlg.getByLabel("Name")).toBeDisabled();
     const landed: string[] = [];
     for (let i = 0; i < 8; i++) {
@@ -232,4 +234,76 @@ test.describe("desktop", () => {
     await page.keyboard.press("Escape");
     await expect(page.locator(".zf-tile")).toHaveCount(1);
   });
+});
+
+// PM-v1.7.6-006: the saved note is whole on a phone (it used to be clipped at 360 to 375 px)
+for (const [width, height] of [
+  [360, 740],
+  [375, 667],
+] as const) {
+  test(`the saved note is whole at ${width}x${height}, and the name hint is gone once saved`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height });
+    await signUp(page, "Phone");
+    const dlg = await toSaveDialog(page);
+    await expect(dlg.getByText(/Optional\. Without one/)).toBeVisible();
+    await dlg.getByRole("button", { name: "Save to Library" }).click();
+    const note = dlg.getByText("Saved to your Library.", { exact: true });
+    await note.scrollIntoViewIfNeeded();
+    const body = dlg.locator(".zf-toast__body", { hasText: /Tap Edit edge/ });
+    await expect(body).toBeVisible();
+    await expect(dlg.getByText(/Optional\. Without one/)).toHaveCount(0);
+    // the text fits its own box, and the box fits what the dialog shows (nothing cut at the sides)
+    const clipped = await body.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const s = el.closest(".zf-dialog__scroll")!.getBoundingClientRect();
+      return (
+        el.scrollWidth > el.clientWidth + 1 ||
+        r.left < s.left - 1 ||
+        r.right > s.right + 1
+      );
+    });
+    expect(clipped).toBe(false);
+  });
+}
+
+// PM-v1.7.6-007: a photo is never squashed in step 2, one press of Save makes one sticker
+for (const [width, height] of [
+  [375, 667],
+  [768, 1024],
+  [1440, 900],
+] as const) {
+  test(`the step 2 preview keeps the shape of what is drawn at ${width}x${height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height });
+    await signUp(page, "Round");
+    const dlg = await toSaveDialog(page);
+    const preview = dlg.getByRole("img", { name: /^Sticker preview/ });
+    await page.waitForTimeout(800); // drawn
+    const { shown, drawn, dbg } = await preview.evaluate((c) => {
+      const el = c as HTMLCanvasElement;
+      const r = el.getBoundingClientRect();
+      return {
+        shown: r.width / r.height,
+        drawn: el.width / el.height,
+        dbg: [r.width, r.height, el.width, el.height, el.style.cssText],
+      };
+    });
+    expect(Math.abs(shown / drawn - 1), JSON.stringify(dbg)).toBeLessThan(0.03);
+  });
+}
+
+test("pressing Save twice quickly makes one sticker, and the edge slider is locked after", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await signUp(page, "Twice");
+  const dlg = await toSaveDialog(page);
+  await dlg.getByRole("button", { name: "Save to Library" }).dblclick();
+  await expect(dlg.getByText("Saved to your Library.", { exact: true })).toBeVisible();
+  await expect(dlg.getByRole("slider", { name: /Edge width/ })).toBeDisabled();
+  await page.goto("/stickers");
+  await expect(page.locator(".zf-grid-book .zf-tile")).toHaveCount(1);
 });

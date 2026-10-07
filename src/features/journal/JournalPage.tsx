@@ -6,7 +6,14 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Reel } from "@/components/ui/Loader";
 import { useToast } from "@/components/ui/Toast";
 import { downloadBlob } from "@/features/stickers/studio/export";
-import { ITEMS_SAVE_MS, PICTURE_AFTER_MS, PICTURE_EVERY_MS } from "./autosave";
+import {
+  ITEMS_MAX_WAIT_MS,
+  ITEMS_SAVE_MS,
+  PICTURE_AFTER_MS,
+  PICTURE_EVERY_MS,
+  PICTURE_MAX_WAIT_MS,
+} from "./autosave";
+import { createScheduler } from "./saveScheduler";
 import { JournalStudio, type JournalExport } from "./JournalStudio";
 import type { Journal } from "./journal.schema";
 import {
@@ -72,6 +79,23 @@ const writeDraft = (key: string, value: string | null) => {
   }
 };
 
+/** How long unsaved changes may wait before the status admits it. */
+const NOT_SAVED_AFTER_MS = 10_000;
+
+/** True once `active` has been true for `ms` without a break. */
+function useElapsed(active: boolean, ms: number) {
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    if (!active) return;
+    const timer = setTimeout(() => setDone(true), ms);
+    return () => {
+      clearTimeout(timer);
+      setDone(false);
+    };
+  }, [active, ms]);
+  return active && done;
+}
+
 function Editor({ journal }: { journal: Journal }) {
   const { t } = useTranslation();
   const toast = useToast();
@@ -115,7 +139,7 @@ function Editor({ journal }: { journal: Journal }) {
       journal: { id: journal.id, thumbPath: thumbPath.current },
       changes: { title: sendTitle, page, items, thumb },
     });
-    if (result) thumbPath.current = result;
+    if (result.thumbPath) thumbPath.current = result.thumbPath;
     savedTitleRef.current = sendTitle;
     setSavedTitle(sendTitle);
     if (titleRef.current.trim() === sendTitle) writeDraft(draftKey, null);
@@ -127,7 +151,6 @@ function Editor({ journal }: { journal: Journal }) {
   const saveNow = async () => {
     try {
       thumbStale.current = false;
-      lastPicture.current = Date.now();
       await persist(true);
       toast.push({ kind: "success", title: t("journal.saved") });
     } catch (err) {
@@ -151,36 +174,34 @@ function Editor({ journal }: { journal: Journal }) {
     latest.current = { persist };
   });
   const thumbStale = useRef(false);
-  const lastPicture = useRef(0);
   useEffect(() => {
-    let data: ReturnType<typeof setTimeout> | null = null;
-    let picture: ReturnType<typeof setTimeout> | null = null;
+    const data = createScheduler({
+      delay: ITEMS_SAVE_MS,
+      maxWait: ITEMS_MAX_WAIT_MS,
+      run: () => void latest.current.persist(false).catch(() => {}),
+    });
+    // the page picture follows a few seconds after the last edit (so what is shared or listed
+    // shows what the page looks like), never more often than every 20 s, and within 30 s of the
+    // first edit that is not in it yet
+    const picture = createScheduler({
+      delay: PICTURE_AFTER_MS,
+      maxWait: PICTURE_MAX_WAIT_MS,
+      minGap: PICTURE_EVERY_MS,
+      run: () => {
+        thumbStale.current = false;
+        void latest.current.persist(true).catch(() => {});
+      },
+    });
     const unsub = store.subscribe((s, prev) => {
       if (!s.dirty || (s.items === prev.items && s.page === prev.page)) return;
       thumbStale.current = true;
-      if (data) clearTimeout(data);
-      data = setTimeout(() => {
-        data = null;
-        void latest.current.persist(false).catch(() => {});
-      }, ITEMS_SAVE_MS);
-      // the page picture follows a few seconds after the last edit (so what is shared or listed
-      // shows what the page looks like), but never more often than every 20 s
-      if (picture) clearTimeout(picture);
-      const wait = Math.max(
-        PICTURE_AFTER_MS,
-        lastPicture.current + PICTURE_EVERY_MS - Date.now(),
-      );
-      picture = setTimeout(() => {
-        picture = null;
-        thumbStale.current = false;
-        lastPicture.current = Date.now();
-        void latest.current.persist(true).catch(() => {});
-      }, wait);
+      data.touch();
+      picture.touch();
     });
     return () => {
       unsub();
-      if (data) clearTimeout(data);
-      if (picture) clearTimeout(picture);
+      data.cancel();
+      picture.cancel();
       if (store.getState().dirty || thumbStale.current)
         void latest.current.persist(true).catch(() => {});
       else if (unsavedTitle()) void latest.current.persist(false).catch(() => {});
@@ -205,6 +226,18 @@ function Editor({ journal }: { journal: Journal }) {
     return () => window.removeEventListener("beforeunload", warn);
   }, [store]);
 
+  // "Saving…" from the first edit, then "Saved". "Not saved yet" only when it is taking long (more
+  // than about 10 s) or the last save failed, so it means something when it shows.
+  const unsaved = dirty || titleDirty;
+  const slow = useElapsed(unsaved, NOT_SAVED_AFTER_MS);
+  const statusState = save.isPending
+    ? "saving"
+    : unsaved
+      ? slow || save.isError
+        ? "pending"
+        : "saving"
+      : "saved";
+
   return (
     <div className="zf-page zf-page--wide">
       <JournalStudio
@@ -215,21 +248,24 @@ function Editor({ journal }: { journal: Journal }) {
         exportRef={exportRef}
         header={
           <>
-            <SaveStatus
-              state={
-                save.isPending ? "saving" : dirty || titleDirty ? "pending" : "saved"
-              }
-            />
-            <Button
-              variant="quiet"
-              size="sm"
-              icon="check"
-              seed="jsave"
-              loading={save.isPending}
-              onClick={() => void saveNow()}
-            >
-              {t("common.save")}
-            </Button>
+            <SaveStatus state={statusState} />
+            {/* Save is only there when something is waiting to be saved (or being saved) */}
+            {(unsaved || save.isPending) && (
+              <Button
+                variant="quiet"
+                size="sm"
+                icon="check"
+                seed="jsave"
+                loading={save.isPending}
+                onClick={() => void saveNow()}
+              >
+                {t("common.save")}
+              </Button>
+            )}
+          </>
+        }
+        more={
+          <>
             <Button
               variant="secondary"
               size="sm"

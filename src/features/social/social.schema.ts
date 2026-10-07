@@ -84,7 +84,12 @@ export const tapePayloadSchema = z.object({
 export const journalPayloadSchema = z.object({
   title: z.string().max(80),
   page: pageSpecSchema,
-  items: itemsSchema,
+  /**
+   * The things on the page. Shares sent since v1.8.0 keep them in `body/items` next to the share (the
+   * inbox list stays light) and carry only how many there are; older ones carry them here.
+   */
+  items: itemsSchema.optional(),
+  itemCount: z.number().int().min(0).optional().catch(undefined),
   assets: assetsSchema.optional().catch(undefined),
   /** A picture of the page, so the inbox can show it. */
   thumbUrl: pictureUrlSchema.optional().catch(undefined),

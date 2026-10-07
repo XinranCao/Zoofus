@@ -4,8 +4,10 @@ import { PatternEditor } from "@/components/ui/PatternEditor";
 import { Slider } from "@/components/ui/Slider";
 import { StudioPreview } from "@/components/ui/StudioPreview";
 import { Sticker } from "@/components/ui/Sticker";
+import { Select } from "@/components/ui/Select";
+import { useMedia, PHONE_QUERY } from "@/lib/useMedia";
 import { ToggleGroup } from "@/components/ui/ToggleGroup";
-import { edgeWidth, type EdgeShape } from "@/paper/dieCut";
+import type { EdgeShape } from "@/paper/dieCut";
 import type { EdgeSpec } from "@/paper/renderSticker";
 
 /**
@@ -34,7 +36,6 @@ export function StickerEdgeStudio({
   lead?: ReactNode;
 }) {
   const { t } = useTranslation();
-  const long = source ? Math.max(source.width, source.height) : previewSize;
   // The preview is drawn whole ("contain") inside what the dialog can show of it: about half of the
   // scrolling part's height, and never under 100 px, so the sticker is never cut by the window.
   const root = useRef<HTMLDivElement>(null);
@@ -48,16 +49,21 @@ export function StickerEdgeStudio({
     observer.observe(scroller);
     return () => observer.disconnect();
   }, []);
-  const phone =
-    typeof window !== "undefined" && window.matchMedia?.("(max-width: 759px)").matches;
+  const phone = useMedia(PHONE_QUERY);
   const short =
     typeof window !== "undefined" && window.matchMedia?.("(max-height: 480px)").matches;
-  const fromRoom = room > 0 ? Math.round(room * (short ? 1 : 0.62)) - 40 : Infinity;
+  // on a phone the preview is a small part of the screen (it stays pinned while the options scroll
+  // under it), so the options have room: about a fifth of the height, never under 96 px
+  const fromRoom = room > 0 ? Math.round(room * (short ? 1 : 0.34)) - 24 : Infinity;
   const size =
     phone || short
       ? Math.max(
-          100,
-          Math.min(previewSize, Math.round(window.innerHeight * 0.4) - 32, fromRoom),
+          96,
+          Math.min(
+            previewSize,
+            Math.round(window.innerHeight * (short ? 0.4 : 0.22)),
+            fromRoom,
+          ),
         )
       : previewSize;
   return (
@@ -68,8 +74,8 @@ export function StickerEdgeStudio({
           style={{
             display: "grid",
             placeItems: "center",
-            minHeight: phone || short ? size + 32 : 320,
-            padding: 16,
+            minHeight: phone || short ? size + 16 : 320,
+            padding: phone || short ? 8 : 16,
           }}
         >
           <Sticker
@@ -93,16 +99,29 @@ export function StickerEdgeStudio({
             <div className="zf-label" style={{ marginBottom: 8 }}>
               {t("maker.edge.shape")}
             </div>
-            <ToggleGroup<EdgeShape>
-              label={t("maker.edge.shape")}
-              seed="es"
-              value={edge.shape}
-              options={(["smooth", "wobbly", "torn"] as const).map((s) => ({
+            {(() => {
+              const shapes = (["smooth", "wobbly", "torn"] as const).map((s) => ({
                 value: s,
                 label: t(`maker.edge.shapes.${s}`),
-              }))}
-              onChange={(shape) => onChange({ shape })}
-            />
+              }));
+              return phone ? (
+                <Select<EdgeShape>
+                  label={t("maker.edge.shape")}
+                  seed="es"
+                  value={edge.shape}
+                  options={shapes}
+                  onChange={(shape) => onChange({ shape })}
+                />
+              ) : (
+                <ToggleGroup<EdgeShape>
+                  label={t("maker.edge.shape")}
+                  seed="es"
+                  value={edge.shape}
+                  options={shapes}
+                  onChange={(shape) => onChange({ shape })}
+                />
+              );
+            })()}
           </div>
           <Slider
             label={t("maker.edge.width")}
@@ -111,9 +130,14 @@ export function StickerEdgeStudio({
             max={160}
             step={10}
             seed="ew"
+            disabled={locked}
             onChange={(v) => onChange({ scale: v / 100 })}
             format={(v) =>
-              v === 0 ? t("maker.edge.none") : `${edgeWidth(long, v / 100)} px`
+              v === 0
+                ? t("maker.edge.none")
+                : t(
+                    `maker.edge.widths.${v <= 60 ? "thin" : v <= 110 ? "medium" : "thick"}`,
+                  )
             }
           />
           <PatternEditor

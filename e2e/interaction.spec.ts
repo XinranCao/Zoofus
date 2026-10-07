@@ -1,4 +1,5 @@
 import { dragOnPhoto } from "./support/draw";
+import { chooseKind } from "./support/flows";
 import { expect, test, type Page } from "@playwright/test";
 import { patternPng, solidPng } from "./png";
 
@@ -20,7 +21,7 @@ async function signUp(page: Page, name = "Tester") {
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Nickname").fill(name);
   await page.getByRole("button", { name: "Start cutting" }).click();
-  await expect(page).toHaveTitle("Zoofus · Make a sticker");
+  await expect(page).toHaveTitle("Zoofus · Home");
 }
 
 async function openMaker(page: Page) {
@@ -126,7 +127,7 @@ test.describe("drawing pixels", () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await signUp(page);
     await page.goto("/tapes?make=1");
-    await page.getByRole("radio", { name: "Pixels" }).click();
+    await chooseKind(page, "Pixels");
     await page.getByRole("button", { name: "Clear" }).click();
     const grid = page.getByRole("group", { name: /Pixel pattern/ });
     const lit = () => grid.locator('[aria-pressed="true"]').count();
@@ -150,7 +151,7 @@ test.describe("drawing pixels", () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await signUp(page);
     await page.goto("/tapes?make=1");
-    await page.getByRole("radio", { name: "Pixels" }).click();
+    await chooseKind(page, "Pixels");
     await page.getByRole("button", { name: "Clear" }).click();
     const cell = page.getByRole("button", { name: "Row 1 column 1" });
     await cell.click();
@@ -280,8 +281,9 @@ async function scanTargets(page: Page, where: string, small: string[]) {
         if (owns(cx, cy + d)) h++;
         else break;
       }
-      // a pixel-grid cell is painted by dragging: it only needs to be a comfortable finger-width
-      const need = el.classList.contains("zf-pixel") ? 32 : 44;
+      // a pixel-grid cell is painted by dragging, and the grid is small on a phone on purpose (so a
+      // finger that is only scrolling the page rarely lands on it): a cell need only be a fingertip wide
+      const need = el.classList.contains("zf-pixel") ? 18 : 44;
       if (w < need || h < need) {
         // what sits on top of it, so a failure on a machine we cannot see says why
         const top = document.elementFromPoint(cx, cy - 20);
@@ -312,7 +314,7 @@ test.describe("touch", () => {
     await scan("tapes");
     await page.goto("/tapes?make=1");
     await scan("tape-dialog");
-    await page.getByRole("radio", { name: "Pixels" }).click();
+    await chooseKind(page, "Pixels");
     await scan("tape-pixels");
     await page.goto("/account");
     await scan("account");
@@ -329,7 +331,7 @@ test.describe("touch", () => {
     await maker.getByRole("button", { name: "Cut it out" }).click();
     await expect(page.getByRole("dialog", { name: "Your sticker" })).toBeVisible();
     await scanTargets(page, "edge studio", small);
-    await page.getByRole("radio", { name: "Pixels" }).click();
+    await chooseKind(page, "Pixels");
     await scanTargets(page, "edge studio pixels", small);
     expect(small, small.join("\n")).toEqual([]);
   });

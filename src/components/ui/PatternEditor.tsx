@@ -16,7 +16,9 @@ import {
 } from "@/paper/pattern";
 import { f1 } from "@/paper/random";
 import { Button } from "./Button";
-import { ColorPicker } from "./ColorPicker";
+import { useMedia, PHONE_QUERY } from "@/lib/useMedia";
+import { ColorDropdown, ColorPicker } from "./ColorPicker";
+import { Select } from "./Select";
 import { PatternFill } from "./Tape";
 import { Slider } from "./Slider";
 import { ToggleGroup } from "./ToggleGroup";
@@ -161,6 +163,7 @@ export function DoodlePad({
   weight: number;
   onChange: (strokes: string[]) => void;
 }) {
+  const phone = useMedia(PHONE_QUERY);
   const { t } = useTranslation();
   const ref = useRef<SVGSVGElement>(null);
   const drawing = useRef<string | null>(null);
@@ -230,7 +233,10 @@ export function DoodlePad({
         </g>
       </svg>
       <div style={{ display: "grid", gap: 6 }}>
-        <div className="zf-pattern-swatch" style={{ width: 96, height: 96 }}>
+        <div
+          className="zf-pattern-swatch zf-pixels__preview"
+          style={{ width: phone ? 56 : 96, height: phone ? 56 : 96 }}
+        >
           <PatternFill spec={preview} />
         </div>
         <div style={{ display: "flex", gap: 2 }}>
@@ -294,54 +300,87 @@ export function PatternEditor({
   const update = <K extends keyof PatternSpec>(key: K, v: PatternSpec[K]) =>
     onChange({ ...s, [key]: v });
   const turns = s.kind !== "solid";
+  // on a phone the choices fold into drop-downs, so the options are short and the preview stays in view
+  const phone = useMedia(PHONE_QUERY);
+  const pickKind = (k: PatternKind) =>
+    // a print the same colour as its paper looks like a blank sticker: start with an ink that shows
+    onChange({
+      ...s,
+      kind: k,
+      ...(k !== "solid" && contrastRatio(s.bg, ink) < MIN_PRINT_CONTRAST
+        ? { ink: readableInk(s.bg) }
+        : {}),
+    });
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div>
         <div className="zf-label" style={{ marginBottom: 8 }}>
           {label}
         </div>
-        <ToggleGroup
-          label={label}
-          seed={"pk" + seed}
-          value={s.kind}
-          options={kinds.map((k) => ({ value: k, label: t(`pattern.kinds.${k}`) }))}
-          onChange={(k) =>
-            // a print the same colour as its paper looks like a blank sticker: start with an ink that shows
-            onChange({
-              ...s,
-              kind: k,
-              ...(k !== "solid" && contrastRatio(s.bg, ink) < MIN_PRINT_CONTRAST
-                ? { ink: readableInk(s.bg) }
-                : {}),
-            })
-          }
-        />
+        {phone ? (
+          <Select<PatternKind>
+            label={label}
+            seed={"pk" + seed}
+            value={s.kind}
+            options={kinds.map((k) => ({ value: k, label: t(`pattern.kinds.${k}`) }))}
+            onChange={pickKind}
+          />
+        ) : (
+          <ToggleGroup
+            label={label}
+            seed={"pk" + seed}
+            value={s.kind}
+            options={kinds.map((k) => ({ value: k, label: t(`pattern.kinds.${k}`) }))}
+            onChange={pickKind}
+          />
+        )}
       </div>
+      {/* each colour picker takes a row of its own, so its swatches have the width they need */}
       <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-        <div>
+        <div style={{ flex: phone ? "1 1 140px" : "1 1 280px", minWidth: 0 }}>
           <div className="zf-label" style={{ marginBottom: 8 }}>
             {s.kind === "solid" ? t("pattern.colour") : t("pattern.paper")}
           </div>
-          <ColorPicker
-            label={t("pattern.paperColour")}
-            colors={USER_COLORS}
-            columns={8}
-            value={s.bg}
-            onChange={(v) => update("bg", v as PatternSpec["bg"])}
-          />
+          {phone ? (
+            <ColorDropdown
+              label={t("pattern.paperColour")}
+              seed={"pb" + seed}
+              colors={USER_COLORS}
+              value={s.bg}
+              onChange={(v) => update("bg", v as PatternSpec["bg"])}
+            />
+          ) : (
+            <ColorPicker
+              label={t("pattern.paperColour")}
+              colors={USER_COLORS}
+              columns={8}
+              value={s.bg}
+              onChange={(v) => update("bg", v as PatternSpec["bg"])}
+            />
+          )}
         </div>
         {s.kind !== "solid" && (
-          <div>
+          <div style={{ flex: phone ? "1 1 140px" : "1 1 280px", minWidth: 0 }}>
             <div className="zf-label" style={{ marginBottom: 8 }}>
               {t("pattern.ink")}
             </div>
-            <ColorPicker
-              label={t("pattern.inkColour")}
-              colors={USER_COLORS}
-              columns={8}
-              value={ink}
-              onChange={(v) => update("ink", v as PatternSpec["ink"])}
-            />
+            {phone ? (
+              <ColorDropdown
+                label={t("pattern.inkColour")}
+                seed={"pi" + seed}
+                colors={USER_COLORS}
+                value={ink}
+                onChange={(v) => update("ink", v as PatternSpec["ink"])}
+              />
+            ) : (
+              <ColorPicker
+                label={t("pattern.inkColour")}
+                colors={USER_COLORS}
+                columns={8}
+                value={ink}
+                onChange={(v) => update("ink", v as PatternSpec["ink"])}
+              />
+            )}
           </div>
         )}
       </div>
@@ -393,7 +432,14 @@ export function PatternEditor({
         </div>
       )}
       {s.kind === "pixels" && (
-        <div style={{ display: "flex", gap: 14, alignItems: "start", flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 14,
+            alignItems: "start",
+            flexWrap: phone ? "nowrap" : "wrap",
+          }}
+        >
           <PixelGrid
             value={s.pixels ?? BLANK_PIXELS}
             bg={s.bg}
@@ -401,7 +447,10 @@ export function PatternEditor({
             onChange={(v) => update("pixels", v)}
           />
           <div style={{ display: "grid", gap: 6 }}>
-            <div className="zf-pattern-swatch" style={{ width: 96, height: 96 }}>
+            <div
+              className="zf-pattern-swatch zf-pixels__preview"
+              style={{ width: phone ? 56 : 96, height: phone ? 56 : 96 }}
+            >
               <PatternFill spec={s} />
             </div>
             <Button

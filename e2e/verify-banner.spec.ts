@@ -20,7 +20,7 @@ test("the verify-email note says once that it is optional, comes after the page 
   const box = await note.boundingBox();
   expect(box!.height).toBeLessThanOrEqual(96);
   await expect(note).toContainText(
-    "Optional for now. Confirming lets you reset your password.",
+    "Optional for now; it lets you reset your password later.",
   );
   // shown under the masthead, above the page...
   const main = await page.locator("#main").boundingBox();
@@ -62,18 +62,20 @@ test("the verify-email note says once that it is optional, comes after the page 
 
   await note.getByRole("button", { name: "Hide this note" }).click();
   await expect(note).toBeHidden();
-  // it shrinks to a small icon that stays put on the next page, and opens the note again
-  const icon = page.getByRole("button", { name: "Confirm your email" });
-  await expect(icon).toBeVisible();
+  // it shrinks to a small chip that stays put on the next page and is itself the Resend button
+  // (Resend was pressed above, so for now it says Sent)
+  await expect(
+    page.getByRole("button", { name: "Email not confirmed · Sent" }),
+  ).toBeVisible();
   await page.goto("/friends");
+  const icon = page.getByRole("button", { name: "Email not confirmed · Resend" });
   await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
   await expect(note).toBeHidden();
   await expect(icon).toBeVisible();
   await icon.click();
-  await expect(note).toBeVisible();
-  // opened again, it is the short form (the sentence is only for the first view)
-  await expect(note).not.toContainText("Optional for now");
-  await expect(note.getByRole("button", { name: "Hide this note" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Email not confirmed · Sent" }),
+  ).toBeDisabled();
 });
 
 test("after a few page views the note shrinks by itself; no overflow at 640x360", async ({
@@ -92,9 +94,8 @@ test("after a few page views the note shrinks by itself; no overflow at 640x360"
     page.getByRole("status").filter({ hasText: "Confirm your email" }),
   ).toBeHidden();
   // collapsed: a chip with words, not a strip, and it still shows on a short screen
-  const chip = page.getByRole("button", { name: "Confirm your email" });
+  const chip = page.getByRole("button", { name: "Email not confirmed · Resend" });
   await expect(chip).toBeVisible();
-  await expect(chip).toContainText("Email not confirmed");
   expect((await chip.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   expect((await page.locator(".zf-verify--small").boundingBox())!.width).toBeLessThan(
     300,

@@ -1,6 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 import { describe, expect, it } from "vitest";
-import { stickerDocSchema } from "./sticker.schema";
+import { stickerDocSchema, smallPicture } from "./sticker.schema";
 
 const doc = {
   name: "Froggo",
@@ -29,5 +29,13 @@ describe("stickerKind", () => {
     expect(stickerKind({ sourceUrl: "u", sourcePath: "p" })).toBe("editable");
     expect(stickerKind({})).toBe("legacy");
     expect(stickerKind({ sourceUrl: "u" })).toBe("legacy");
+  });
+});
+
+describe("smallPicture", () => {
+  it("is the small picture when the sticker has one, else the full file", () => {
+    expect(smallPicture({ imageUrl: "full", thumbUrl: "small" })).toBe("small");
+    expect(smallPicture({ imageUrl: "full" })).toBe("full");
+    expect(smallPicture({ imageUrl: "full", thumbUrl: "" })).toBe("full");
   });
 });

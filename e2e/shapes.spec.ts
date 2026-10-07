@@ -12,7 +12,7 @@ async function openMaker(page: Page) {
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Nickname").fill("Shapes");
   await page.getByRole("button", { name: "Start cutting" }).click();
-  await expect(page).toHaveTitle("Zoofus · Make a sticker");
+  await expect(page).toHaveTitle("Zoofus · Home");
   await page
     .locator('input[type="file"]')
     .first()
@@ -60,10 +60,10 @@ test("the mode decides whether a drawn shape selects or deselects", async ({ pag
   const maker = await openMaker(page);
   const cut = maker.getByRole("button", { name: "Cut it out" });
   await maker.getByRole("radio", { name: /Rectangle/ }).click();
-  await maker.getByRole("radio", { name: "Deselect", exact: true }).click();
+  await maker.getByRole("radio", { name: "Remove", exact: true }).click();
   await dragOnPhoto(page, [0.2, 0.2], [0.6, 0.6]);
   await expect(cut).toBeDisabled(); // only a "select" shape can be cut out
-  await maker.getByRole("radio", { name: "Select", exact: true }).click();
+  await maker.getByRole("radio", { name: "Keep", exact: true }).click();
   await dragOnPhoto(page, [0.1, 0.65], [0.9, 0.95]);
   await expect(cut).toBeEnabled();
 });

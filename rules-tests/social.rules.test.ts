@@ -7,6 +7,7 @@ import {
 import {
   collection,
   deleteDoc,
+  deleteField,
   doc,
   getDoc,
   getDocs,
@@ -116,6 +117,75 @@ describe("journals", () => {
     await assertSucceeds(
       setDoc(ref, journal({ items: new Array(400).fill({ id: "a" }) })),
     );
+  });
+});
+
+describe("journal items in their own document", () => {
+  const slim = (over: object = {}) => ({
+    title: "Trip",
+    page,
+    itemCount: 1,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    ...over,
+  });
+  const body = (over: object = {}) => ({
+    items: [{ id: "a", t: "s", ref: "sticker1", x: 10, y: 10, sc: 1, r: 0, z: 0 }],
+    updatedAt: serverTimestamp(),
+    ...over,
+  });
+
+  it("lets the owner write a journal with its items in body/items, in one batch", async () => {
+    const db = as("alice");
+    const batch = writeBatch(db);
+    batch.set(doc(db, "users/alice/journals/j1"), slim());
+    batch.set(doc(db, "users/alice/journals/j1/body/items"), body());
+    await assertSucceeds(batch.commit());
+    await assertSucceeds(getDoc(doc(db, "users/alice/journals/j1/body/items")));
+    await assertSucceeds(deleteDoc(doc(db, "users/alice/journals/j1/body/items")));
+  });
+
+  it("bounds the items document and its name, and keeps it private", async () => {
+    const db = as("alice");
+    const ref = doc(db, "users/alice/journals/j1/body/items");
+    await assertFails(setDoc(ref, body({ items: new Array(401).fill({ id: "a" }) })));
+    await assertFails(setDoc(ref, body({ extra: 1 })));
+    await assertFails(setDoc(doc(db, "users/alice/journals/j1/body/other"), body()));
+    await assertSucceeds(setDoc(ref, body({ items: new Array(400).fill({ id: "a" }) })));
+    await assertFails(getDoc(doc(as("bob"), "users/alice/journals/j1/body/items")));
+    await assertFails(
+      setDoc(doc(as("bob"), "users/alice/journals/j1/body/items"), body()),
+    );
+  });
+
+  it("refuses a count that is not a number in range", async () => {
+    const ref = doc(as("alice"), "users/alice/journals/j1");
+    await assertFails(setDoc(ref, slim({ itemCount: 401 })));
+    await assertFails(setDoc(ref, slim({ itemCount: -1 })));
+    await assertFails(setDoc(ref, slim({ itemCount: "3" })));
+    await assertSucceeds(setDoc(ref, slim({ itemCount: 400 })));
+  });
+
+  it("lets an older journal move its items out, with nothing else changed", async () => {
+    await seed((db) =>
+      setDoc(doc(db, "users/alice/journals/j1"), {
+        title: "Old",
+        page,
+        items: [{ id: "a", t: "s", ref: "sticker1", x: 1, y: 1, sc: 1, r: 0, z: 0 }],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    );
+    const db = as("alice");
+    const ref = doc(db, "users/alice/journals/j1");
+    // a title change without a new updated time is not allowed in the same move
+    await assertFails(updateDoc(ref, { items: deleteField(), itemCount: 1, title: "x" }));
+    const batch = writeBatch(db);
+    batch.set(doc(db, "users/alice/journals/j1/body/items"), body());
+    batch.update(ref, { items: deleteField(), itemCount: 1 });
+    await assertSucceeds(batch.commit());
+    // putting items back inline without a new updated time is not part of the move
+    await assertFails(updateDoc(ref, { items: [{ id: "a" }], itemCount: 1 }));
   });
 });
 
@@ -360,6 +430,45 @@ describe("sharing", () => {
     await assertFails(getDoc(doc(as("bob"), "users/alice/shareDone/s1")));
     await assertSucceeds(getDoc(doc(as("alice"), "users/alice/shareDone/s1")));
     await assertSucceeds(deleteDoc(doc(as("alice"), "users/alice/shareDone/s1")));
+  });
+  it("a shared journal's items travel in body/items next to the share, and only the sender can send or take them back", async () => {
+    const items = [{ id: "a", t: "x", text: "hi" }];
+    const alice = as("alice");
+    const send = writeBatch(alice);
+    send.set(doc(alice, "users/bob/inbox/j1"), share({ kind: "journal" }));
+    send.set(doc(alice, "users/bob/inbox/j1/body/items"), { items });
+    await assertSucceeds(send.commit());
+    // only I can read them; the sender cannot
+    await assertSucceeds(getDoc(doc(as("bob"), "users/bob/inbox/j1/body/items")));
+    await assertFails(getDoc(doc(alice, "users/bob/inbox/j1/body/items")));
+    // not into a share that is not mine, not without a share, not too many, not another name
+    await assertFails(
+      setDoc(doc(as("carol"), "users/bob/inbox/j1/body/items"), { items }),
+    );
+    await assertFails(setDoc(doc(alice, "users/bob/inbox/none/body/items"), { items }));
+    await assertFails(
+      setDoc(doc(alice, "users/bob/inbox/j1/body/items"), {
+        items: new Array(401).fill({ id: "a" }),
+      }),
+    );
+    await assertFails(setDoc(doc(alice, "users/bob/inbox/j1/body/other"), { items }));
+    // the sender takes it back; the receiver can put it away
+    const back = writeBatch(alice);
+    back.delete(doc(alice, "users/bob/inbox/j1/body/items"));
+    back.delete(doc(alice, "users/bob/inbox/j1"));
+    await assertSucceeds(back.commit());
+  });
+  it("the receiver can delete a share together with its items", async () => {
+    const alice = as("alice");
+    const send = writeBatch(alice);
+    send.set(doc(alice, "users/bob/inbox/j2"), share({ kind: "journal" }));
+    send.set(doc(alice, "users/bob/inbox/j2/body/items"), { items: [] });
+    await assertSucceeds(send.commit());
+    const bob = as("bob");
+    const away = writeBatch(bob);
+    away.delete(doc(bob, "users/bob/inbox/j2/body/items"));
+    away.delete(doc(bob, "users/bob/inbox/j2"));
+    await assertSucceeds(away.commit());
   });
   it("a friend can put something in my inbox, and I can read and delete it", async () => {
     await assertSucceeds(setDoc(doc(as("alice"), "users/bob/inbox/s1"), share()));

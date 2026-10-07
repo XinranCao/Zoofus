@@ -1,5 +1,7 @@
 Zoofus is a scrapbook you build out of your own photos. The interface is made of the same stuff as the stickers: paper scraps torn by hand out of old magazines, laid flat on a notebook page, held down with tape, typed on an old typewriter, in the faded warm colours of a 1970s–80s Popeye magazine. Users don't just consume that look: they make their own tape and their own sticker edges with the same tools.
 
+**Status: updated for v1.8.0.** The rules below are the ones the app follows today. Round 1 was the look (torn paper, tape, stickers); since then the app grew a landing page and a home that changes with the person, a Library with stickers, tapes and journals, the journal studio (desktop, tablet and phone), friends, Together and collections. What is new is listed under "Since round 1" at the end. The preview cards in `components/` and `gallery.html` are round 1's reference; the live gallery of every shipped component is `/dev/design-system` in a dev build, and `e2e/design-system.spec.ts` checks the hard rules on every screen.
+
 Everything below is a rule a builder can follow. Recipes with code are in **Signature elements**, Tailwind wiring is in **Tokens & Tailwind**, screen layouts are in **Screens**, and unresolved points are in **Open questions**.
 
 ## Design principles
@@ -7,7 +9,8 @@ Everything below is a rule a builder can follow. Recipes with code are in **Sign
 ### 1. One name, no tagline
 
 - Set "Zoofus" as one word in `wordmark` (Special Elite, 34px desktop / 26px mobile) in `ink-deep`. Use the `Wordmark` component only.
-- Do not split it, stack it, colour its letters differently, put it on a sticker, or add a slogan, strapline, "beta" tag or descriptor, anywhere (auth, 404, emails, the browser title `Zoofus · My sticker book`).
+- Do not split it, stack it, colour its letters differently, put it on a sticker, or add a slogan, strapline, "beta" tag or descriptor next to it, anywhere (auth, 404, emails). The browser title is `Zoofus · <page>` (for example `Zoofus · Home`).
+- A page may say what Zoofus is in its own words. The landing's `h1` "Turn your photos into stickers." is page copy, set in the heading style below the masthead; the wordmark itself stays alone. Zoofus has no Chinese name or reading: write "Zoofus" in Chinese text too.
 
 ### 2. Flat paper, low contrast between shapes, AA for text
 
@@ -31,6 +34,9 @@ Everything below is a rule a builder can follow. Recipes with code are in **Sign
 - Chinese uses **Xiaolai Mono SC (小赖字体 等宽)**. It is monospaced like Courier Prime, and its loose, slightly clumsy hand-written strokes match Special Elite's worn type better than a formal Song or Kai. The fallbacks are LXGW WenKai, then Noto Serif SC. See the CJK pairing card for alternatives. Raise line-height to 1.75 under `:lang(zh)`.
 - Use sentence case everywhere. Uppercase is reserved for `kicker` ("NO. 02 · STICKER BOOK").
 - The copy is short, plain and a little warm. Name the action ("Cut it out", "Download PNG", "Add to my tape roll"). Use no exclamation marks and no emoji.
+- Say what a click costs before it is clicked ("First a quick sign-up: just an email and a nickname."). Say "Free to use." / 免费使用。 near the main button and in the privacy line, and never show a price. Say plainly who can see what ("Private by default").
+- Chinese copy uses full-width punctuation, 好友 (never 朋友) for friends, and the terms in `src/i18n/locales.test.ts`. The Chinese landing may name 微信 and 小红书; the English one says "a chat, a card, a shop label".
+- Never guilt and never gamify: no streaks, no counters of what a person "should" do, no price, no badge that nags.
 
 ### 5. Scrapbook, not skeuomorph
 
@@ -73,3 +79,11 @@ Everything below is a rule a builder can follow. Recipes with code are in **Sign
 - **Focus.** A 2px `sheet-50` halo, then a 2px `plum-900` ring, traced around the torn silhouette with zero-blur `drop-shadow`s. Plum reaches at least 5:1 on every ground.
 - **Iconography.** Use 24px line icons with a 1.7 stroke and round caps, slightly uneven (`Icon`), in `currentColor`. There is no icon font and no emoji.
 - **Imagery.** Only the user's photos and stickers.
+
+## Since round 1 (v1.8.0)
+
+- **Landing and Home.** Signed out, `/` is a real landing page: a hero scrap with the one brick button, a three-step demo (photo with its lasso, the sticker, the journal page), four "what you can make" scraps, a share strip and a privacy line. Signed in, `/` is a desk: a greeting by time of day, then one of four layouts (a new account, a returning person with "Pick up where you left off", what is waiting for them, or someone away 14+ days). One brick button per view. See `03-screens.md`.
+- **Library.** Stickers, tapes and journals sit under one set of tabs, with the same tile (name above the picture, the same hover actions), bulk select, and "Show more" paging. Tiles use small pictures; the open view and the journal page use the full file.
+- **Journal studio.** Tools, panels and the page for desktop, tablet and phone; drawing tools with real textures; several things moved, turned and pasted as a group; a plain save line. See `03-screens.md`.
+- **Friends, Together, collections, account.** Friend codes, sharing, shared pages worked on live, folders of your own things, export and delete.
+- **New chrome rules found by testing.** Dashed or lined edges on chrome are a background gradient or an SVG, never a `border` (the check rejects any border); a stamp is an SVG oval, never a `border-radius`; icons are 24px; a control's tap area is at least 44px on touch; a dialog never grows past the screen. See `02-signature-elements.md` §9 to §11.

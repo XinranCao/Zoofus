@@ -14,6 +14,7 @@ import { TextField } from "@/components/ui/TextField";
 import { ToastNote, useToast } from "@/components/ui/Toast";
 import { useJournals } from "@/features/journal/useJournals";
 import { LibraryTabs } from "@/features/library/LibraryTabs";
+import { smallPicture } from "@/features/stickers/library/sticker.schema";
 import { useStickers } from "@/features/stickers/library/useStickers";
 import { useTapes } from "@/features/tape/useTapes";
 import { ensureFontsFor } from "@/lib/cjkFonts";
@@ -256,8 +257,8 @@ function CollectionTile({
   const pieces: FolderPiece[] = collection.items
     .flatMap((i): FolderPiece[] => {
       if (i.k === "sticker") {
-        const src = stickers?.find((s) => s.id === i.id)?.imageUrl;
-        return src ? [{ k: "img", src }] : [];
+        const found = stickers?.find((s) => s.id === i.id);
+        return found ? [{ k: "img", src: smallPicture(found) }] : [];
       }
       if (i.k === "journal") {
         const j = journals?.find((x) => x.id === i.id);

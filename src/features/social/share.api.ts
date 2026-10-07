@@ -1,17 +1,24 @@
-import { doc, serverTimestamp, writeBatch } from "firebase/firestore";
+import { doc, getDoc, serverTimestamp, writeBatch } from "firebase/firestore";
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { createJournal } from "@/features/journal/journal.api";
-import type { Asset, Item, Journal } from "@/features/journal/journal.schema";
+import { createJournal, withItems } from "@/features/journal/journal.api";
+import {
+  itemsSchema,
+  type Asset,
+  type Item,
+  type Journal,
+} from "@/features/journal/journal.schema";
 import { saveSticker } from "@/features/stickers/library/stickers.api";
 import type { Sticker } from "@/features/stickers/library/sticker.schema";
 import { saveTape } from "@/features/tape/tape.api";
 import type { Tape } from "@/features/tape/tape.schema";
 import { db, storage } from "@/lib/firebase";
 import { deleteFileIfExists, readPicture, withTimeout } from "@/lib/storage";
+import { cleanForFirestore } from "@/paper/patternSchema";
 import {
   journalPayloadSchema,
   stickerPayloadSchema,
   tapePayloadSchema,
+  type JournalPayload,
   type Share,
 } from "./social.schema";
 
@@ -22,6 +29,8 @@ export type ShareSource =
   | { kind: "journal"; journal: Journal; stickers: Map<string, Sticker> };
 
 const inbox = (uid: string, id: string) => doc(db, "users", uid, "inbox", id);
+const inboxBody = (uid: string, id: string) =>
+  doc(db, "users", uid, "inbox", id, "body", "items");
 const sent = (uid: string, id: string) => doc(db, "users", uid, "sent", id);
 
 async function fetchPicture(url: string): Promise<Blob> {
@@ -55,6 +64,7 @@ export async function shareWith(
   const files: string[] = [];
   let name: string;
   let payload: Record<string, unknown>;
+  let body: Item[] | undefined; // a journal's items go in a document next to the share
 
   try {
     if (source.kind === "sticker") {
@@ -92,7 +102,7 @@ export async function shareWith(
         ends: t.ends,
       };
     } else {
-      const j = source.journal;
+      const j = await withItems(me, source.journal);
       name = j.title;
       const assets: Record<string, Asset> = {};
       const idOf = new Map<string, string>(); // old ref -> new asset id
@@ -133,10 +143,11 @@ export async function shareWith(
         thumbUrl = await putPicture(thPath, th);
         files.push(thPath);
       }
+      body = items;
       payload = {
         title: j.title,
         page: j.page,
-        items,
+        itemCount: items.length,
         assets,
         ...(thumbUrl ? { thumbUrl } : {}),
       };
@@ -153,6 +164,7 @@ export async function shareWith(
       seen: false,
       createdAt: serverTimestamp(),
     });
+    if (body) batch.set(inboxBody(friend, sid), { items: cleanForFirestore(body) });
     batch.set(sent(me, sid), {
       to: friend,
       kind: source.kind,
@@ -178,6 +190,7 @@ export async function unshare(
   files: string[],
 ): Promise<void> {
   const batch = writeBatch(db);
+  batch.delete(inboxBody(friend, sid));
   batch.delete(inbox(friend, sid));
   batch.delete(sent(me, sid));
   await batch.commit();
@@ -216,6 +229,7 @@ export async function saveSharedToMine(
     return saveTape(me, p);
   }
   const p = journalPayloadSchema.parse(share.payload);
+  const items = await loadShareItems(me, share, p);
   const id = crypto.randomUUID();
   const assets: Record<string, Asset> = {};
   for (const [aid, a] of Object.entries(p.assets ?? {})) {
@@ -229,10 +243,22 @@ export async function saveSharedToMine(
       id,
       title: p.title,
       page: p.page,
-      items: p.items,
+      items,
       assets,
       origin: { from: share.from },
     },
     counts.journals,
   );
+}
+
+/** What is on a shared journal's page: in the share (older ones) or in the document next to it. */
+export async function loadShareItems(
+  me: string,
+  share: Pick<Share, "id">,
+  payload: JournalPayload,
+): Promise<Item[]> {
+  if (payload.items) return payload.items;
+  const snap = await getDoc(inboxBody(me, share.id));
+  const r = itemsSchema.safeParse(snap.data()?.items ?? []);
+  return r.success ? r.data : [];
 }

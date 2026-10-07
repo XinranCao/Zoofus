@@ -48,8 +48,8 @@ test("a shared journal shows what is on its page, even before it has a page pict
   await a.getByLabel("Text", { exact: true }).fill("Hello Bobby");
   const status = a
     .getByRole("status")
-    .filter({ hasText: /changes saved|Saving|Not saved/ });
-  await expect(status).toHaveText("All changes saved", { timeout: 8000 });
+    .filter({ hasText: /^(Saved|Saving…|Not saved yet)$/ });
+  await expect(status).toHaveText("Saved", { timeout: 8000 });
   await a.getByRole("link", { name: "← Journals" }).click();
   await a.locator(".zf-tile").first().hover();
   await a.getByRole("button", { name: /^Share: Fresh page/ }).click();

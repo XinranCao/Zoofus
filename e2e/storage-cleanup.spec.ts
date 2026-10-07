@@ -25,7 +25,7 @@ async function stickerObjects(): Promise<string[]> {
   return names;
 }
 
-test("a sticker is one stored file (its outline is text), and deleting it removes that file", async ({
+test("a sticker is two stored files (the picture and its small picture; the outline is text), and deleting it removes both", async ({
   page,
 }) => {
   const before = await stickerObjects();
@@ -36,7 +36,7 @@ test("a sticker is one stored file (its outline is text), and deleting it remove
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Nickname").fill("Orphans");
   await page.getByRole("button", { name: "Start cutting" }).click();
-  await expect(page).toHaveTitle("Zoofus · Make a sticker");
+  await expect(page).toHaveTitle("Zoofus · Home");
   await page
     .locator('input[type="file"]')
     .first()
@@ -52,14 +52,15 @@ test("a sticker is one stored file (its outline is text), and deleting it remove
   await page.getByRole("button", { name: "Save to Library" }).click();
   await expect(page.getByText("Saved to your Library.", { exact: true })).toBeVisible();
 
-  await expect.poll(async () => (await stickerObjects()).length - before.length).toBe(1); // only the picture: the lasso outline lives in the document
+  // the picture and its small picture: the lasso outline lives in the document
+  await expect.poll(async () => (await stickerObjects()).length - before.length).toBe(2);
 
   await page.goto("/stickers");
   await page.getByRole("button", { name: /^Delete: Cut / }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Delete" }).click();
   await expect(page.getByText("No stickers yet")).toBeVisible();
 
-  // the delete is deferred a few seconds (for Undo), then the file must be gone
+  // the delete is deferred a few seconds (for Undo), then both files must be gone
   await expect
     .poll(async () => (await stickerObjects()).length, { timeout: 20_000 })
     .toBe(before.length);

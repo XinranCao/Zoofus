@@ -139,7 +139,7 @@ test("sign up, a sticker, a tape, a journal, friends, together, sign in: no viol
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Log in" }).last().click();
-  await expect(page).toHaveTitle("Zoofus · Make a sticker");
+  await expect(page).toHaveTitle("Zoofus · Home");
   seen.push(...(await violations(page)));
   expect(unexpected([...new Set(seen)])).toEqual([]);
 });
@@ -160,7 +160,7 @@ test("a profile photo uploaded at sign-up works under the policy, with no violat
     buffer: solidPng(300, 300, [200, 120, 90]),
   });
   await page.getByRole("button", { name: "Start cutting" }).click();
-  await expect(page).toHaveTitle("Zoofus · Make a sticker");
+  await expect(page).toHaveTitle("Zoofus · Home");
   await page.goto("/account");
   const avatar = page.locator(".zf-profile__pic img").first();
   await expect(avatar).toBeVisible();

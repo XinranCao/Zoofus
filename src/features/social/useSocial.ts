@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useAuth } from "@/features/auth/useAuth";
 import { useProfile } from "@/features/profile/useProfile";
 import {
@@ -18,6 +23,7 @@ import {
   removeFriend,
   sendRequest,
   setFriendNickname,
+  type InboxPage,
 } from "./social.api";
 import { saveSharedToMine, shareWith, unshare, type ShareSource } from "./share.api";
 import type { Share } from "./social.schema";
@@ -31,7 +37,12 @@ const keys = {
   shared: (uid: string) => ["sentShares", uid] as const,
 };
 
-const POLL = 60_000;
+/**
+ * The live listeners (`useRealtime.ts`) already refresh these lists the moment something arrives,
+ * so this poll is only a safety net (for what a listener of the newest few cannot see, such as a
+ * friend removed by the other side). TanStack Query pauses it while the tab is hidden.
+ */
+const POLL = 5 * 60_000;
 
 function useUid() {
   return useAuth().currentUser?.uid;
@@ -60,12 +71,12 @@ export function useMyPublicProfile() {
   return query;
 }
 
-export function useFriends() {
+export function useFriends(enabled = true) {
   const uid = useUid();
   return useQuery({
     queryKey: keys.friends(uid ?? ""),
     queryFn: () => listFriends(uid!),
-    enabled: Boolean(uid),
+    enabled: Boolean(uid) && enabled,
     refetchInterval: POLL,
   });
 }
@@ -86,11 +97,15 @@ export function useSentRequests() {
     enabled: Boolean(uid),
   });
 }
+/** The inbox, 30 at a time, newest first; `data` is every share loaded so far. */
 export function useInbox() {
   const uid = useUid();
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: keys.inbox(uid ?? ""),
-    queryFn: () => listInbox(uid!),
+    queryFn: ({ pageParam }) => listInbox(uid!, pageParam),
+    initialPageParam: null as InboxPage["cursor"],
+    getNextPageParam: (last) => last.cursor,
+    select: (d) => d.pages.flatMap((p) => p.shares),
     enabled: Boolean(uid),
     refetchInterval: POLL,
   });

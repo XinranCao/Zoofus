@@ -21,7 +21,13 @@ test("the tape note stays past 4 s, offers See in Tapes and can be dismissed", a
   await page.getByRole("button", { name: "Dismiss" }).click();
   await expect(note).toBeHidden();
 
-  await page.goto("/tapes?make=1");
+  // on the Tapes page itself there is nothing to "see": the shortcut is not offered
+  await expect(page.getByRole("button", { name: "See in Tapes" })).toHaveCount(0);
+
+  // from another page it is
+  await page.goto("/friends");
+  await page.getByRole("button", { name: /^Make/ }).click();
+  await page.getByRole("menuitem", { name: "Tape", exact: true }).click();
   await page.getByRole("dialog", { name: "New tape" }).getByLabel("Name").fill("Second");
   await page.getByRole("button", { name: "Add to my tapes" }).click();
   await page.getByRole("button", { name: "See in Tapes" }).click();
