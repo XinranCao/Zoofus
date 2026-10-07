@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
@@ -8,8 +9,10 @@ import { Tape } from "@/components/ui/Tape";
 import { useToast } from "@/components/ui/Toast";
 import { JournalCanvas, type StickerResolver } from "@/features/journal/JournalCanvas";
 import { PaperPreview } from "@/features/journal/PageSetup";
-import { useJournals } from "@/features/journal/useJournals";
+import { useAuth } from "@/features/auth/useAuth";
+import { useJournalCount } from "@/features/journal/useJournals";
 import { ensureFontsFor } from "@/lib/cjkFonts";
+import { loadShareItems } from "./share.api";
 import {
   friendName,
   journalPayloadSchema,
@@ -29,7 +32,8 @@ import {
 /** What friends have shared with you: look, keep it as your own, or let it go. */
 export function SharedWithYou() {
   const { t } = useTranslation();
-  const { data: all = [], isPending } = useInbox();
+  const inboxQuery = useInbox();
+  const { data: all = [], isPending } = inboxQuery;
   // what I have kept is mine now: it leaves this list
   const inbox = all.filter((s) => !s.saved);
   const mark = useMarkSeen();
@@ -58,6 +62,18 @@ export function SharedWithYou() {
           <SharedCard share={s} index={i} />
         </li>
       ))}
+      {inboxQuery.hasNextPage && (
+        <li style={{ gridColumn: "1 / -1", display: "grid", placeItems: "center" }}>
+          <Button
+            variant="secondary"
+            seed="sharemore"
+            loading={inboxQuery.isFetchingNextPage}
+            onClick={() => void inboxQuery.fetchNextPage()}
+          >
+            {t("common.showMore")}
+          </Button>
+        </li>
+      )}
     </ul>
   );
 }
@@ -110,7 +126,7 @@ function Preview({ share, alt }: { share: Share; alt: string }) {
       style={{ maxWidth: "100%", maxHeight: 190, width: "auto", height: "auto" }}
     />
   ) : (
-    <PayloadPagePreview payload={p.data} />
+    <PayloadPagePreview share={share} payload={p.data} />
   );
 }
 
@@ -118,7 +134,22 @@ function Preview({ share, alt }: { share: Share; alt: string }) {
  * A shared journal that came without a page picture (its owner had not saved since the last
  * edit): draw the page itself from what was sent, read-only, so the inbox never shows bare paper.
  */
-function PayloadPagePreview({ payload }: { payload: JournalPayload }) {
+function PayloadPagePreview({
+  share,
+  payload,
+}: {
+  share: Share;
+  payload: JournalPayload;
+}) {
+  const { currentUser } = useAuth();
+  // newer shares keep the items next to the share: read them only now, for the page to be drawn
+  const loaded = useQuery({
+    queryKey: ["shareItems", currentUser?.uid ?? "", share.id],
+    queryFn: () => loadShareItems(currentUser!.uid, share, payload),
+    enabled: Boolean(currentUser) && !payload.items && (payload.itemCount ?? 1) > 0,
+    staleTime: 5 * 60_000,
+  });
+  const items = payload.items ?? loaded.data ?? [];
   const assets = payload.assets;
   const resolve: StickerResolver = useMemo(
     () => (ref: string) => {
@@ -127,15 +158,10 @@ function PayloadPagePreview({ payload }: { payload: JournalPayload }) {
     },
     [assets],
   );
-  if (payload.items.length === 0) return <PaperPreview page={payload.page} width={120} />;
+  if (items.length === 0) return <PaperPreview page={payload.page} width={120} />;
   return (
     <span className="zf-payload-page" style={{ display: "block" }}>
-      <JournalCanvas
-        page={payload.page}
-        items={payload.items}
-        resolve={resolve}
-        width={150}
-      />
+      <JournalCanvas page={payload.page} items={items} resolve={resolve} width={150} />
     </span>
   );
 }
@@ -144,7 +170,8 @@ function SharedCard({ share, index }: { share: Share; index: number }) {
   const { t, i18n } = useTranslation();
   const toast = useToast();
   const { data: friends = [] } = useFriends();
-  const { data: journals = [] } = useJournals();
+  // only the number is needed (the limit on journals), so nothing is listed
+  const { data: journalCount = 0 } = useJournalCount(share.kind === "journal");
   const save = useSaveShared();
   const dismiss = useDismissShare();
   const from = friends.find((f) => f.uid === share.from);
@@ -198,7 +225,7 @@ function SharedCard({ share, index }: { share: Share; index: number }) {
             // awaited here (not a mutate callback): this card leaves the list once the share is kept,
             // and the note must still appear
             void save
-              .mutateAsync({ share, journals: journals.length })
+              .mutateAsync({ share, journals: journalCount })
               .then(() =>
                 toast.push({ kind: "success", title: t(`shared.saved.${share.kind}`) }),
               )

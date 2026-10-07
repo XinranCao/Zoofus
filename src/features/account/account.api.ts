@@ -21,7 +21,7 @@ import {
   dismissShare,
   listFriends,
   listIncoming,
-  listInbox,
+  listAllInboxIds,
   listSent,
   listSentShares,
   removeFriend,
@@ -98,7 +98,7 @@ async function removeSocial(uid: string): Promise<void> {
     listFriends(uid),
     listIncoming(uid),
     listSent(uid),
-    listInbox(uid),
+    listAllInboxIds(uid),
     listWorkspaces(uid),
   ]);
   await Promise.all(
@@ -115,7 +115,7 @@ async function removeSocial(uid: string): Promise<void> {
   ).catch(() => {});
   const stillSent = await listSentShares(uid);
   await Promise.all(stillSent.map((x) => unshare(uid, x.to, x.id, x.files)));
-  await Promise.all(inbox.map((x) => dismissShare(uid, x.id)));
+  await Promise.all(inbox.map((id) => dismissShare(uid, id)));
   await Promise.all(incoming.map((r) => declineRequest(uid, r.from)));
   await Promise.all(sentReq.map((r) => cancelRequest(uid, r.to)));
   await Promise.all(friends.map((f) => removeFriend(uid, f.uid)));

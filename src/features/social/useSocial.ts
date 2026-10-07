@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useAuth } from "@/features/auth/useAuth";
 import { useProfile } from "@/features/profile/useProfile";
 import {
@@ -18,6 +23,7 @@ import {
   removeFriend,
   sendRequest,
   setFriendNickname,
+  type InboxPage,
 } from "./social.api";
 import { saveSharedToMine, shareWith, unshare, type ShareSource } from "./share.api";
 import type { Share } from "./social.schema";
@@ -91,11 +97,15 @@ export function useSentRequests() {
     enabled: Boolean(uid),
   });
 }
+/** The inbox, 30 at a time, newest first; `data` is every share loaded so far. */
 export function useInbox() {
   const uid = useUid();
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: keys.inbox(uid ?? ""),
-    queryFn: () => listInbox(uid!),
+    queryFn: ({ pageParam }) => listInbox(uid!, pageParam),
+    initialPageParam: null as InboxPage["cursor"],
+    getNextPageParam: (last) => last.cursor,
+    select: (d) => d.pages.flatMap((p) => p.shares),
     enabled: Boolean(uid),
     refetchInterval: POLL,
   });

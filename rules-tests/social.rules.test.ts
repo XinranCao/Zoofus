@@ -153,7 +153,9 @@ describe("journal items in their own document", () => {
     await assertFails(setDoc(doc(db, "users/alice/journals/j1/body/other"), body()));
     await assertSucceeds(setDoc(ref, body({ items: new Array(400).fill({ id: "a" }) })));
     await assertFails(getDoc(doc(as("bob"), "users/alice/journals/j1/body/items")));
-    await assertFails(setDoc(doc(as("bob"), "users/alice/journals/j1/body/items"), body()));
+    await assertFails(
+      setDoc(doc(as("bob"), "users/alice/journals/j1/body/items"), body()),
+    );
   });
 
   it("refuses a count that is not a number in range", async () => {
@@ -428,6 +430,45 @@ describe("sharing", () => {
     await assertFails(getDoc(doc(as("bob"), "users/alice/shareDone/s1")));
     await assertSucceeds(getDoc(doc(as("alice"), "users/alice/shareDone/s1")));
     await assertSucceeds(deleteDoc(doc(as("alice"), "users/alice/shareDone/s1")));
+  });
+  it("a shared journal's items travel in body/items next to the share, and only the sender can send or take them back", async () => {
+    const items = [{ id: "a", t: "x", text: "hi" }];
+    const alice = as("alice");
+    const send = writeBatch(alice);
+    send.set(doc(alice, "users/bob/inbox/j1"), share({ kind: "journal" }));
+    send.set(doc(alice, "users/bob/inbox/j1/body/items"), { items });
+    await assertSucceeds(send.commit());
+    // only I can read them; the sender cannot
+    await assertSucceeds(getDoc(doc(as("bob"), "users/bob/inbox/j1/body/items")));
+    await assertFails(getDoc(doc(alice, "users/bob/inbox/j1/body/items")));
+    // not into a share that is not mine, not without a share, not too many, not another name
+    await assertFails(
+      setDoc(doc(as("carol"), "users/bob/inbox/j1/body/items"), { items }),
+    );
+    await assertFails(setDoc(doc(alice, "users/bob/inbox/none/body/items"), { items }));
+    await assertFails(
+      setDoc(doc(alice, "users/bob/inbox/j1/body/items"), {
+        items: new Array(401).fill({ id: "a" }),
+      }),
+    );
+    await assertFails(setDoc(doc(alice, "users/bob/inbox/j1/body/other"), { items }));
+    // the sender takes it back; the receiver can put it away
+    const back = writeBatch(alice);
+    back.delete(doc(alice, "users/bob/inbox/j1/body/items"));
+    back.delete(doc(alice, "users/bob/inbox/j1"));
+    await assertSucceeds(back.commit());
+  });
+  it("the receiver can delete a share together with its items", async () => {
+    const alice = as("alice");
+    const send = writeBatch(alice);
+    send.set(doc(alice, "users/bob/inbox/j2"), share({ kind: "journal" }));
+    send.set(doc(alice, "users/bob/inbox/j2/body/items"), { items: [] });
+    await assertSucceeds(send.commit());
+    const bob = as("bob");
+    const away = writeBatch(bob);
+    away.delete(doc(bob, "users/bob/inbox/j2/body/items"));
+    away.delete(doc(bob, "users/bob/inbox/j2"));
+    await assertSucceeds(away.commit());
   });
   it("a friend can put something in my inbox, and I can read and delete it", async () => {
     await assertSucceeds(setDoc(doc(as("alice"), "users/bob/inbox/s1"), share()));

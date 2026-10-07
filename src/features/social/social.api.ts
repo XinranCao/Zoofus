@@ -9,8 +9,10 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  startAfter,
   updateDoc,
   writeBatch,
+  type QueryDocumentSnapshot,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { localizeUrls } from "@/lib/emulatorUrl";
@@ -277,16 +279,42 @@ export async function setFriendNickname(
 /** The most things waiting for me that are listed (and counted on the badge) at once. */
 export const MAX_LISTED = 50;
 
-export async function listInbox(me: string): Promise<Share[]> {
+/** The inbox is read this many at a time (newest first); older ones come with "Show more". */
+export const INBOX_PAGE = 30;
+
+export interface InboxPage {
+  shares: Share[];
+  cursor: QueryDocumentSnapshot | null;
+}
+
+export async function listInbox(
+  me: string,
+  after: QueryDocumentSnapshot | null = null,
+): Promise<InboxPage> {
   const snap = await getDocs(
-    query(userCol(me, "inbox"), orderBy("createdAt", "desc"), limit(MAX_LISTED)),
+    query(
+      userCol(me, "inbox"),
+      orderBy("createdAt", "desc"),
+      ...(after ? [startAfter(after)] : []),
+      limit(INBOX_PAGE),
+    ),
   );
-  return snap.docs.flatMap((d) => {
-    const r = shareDocSchema.safeParse(d.data());
-    return r.success
-      ? [{ id: d.id, ...r.data, payload: localizeUrls(r.data.payload) }]
-      : [];
-  });
+  return {
+    shares: snap.docs.flatMap((d) => {
+      const r = shareDocSchema.safeParse(d.data());
+      return r.success
+        ? [{ id: d.id, ...r.data, payload: localizeUrls(r.data.payload) }]
+        : [];
+    }),
+    cursor:
+      snap.docs.length === INBOX_PAGE ? (snap.docs[snap.docs.length - 1] ?? null) : null,
+  };
+}
+
+/** Every share waiting for me, for deleting an account (not for showing: the list pages). */
+export async function listAllInboxIds(me: string): Promise<string[]> {
+  const snap = await getDocs(userCol(me, "inbox"));
+  return snap.docs.map((d) => d.id);
 }
 
 export async function markSeen(me: string, id: string): Promise<void> {
@@ -299,7 +327,10 @@ export async function markSaved(me: string, id: string): Promise<void> {
 }
 
 export async function dismissShare(me: string, id: string): Promise<void> {
-  await deleteDoc(userDoc(me, "inbox", id));
+  const batch = writeBatch(db);
+  batch.delete(userDoc(me, "inbox", id, "body", "items")); // a shared journal's items (if any)
+  batch.delete(userDoc(me, "inbox", id));
+  await batch.commit();
 }
 
 /**

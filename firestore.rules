@@ -240,6 +240,19 @@ service cloud.firestore {
         allow update: if isOwner(uid)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seen', 'saved']);
         allow delete: if isOwner(uid) || resource.data.from == request.auth.uid;
+
+        // users/{uid}/inbox/{sid}/body/items: the things on a shared journal's page, kept apart so
+        // the inbox list stays light. Written by the sender in the same batch as the share itself.
+        match /body/{part} {
+          allow read: if isOwner(uid);
+          allow create: if signedIn() && uid != request.auth.uid && part == 'items'
+            && exists(/databases/$(database)/documents/users/$(uid)/friends/$(request.auth.uid))
+            && getAfter(/databases/$(database)/documents/users/$(uid)/inbox/$(sid)).data.from == request.auth.uid
+            && request.resource.data.keys().hasOnly(['items'])
+            && request.resource.data.items is list && request.resource.data.items.size() <= 400;
+          allow delete: if isOwner(uid)
+            || get(/databases/$(database)/documents/users/$(uid)/inbox/$(sid)).data.from == request.auth.uid;
+        }
       }
       // users/{uid}/shareDone/{sid}: the person I shared with says they are finished with it (they
       // kept it, or put it away), so I can remove the files I made for them.
